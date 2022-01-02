@@ -114,7 +114,10 @@
 }
 \parindent=0pt
 \title{\bfseries\sffamily Tutoriál o programovaní (v C/C++)}
-\author{\url{https://github.com/pocestny/programovanie.git}}
+\author{
+  \url{https://beda.dcs.fmph.uniba.sk/programovanie/programovanie.pdf}\and
+  \url{https://github.com/pocestny/programovanie.git}
+}
 \date{\sffamily\today}
 \maketitle
 \renewcommand{\abstractname}{}
@@ -292,7 +295,8 @@ hodnota je \prg~false~. Niekoľko operácií, ktoré vieme vo výrazoch použív
       \prg~/~ & delenie bezo zvyšku: \prg~7/2~ je \prg~3~& 
       \prg~!=~ & rôzne: \prg~3 != 4~ je \prg~true~\\
       \prg~\%~ & zvyšok po delení: \prg~7 \% 2~ je \prg~1~ &
-      \prg~\&\& ||~ & {\em a zároveň}, {\em alebo}\\\hline
+      \prg~\&\& || ~ & {\em a zároveň}, {\em alebo}\\
+      &&\prg~!~&{\em nie}: \prg~!(2==3)~ je \prg!true! \\\hline
     \end{tabular}
   }
 
@@ -1855,7 +1859,8 @@ Prvé štyri generácie budú vyzerať takto:
 \centerline{{\tt 4: ......**.....**......}}
 
 \begin{uloha}
-Napíš program, ktorý načíta $t$ a vypíše jeden riadok z bodiek a hviezdičiek, ktorý
+Napíš program, ktorý načíta $n$ a $t$, pričom $t<n$ a vypíše jeden riadok dĺžky $2n+1$
+z bodiek a hviezdičiek, ktorý
 bude znázorňovať, ako bude kolónia vyzerať po $t$ generáciách.
 \end{uloha}
 
@@ -2555,6 +2560,9 @@ desaťkrát hodnota čísla \prg!'456'! plus hodnota cifry \prg!'7'!.
 
 \begin{uloha}
   Uprav predchádzajúce riešenie tak, aby pracovalo s viaccifernými číslami.
+  Pre načítavanie znakov použi na začiatku programu príkaz \prg!cin >> noskipws!,
+  aby nasledujúce príkazy \prg!cin >> c! nepreskakovali whitespace znaky (inak 
+  by program nevedel povedaž, že napr. po stlačení '4' a 'enter' má skončiť).
 \end{uloha}
 
 
@@ -3671,27 +3679,24 @@ je aj jednoduchá podpora na prácu s farebnými obrázkami, takže napr. progra
 \ods
 \vbox{
 \begin{lstlisting}[] 
-#include <iostream>
 #include "obrazok.h"
+#include <iostream>
 using namespace std;
 
 struct Farba {
   unsigned char r, g, b, a;
 };
 
-const int N = 1000;
-Farba x[N][N], pal[2] = {{0, 0, 255, 255}, {255, 255, 0, 255}};
+Farba pal[2] = {{0, 0, 255, 255}, {255, 255, 0, 255}};
 
 int main() {
   int d = 100;
-  int n = 8 * d, m = 8 * d;
-  for (int i = 0; i < 8; i++)
-    for (int j = 0; j < 8; j++)
-      for (int k = 0; k < d; k++)
-        for (int l = 0; l < d; l++)
-          x[i * d + k][j * d + l] = pal[(1 + i + j) % 2];
-
-  zapis_rgba_png_vyrez(N, N, x, "vystup.png", 0, 0, n, m);
+  Farba a[8 * d][8 * d];
+  int i, j;
+  for (i = 0; i < 8 * d; i++)
+    for (j = 0; j < 8 * d; j++)
+      a[i][j] = pal[((i / d) + (j / d)) % 2];
+  zapis_rgba_png(8 * d, 8 * d, a, "vystup.png");
 }
 \end{lstlisting}
 }
@@ -4977,6 +4982,7 @@ tak veľký kus, ako sme potrebovali. Toto evidentne nie je najlepší prístup.
 
 % binarne vyhladavanie: median z dvoch poli, susenie pradla,
 % knihy - rozdelit na k suvislych casti, minimalizovat sucet 
+% urobit ulohy s lepsou zlozitostou
 
 % nahodne cisla: generator terenu 
 
