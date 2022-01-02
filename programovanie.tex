@@ -1,0 +1,4718 @@
+\documentclass[10pt]{article}
+\usepackage{a4wide}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage[slovak]{babel}
+\usepackage{listings}
+\usepackage[utf8]{inputenc}
+\usepackage[colorlinks]{hyperref}
+\usepackage{tikz}
+\usepackage{pgffor}
+\usepackage{fancyvrb}
+\usepackage{graphicx}
+\usepackage{pgfplotstable}
+\usepackage{pgfplots}
+
+% invoke with: pdflatex -shell-escape -output-dir=/tmp <thisfile>
+\if11
+\usepgfplotslibrary{external} 
+\tikzexternalize
+\fi
+
+\usetikzlibrary{%
+  arrows,matrix,
+  arrows.meta,
+  positioning,decorations,
+  decorations.pathreplacing,
+  decorations.pathmorphing,
+  decorations.markings,decorations.text,
+  decorations.shapes,intersections,
+  patterns,calligraphy
+}
+
+
+
+\def\prg{\lstinline}
+\def\ods{\vspace*{10pt}}
+\def\link#1#2{\href[pdfnewwindow=true]{#1}{#2\footnote{\nolinkurl{#1}}}}
+\long\def\IGNORE#1{}
+\long\def\cmd#1{{\em\color[rgb]{0.12,0.4,0.3}#1}}
+
+\newtheorem{uloha}{Úloha}
+\setlength{\fboxsep}{0pt}
+
+\def\bp{\begin{minipage}[t]{0.45\textwidth}}\vspace{0pt}
+\def\ep{\end{minipage}}
+\def\inp{{\rm Vstup:}\\[-4.2ex]}
+\def\outp{{\rm Výstup:}\\[-4.2ex]}
+
+% sections on/off
+
+%% ALL ON
+\if11
+\def\secti{1}    % rychly uvod
+\def\sectii{1}   % podmienky 
+\def\sectiii{1}  % cykly
+\def\sectiv{1}   % polia
+\def\sectv{1}    % dalsie cykly
+\def\sectvi{1}   % algoritmicke ulohy a prikazovy riadok
+\def\sectvii{1}  % cisla, znaky, retazce
+\def\sectviii{1} % dvojrozmerne polia
+\def\sectix{1}   % ciernobiele obrazky
+\def\sectx{1}    % funkcie
+\def\sectxi{1}   % rekurzia
+\def\longSierp{1}
+\def\sectxii{1}  % zlozitost
+\def\longCharts{1}
+\def\sectxiii{1}  % datove struktury: stack
+\def\sectxiv{1}  % vlastne typy
+\def\sectxv{1}  % (ne)realne cisla
+\def\sectxvi{1} % graficky editor
+\def\sectxvii{1} % adresy a smerniky
+\fi
+
+%% ALL OFF
+\if10
+\def\secti{0}    % rychly uvod
+\def\sectii{0}   % podmienky 
+\def\sectiii{0}  % cykly
+\def\sectiv{0}   % polia
+\def\sectv{0}    % dalsie cykly
+\def\sectvi{0}   % algoritmicke ulohy a prikazovy riadok
+\def\sectvii{0}  % cisla, znaky, retazce
+\def\sectviii{0} % dvojrozmerne polia
+\def\sectix{0}   % ciernobiele obrazky
+\def\sectx{0}    % funkcie
+\def\sectxi{0}   % rekurzia
+\def\longSierp{0}
+\def\sectxii{0}  % zlozitost
+\def\longCharts{0}
+\def\sectxiii{0}  % datove struktury: stack
+\def\sectxiv{0}  % vlastne typy
+\def\sectxv{0}  % (ne)realne cisla
+\def\sectxvi{0} % graficky editor
+\def\sectxvii{0} % adresy a smerniky
+\fi
+
+
+
+\begin{document}
+\lstset{language=C++,
+                basicstyle=\rm\ttfamily,
+                lineskip=-1pt,
+                keywordstyle=\color[rgb]{0,0.5,1}\ttfamily,
+                stringstyle=\color[rgb]{0.8,0.5,0.3}\ttfamily,
+                commentstyle=\color[rgb]{0.4,0.4,0.6}\ttfamily,
+                morecomment=[l][\color{magenta}]{\#},
+                emph={cout,endl,cin},emphstyle={\color{magenta}\ttfamily},
+                extendedchars=true,
+                inputencoding=utf8,
+                alsoletter={&\%},
+                literate={ĺ}{{\'l}}1{ľ}{{\'l}}1{ý}{{\'y}}1{ž}{{\v{z}}}1{á}{{\'a}}1{č}{{\v{c}}}1{í}{{\'\i}}1{ú}{{\'u}}1{š}{{\v{s}}}1{ň}{{\v{n}}}1{é}{{\'e}}1
+}
+\parindent=0pt
+\title{\bfseries\sffamily Tutoriál o programovaní (v C/C++)}
+\date{\sffamily\today}
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\secti1
+\section{Rýchly úvod}
+
+Aby sme mohli rýchlo začať programovať,
+spravíme si základnú kostru programu. Čo v nej je si vysvetlíme neskôr, zatiaľ
+ju budeme používať bez vysvetlenia:
+
+\begin{lstlisting}[]
+#include <iostream>
+using namespace std;
+int main() {
+  // Riadok začínajúci sa // je komentár.
+  // Tu bude náš program
+}
+\end{lstlisting}
+
+Na spustenie sa dá použiť nejaké prostredie (napr.
+\link{https://www.codeblocks.org/}{Code::Blocks}), alebo linuxový terminál. V
+hocijakom editore (napr. \link{https://atom.io/}{Atom}) 
+napíšeme súbor s programom, ktorý nazveme napr. \prg!program.cc! a skompilujeme ho
+napr. \prg!g++ program.cc -o program! (týmto hovoríme kompilátoru\footnote{%
+Kompilátor je program, ktorý z textu programu vyrobí spustiteľný kód. V linuxe sú
+najrozšírenejšie kompilátory \prg~g++~ a \prg~clang++~. Samozrejme, kompilátor je 
+program, ako každý iný a treba ho mať nainštalovaný, aby fungoval.
+} 
+\prg!g++!, aby
+zobral program \prg!program.cc! a vyrobil spustiteľný súbor (binárku) 
+\prg~program~). Potom môžeme spustiť
+\prg~./program~
+Keby náš program mal chybu, kompilátor vypíše chybovú hlášku a binárku nevyrobí.
+Keby sme napríklad namiesto \prg!using! napísali \prg!fusakla!, chybová hláška by mohla
+vyzerať nejak takto:
+
+\begin{Verbatim}[commandchars=\\\{\}]
+program.cc:2:1: \textcolor{red}{error:} ‘fusakla’ does not name a type
+    2 | \textcolor{red}{fusakla} namespace std;
+      | \textcolor{red}{^~~~~~}
+\end{Verbatim}
+
+Vidíme, že chyba je v súbore \prg!program.cc! na riadku 2 a nasleduje aj opis chyby.
+Prostredia ako Code::Blocks chybu zvyčajne vypíšu v samostatnom okne a zvýraznia v texte
+programu. Keď už vieš, ako program skompilovať a spustiť, môžme začať programovať.
+
+\ods Základný stavebný prvok programu je {\em výraz}. Výraz je príklad, ktorý
+sa počas behu programu vyráta a zistí sa jeho výsledok ({\em hodnota výrazu}). 
+Napr. \prg~3*(2+5)~ je
+výraz, ktorého hodnota (výsledok) je \prg~21~.  Druhý stavebný prvok je {\em príkaz}.
+Príkaz hovorí, čo sa má s hodnotou výrazu urobiť. 
+Príkaz je vždy ukončený bodkočiarkou.  Najjednoduchší
+príkaz nerobí nič: \prg~3*(2+5);~ hovorí \cmd{Vyrátaj príklad $3\cdot(2+5)$ a
+výsledok zahoď.} Príkaz na vypísanie hodnoty na konzolu je \prg~cout<<~ takže
+\prg~cout << 3*(2+5);~ znamená \cmd{Vypočítaj príklad $3\cdot(2 + 5)$ a výsledok
+vypíš.} Špeciálny výraz je \prg ~endl~, ktorého hodnota je 'koniec riadku'.
+
+\ods Prvý program teda vyzerá takto :
+
+\vbox{
+\begin{lstlisting}[]
+#include <iostream>
+using namespace std;
+int main() {
+  cout << 3 * (2 + 5);
+  cout << endl;
+}
+\end{lstlisting}
+}
+Keď ho spustíme, vypíše sa 21.
+
+\ods Samozrejme nechceme, aby sme pre každý príklad písali samostatný program, ale chceme,
+aby jeden program rátal veľa rôznych príkladov. Na to slúžia {\em premenné}. Premenná
+je krabička, ktorá má meno a môže v nej byť uložená nejaká hodnota. Každú premennú treba
+najprv vyrobiť a pritom treba povedať, aké hodnoty v nej môžu byť uložené (tomu sa hovorí
+{\em typ} premennej). Základný typ je \prg~int~. Premenné typu \prg~int~ vedia ukladať celé 
+čísla ({\em integer}). Meno typu je zároveň aj príkaz na vyrobenie premennej.
+Takže \prg~int x;~ je príkaz, ktorý hovorí \cmd{Vyrob premennú, ktorá sa bude volať 
+\prg~x~ a budú sa v nej dať ukladať celé čísla.} Premennú si môžeš nazvať hocijako, ale
+meno sa musí skladať z veľkých a malých písmen (bez diakritiky) a podčiarkovníkov ({\tt \_}).
+Môžu v ňom byť aj čísla, ale nesmie sa číslom začínať. Napr. {\tt u3\_prachDoma} je
+dobré meno premennej. Príkaz \prg~=~ slúži na uloženie
+výsledku do premennej. Takže \prg~x = 3 * (2 + 5);~ hovorí \cmd{Vypočítaj príklad $3\cdot(2+5)$
+a výsledok ulož do premennej, ktorá sa volá \prg~x~}. Po vykonaní tohto príkazu
+teda v premennej \prg~x~ bude uložená hodnota \prg~21~. Samotné meno premennej
+je výraz, ktorého hodnota je číslo, ktoré je v nej práve uložené. Čo urobí nasledovný program?
+\begin{lstlisting}[]
+#include <iostream>
+using namespace std;
+int main() {
+  int x;
+  x = 2 + 5;
+  cout << 3 * x;
+  cout << endl;
+}
+\end{lstlisting}
+Prvý príkaz vyrobí premennú \prg~x~, druhý príkaz vyráta príklad $2+5$ a výsledok (teda $7$)
+uloží do premennej \prg~x~. Tretí príkaz ráta príklad \cmd{Vynásob číslo $3$ a obsah premennej
+\prg~x~}. V premennej \prg~x~ je práve uložená sedmička, takže výsledok príkladu je 
+$3\cdot7=21$ a to je číslo, ktoré sa vypíše. 
+
+
+\ods Posledný príkaz z tejto časti je
+\prg~cin>>~, ktorý čaká, kým používateľ napíše na klávesnici číslo (a stlačí {\tt Enter})
+a toto číslo uloží do premennej. Koľko vypíše nasledovný program,
+ak mu napíšeš číslo 4? Skús si to najprv vyrátať sám a potom vyskúšať, či si mal pravdu. 
+\begin{lstlisting}[]
+#include <iostream>
+using namespace std;
+int main() {
+  int x;
+  cin >> x;
+  x = x + 5;
+  cout << 3 * x;
+  cout << endl;
+}
+\end{lstlisting}
+
+Zopakujme si to. Výraz je príklad, ktorý má výsledok (hodnotu). Videli sme
+v ňom vystupovať sčítanie, odčítanie, násobenie, čísla a mená premenných. 
+Keď sa počíta výsledok a vo výraze je meno premennej, zoberie sa hodnota, ktorá je v nej 
+práve uložená. Toto je dôležité: musíme rozlišovať, medzi tým, čo vieme v čase, keď píšeme 
+program ({\em compile-time}) a tým, čo vie program, keď už pracuje ({\em runtime}).
+Napr. v predchádzajúcom programe ak zadáme číslo 4, vypíše sa $3\cdot(4+5)$, teda $27$.
+Ak zadáme číslo $1$, vypíše sa $3\cdot(1+5)$, teda $18$. Pri písaní programu vieme,
+že ak napíšeme na vstupe hocijaké číslo $a$, vypíše sa výsledok príkladu $3\cdot(a+5)$,
+ale nevieme dopredu povedať, aké číslo to bude (to bude známe až počas behu programu).
+
+\begin{uloha}
+  Pytagoras si ukladal kamienky do obdĺžnika takto:
+
+  \ods
+  \centerline{\begin{tikzpicture}
+    \foreach \i in {0,...,4} \foreach \j in {0,...,2}
+    \filldraw[fill=brown!90!yellow] (\i*4ex,\j*4ex) circle (1ex);
+  \end{tikzpicture}}
+
+  \ods
+  Napíš program, ktorý prečíta zo vstupu dve čísla: koľko kamienkov má Pytagoras v riadku
+  a koľko v stĺpci. Program má vypísať, koľko kamienkov Pytagoras použil.
+  Obrázok vyššie má 5 kamienkov v riadku a 3 riadky a Pytagoras v ňom použil 15 kamienkov.
+\end{uloha}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectii1
+\section{Podmienky}
+
+Pretože v čase, keď píšeme program, nevieme, čo bude v ktorej premennej uložené,
+potrebujeme príkazy, ktoré nám umožnia urobiť rôzne veci, podľa toho, čo sa v premenných
+nachádza. Na to si najprv potrebujeme predstaviť iný typ. 
+Okrem typu \prg~int~, ktorý znamená celé číslo, 
+je aj typ \prg~bool~ ({\em boolean}), ktorý môže mať dve hodnoty: \prg~true~ (pravda)
+a \prg~false~ (nepravda). Rovnako, ako môžme mať príklady (výrazy) s celými číslami,
+môžme mať aj príklady s pravdivostnými hodnotami. Napr. \prg~3 > 5~ je výraz, ktorého
+hodnota je \prg~false~. Niekoľko operácií, ktoré vieme vo výrazoch používať:
+
+\ods
+  \centerline{
+    \begin{tabular}{|c|l||c|l|}\hline
+      \multicolumn{2}{|c||}{výsledok je \prg~int~}&
+    \multicolumn{2}{c|}{výsledok je \prg~bool~}\\\hline
+      \prg~+ - *~& napr. \prg~3 + 2~ & \prg~== > < >= <=~ & napr. \prg~5 >= 3~,  \prg~4 == 4~ 
+      \footnote{musíme použiť dva znaky ==, lebo = je príkaz na uloženie výsledku do premennej}\\
+      \prg~/~ & delenie bezo zvyšku: \prg~7/2~ je \prg~3~& 
+      \prg~!=~ & rôzne: \prg~3 != 4~ je \prg~true~\\
+      \prg~\%~ & zvyšok po delení: \prg~7 \% 2~ je \prg~1~ &
+      \prg~\&\& ||~ & {\em a zároveň}, {\em alebo}\\\hline
+    \end{tabular}
+  }
+
+\ods
+Príkaz \prg~if~ vyhodnotí podmienku (ktorá musí byť napísaná v zátvorkách)
+a vykoná iný príkaz iba vtedy, ak výsledok je \prg~true~.
+Napr. \prg~if ( x > 5 ) x = 5;~ hovorí \cmd{Zober si hodnotu teraz uloženú v premennej 
+\prg~x~ a zisti, či je viac ako 5. Ak je to pravda, 
+ulož do \prg~x~ hodnotu 5. Inak neurob nič.} Aby nebolo treba písať veľakrát tú istú 
+podmienku, existuje tzv. {\em zložený príkaz}. Kedykoľvek napíšeme viac príkazov
+do kučeravých zátvoriek (\prg~{}~), správajú sa ako jeden príkaz. Tieto dva programy
+sú rovnaké:
+
+\bp
+\begin{lstlisting}[] 
+if (a > 4) x = a;
+if (a > 4) x = x + 5;
+if (a > 4) cout << x;
+\end{lstlisting}
+\ep
+\hfill
+\bp
+\begin{lstlisting}[] 
+if (a > 4) {
+  x = a;
+  x = x + 5;
+  cout << x;
+}
+\end{lstlisting}
+\ep
+
+Príkaz \prg~if~ má aj rozšírenú verziu so slovom \prg~else~ (inak):
+
+\begin{lstlisting}[] 
+if (a >= 0)
+  cout << a;
+else
+  cout << -a;
+\end{lstlisting}
+
+Vnáraním podmienok vieme vytvárať rozhodovacie stromy. Povedzme, že máme tri premenné
+\prg~a,b,c~ a chceme zistiť, ktorá je najväčšia. To vieme urobiť tak, že sa budeme 
+postupne pýtať:
+
+\ods
+\begin{tikzpicture}
+  \tikzstyle{every node}=[text width=3.2cm,
+  draw=brown, thick, fill=yellow!10]
+  \tikzstyle{level 1}=[sibling distance=9cm]
+  \tikzstyle{level 2}=[sibling distance=4cm]
+  \node
+  {Platí \prg~a > b~ ?} 
+  [level distance =3cm] 
+  child{
+    node{Ak áno, viem, že \prg~b~ nie je najväčšie, preto 
+    najväčšie je \prg~a~ alebo \prg~c~. Stačí mi zistiť, ktoré z nich to je. 
+    Opýtam sa, či platí \prg~a > c~.}
+    child{node{Ak áno, tak \prg~a~ je najväčšie.}}
+    child{node{Ak nie, tak \prg~c~ je najväčšie. }}
+  }
+  child{
+    node{Ak nie, viem, že \prg~a~ nie je najväčšie, preto 
+    najväčšie je \prg~b~ alebo \prg~c~. Stačí mi zistiť, ktoré z nich to je. 
+    Opýtam sa, či platí \prg~b > c~.}
+    child{node{Ak áno, tak \prg~b~ je najväčšie.}}
+    child{node{Ak nie, tak \prg~c~ je najväčšie. }}
+  }
+  ;
+  \end{tikzpicture}
+
+
+Toto viem zapísať do programu :
+
+\vbox{
+\begin{lstlisting}[]
+#include <iostream>
+using namespace std;
+int main() {
+    int a, b, c;
+    cin >> a >> b >> c;
+    if (a > b) {      
+      if (a > c)
+        cout << a;
+      else
+        cout << c;
+    } else {
+      if (b > c)
+        cout << b;
+      else
+        cout << c;
+    }
+    cout << endl;
+}
+\end{lstlisting}
+}
+
+Tu som použil skrátený zápis: namiesto \prg~int a; int b; int c;~ môžem napísať
+\prg~int a, b, c;~ a namiesto \prg~cin >> a; cin >> b; cin >> c;~ môžem písať
+\prg~cin >> a >> b >> c;~ Tiež si si už asi všimol, že nezáleží na tom, ako
+sú v texte programu medzery a riadky. Je rozumné mať text {\em odsadený} tak,
+aby sa dal dobre čítať: každý príkaz na zvláštnom riadku a vnorené príkazy 
+majú na začiatku riadku viac medzier, aby začínali viac vpravo. 
+Rovnako je dobré nazvať premenné tak,
+aby bolo z názvu jasné, čo je v nich uložené. 
+Ale nie je to nutné. Aj toto\footnote{
+  Program je zo súťaže \href{www.ioccc.org}{\nolinkurl{www.ioccc.org}} o 
+  najnečitateľnejší C/C++ 
+  program\newline
+  (\href{https://www.ioccc.org/2011/eastman/hint.html}{%
+\nolinkurl{https://www.ioccc.org/2011/eastman/hint.html}}).}
+je správny program, ale nie je ľahké zistiť, 
+čo vlastne robí:
+
+\vbox{
+\begin{lstlisting}[]
+#include <stdio.h>
+#include <math.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+
+             main() {
+         short a[4];ioctl
+      (0,TIOCGWINSZ,&a);int
+    b,c,d=*a,e=a[1];float f,g,
+  h,i=d/2+d%2+1,j=d/5-1,k=0,l=e/
+ 2,m=d/4,n=.01*e,o=0,p=.1;while (
+printf("\x1b[H\x1B[?25l"),!usleep(
+79383)){for (b=c=0;h=2*(m-c)/i,f=-
+.3*(g=(l-b)/i)+.954*h,c<d;c+=(b=++
+b%e)==0)printf("\x1B[%dm ",g*g>1-h
+*h?c>d-j?b<d-c||d-c>e-b?40:100:b<j
+||b>e-j?40:g*(g+.6)+.09+h*h<1?100:
+ 47:((int)(9-k+(.954*g+.3*h)/sqrt
+  (1-f*f))+(int)(2+f*2))%2==0?107
+    :101);k+=p,m+=o,o=m>d-2*j?
+      -.04*d:o+.002*d;n=(l+=
+         n)<i||l>e-i?p=-p
+             ,-n:n;}}
+\end{lstlisting}
+}
+
+\begin{uloha}
+ Napíš program, ktorý načíta tri čísla a vypíše prostredné z nich.
+\end{uloha}
+
+\begin{uloha}
+  Napíš program, ktorý načíta číslo mesiaca (1 pre január, 2 pre február, atď.)
+  a vypíše číslo ročného obdobia 
+  (1 pre jar, 2 pre leto, 3 pre jeseň a 4 pre zimu).
+\end{uloha}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectiii1
+\section{Cykly}
+
+Videli sme už príkazy na načítanie a vypísanie, uloženie výsledku do premennej
+a vyhodnotenie podmienky. Ďalšie užitočné príkazy sú tzv. {\em cykly}, ktoré
+nejaký príkaz opakujú viackrát. Predstavíme si jeden z nich: \prg~while~.
+Príkaz \prg~while~ má, podobne ako \prg~if~, v zátvorkách napísanú
+podmienku a za ňou príkaz. \prg ~while ~robí to, že stále dokola vyhodnocuje
+podmienku a kým je splnená, vykonáva príkaz. Podobne ako pri \prg!if!
+sa dá použiť zložený príkaz: v \prg!{}! uzavretých viac príkazov
+sa správa ako jeden. Čo robí tento program?
+
+\begin{lstlisting}[]
+#include <iostream>
+using namespace std;
+int main() {
+  int x;
+  x = 1;
+  while (x < 11) {
+    cout << x << endl;
+    x = x + 1;
+  }
+}
+\end{lstlisting}
+
+Najprv vyrobí premennú \prg~x~ a uloží do nej jednotku. Potom dokola robí toto:
+\cmd{Pozri sa, či \prg~x < 11~. Ak áno, vypíš \prg~x~, ulož do \prg~x~ číslo
+o 1 väčšie, ako tam bolo doteraz a celé to zopakuj.} Cyklus teda postupne vypíše riadky s 
+číslami 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 a potom skončí. Jedna vec, na ktorú si treba dávať pri 
+cykle pozor, je, že sa ľahko môže stať, že nikdy neskončí a program sa {\em zacyklí}.
+Keby sme napr. zabudli napísať riadok \prg~x = x + 1;~, \prg~x~ sa nikdy nezmení,
+\prg~x < 11~ bude platiť stále a program bude donekonečna vypisovať riadok s číslom 1.
+
+\ods Urobme ešte jeden príklad. Dajme tomu, že používateľ napíše najprv jedno
+prirodzené číslo $n$ a potom $n$ prirodzených čísel. Našou úlohou je zistiť,
+ktoré z nich je najväčšie. Napr. ak by sme na vstupe napísali \prg!5 6 3 9 12 1!, 
+program má vypísať \prg!12!.  Ako to naprogramovať? Najprv si vyrobíme
+premennú \prg!int n;! kde si uložíme počet čísel \prg!cin >> n;! Potom
+potrebujeme $n$-krát zopakovať toto: \cmd{Prečítaj číslo \prg!x!  a ak je
+väčšie, ako doteraz najväčšie, tak doteraz najväčšie číslo je \prg!x!.} Ako
+môžme niečo zopakovať $n$-krát? Urobíme cyklus, v ktorom vždy odrátame z
+\prg!n!  jednotku.  Keď nám v \prg!n! ostane nula, cyklus skončíme.
+Naprogramovať zvyšok už nie je ťažké: budeme mať premennú \prg!int max;!
+v ktorej si budeme pamätať doposiaľ najväčšie videné číslo. Vnútri cyklu načítame
+jedno číslo zo vstupu a porovnáme ho s \prg!max!. Ostáva vyriešiť jediný problém:
+čo dať na začiatku do premennej \prg~max~? A čo sa stane, ak do nej nedáme nič?
+V tom prípade hovoríme, že premenná má {\em nedefinovanú hodnotu} a to znamená, že 
+v nej môže byť uložené čokoľvek. Nikdy nepíš program, ktorý používa premennú, do ktorej
+predtým nič nezapísal. V našom prípade vieme, že používateľ bude zadávať iba prirodzené čísla.
+Keď teda na začiatku do \prg!max! uložíme nejaké záporné číslo, máme istotu,
+že už prvé načítané číslo bude väčšie. Toto je užitočná technika, ktorej sa hovorí 
+{\em zarážka} ({\em sentinel}). 
+Celý program teda bude vyzerať takto:
+
+
+
+\vbox{
+\begin{lstlisting}[]
+#include <iostream>
+using namespace std;
+int main() {
+  int n, max, x;
+  max = -1;
+  cin >> n;
+  while (n > 0) {
+    cin >> x;
+    if (x > max) max = x;
+    n = n - 1;
+  }
+  cout << max << endl;
+}
+\end{lstlisting}
+}
+
+\begin{uloha}
+  Používateľ napíše najprv jedno prirodzené číslo $n$
+a potom $n$ prirodzených čísel. Napíš program, ktorý vypíše ich súčet.
+\end{uloha}
+
+\begin{uloha}
+  Pytagoras si znova ukladal kamienky, tentokrát do trojuholníka takto:
+
+  \ods
+  \centerline{\begin{tikzpicture}
+    \foreach \i in {0,...,3} \foreach \j in {0,...,\i}
+    \filldraw[fill=brown!90!yellow] (\i*4ex-\j*2ex,\j*4ex) circle (1ex);
+  \end{tikzpicture}}
+
+  \ods
+  Napíš program, ktorý prečíta zo vstupu jedno číslo: koľko kamienkov má Pytagoras v 
+  spodnom riadku.
+  Program má opäť vypísať, koľko kamienkov Pytagoras použil. Vieš ho napísať aj bez 
+  použitia cyklu?
+\end{uloha}
+
+\begin{uloha}
+  Napíš program pre takúto úlohu.
+  Používateľ postupne zadáva čísla. Keď napíše párne číslo, vypíš to isté číslo.
+  Keď napíše nepárne nepárne, vypíš o jedno väčšie.
+  Keď napíše -1, program skončí.
+\end{uloha}
+
+\begin{uloha}
+  Používateľ najprv zadá číslo $n$ a potom $n$ rôznych čísel. Napíš program, ktorý zistí,
+  ako ďaleko sú od seba najväčšie a najmenšie číslo.
+\end{uloha}
+
+\begin{uloha}
+  Používateľ najprv napíše prirodzené číslo $a$ a potom začne písať
+  prirodzené čísla (nevieme, koľko). Nakoniec napíše -1.
+  Napíš program, ktorý zistí, koľkokrát je medzi napísanými číslami
+  číslo $a$. Napr. pre vstup \prg!3 9 3 8 7 3 6 6 7 3 3 7 8 -1!
+  má byť odpoveď \prg!4!, lebo trojka sa v zadaných číslach 
+  nachádza štyrikrát.
+\end{uloha}
+
+\begin{uloha}
+  Zoberme si takúto hru: mysli si číslo. Ak je párne, vydeľ ho dvoma. Ak je nepárne,
+  vynásob ho tromi a pripočítaj 1. Toto opakuj, až kým sa nedostaneš k jednotke.
+  Napríklad keď začneš s číslom $12$ budeš postupne dostávať čísla
+  $6, 3, 10, 5, 16, 8, 4, 2, 1$.\footnote{V matematike je známa Collatzova hypotéza, ktorá 
+  hovorí, že nech začneš z hocijakého čísla, vždy sa nakoniec k jednotke dostaneš.
+  Matematikov veľmi hnevá, že zatiaľ nenašli žiadne číslo, ktoré
+  by sa k jednotke nedostalo a to už vyskúšali všetky čísla  po
+  $295147905179352825856$. Ale stále nevedia ani dokázať, že také číslo nemôže existovať.}
+
+  \ods
+  Napíš program, ktorý prečíta zo vstupu jedno číslo a vypíše, ako dlho trvá, kým
+  sa dostaneš k jednotke a aké najväčšie číslo pri tom stretneš. Pre $12$
+  má program vypísať $9$ a $16$, lebo k jednote sa dostaneš po $9$ krokoch a 
+  najväčšie číslo, ktoré stretneš je 16. Pre $27$ má vypísať $111$ a $9232$.
+
+  \ods
+  (Zistiť, či je číslo párne, sa dá jednoducho pomocou operácie \prg!%!, ktorá
+  dáva zvyšok po delení. Ak teda chceš urobiť nejaký príkaz, iba ak \prg!n!
+  je párne, stačí napísať \prg!if (n % 2 == 0) ...!)
+\end{uloha}
+
+\begin{uloha} Používateľ postupne zadáva čísla. Napíš program, ktorý
+  po každom zadanom čísle vypíše súčev všetkých čísel od začiatku až doteraz.
+  Keď používateľ zadá -1, program skončí.
+\end{uloha}
+
+\begin{uloha}
+  \label{uloha:Fibonacci}
+  Fibonacciho čísla sú postupnosť čísel, ktorú vieme zostrojiť takto: prvé dve
+  Fibonacciho čísla sú $0$, $1$. Ďalšie číslo vyrobím tak, že sčítam dve posledné.
+  Celá postupnosť teda vyzerá $0,1,1,2,3,5,8,13,21,\ldots$.\footnote{%
+   Fibonacciho čísla sú veľmi zaujímavé. Pomer dvoch za sebou idúcich Fibonacciho
+   čísel sa blíži k
+   tzv. {\em zlatému rezu}. V prírode sa často vyskytujú v rôznych útvaroch, 
+   napr. pri špirálach:\newline\newline
+
+    \begin{tikzpicture}[scale=0.15]
+      \filldraw[fill=yellow!30!white] (0,0) rectangle node[anchor=center] {$21\times 21$} (21,21);
+      \filldraw[fill=green!20!white] (21,21) rectangle node[anchor=center] {$13\times 13$} (34,8);
+      \filldraw[fill=red!20!white] (26,8) rectangle node[anchor=center] {$8\times 8$} (34,0);
+      \filldraw[fill=blue!20!white] (21,5) rectangle node[anchor=center] {$5\times 5$} (26,0);
+      \filldraw[fill=orange!20!white] (21,8) rectangle  (24,5);
+      \filldraw[fill=cyan!20!white] (24,8) rectangle  (26,6);
+      \filldraw[fill=white] (24,6) rectangle  (25,5);
+
+      \draw[thick,blue] (0,0) 
+        arc[start angle=180, end angle=90, radius=21] 
+        arc[start angle=90, end angle=0, radius=13] 
+        arc[start angle=0, end angle=-90, radius=8] 
+        arc[start angle=-90, end angle=-180, radius=5] 
+        arc[start angle=180, end angle=90, radius=3] 
+        arc[start angle=90, end angle=0, radius=2] 
+        arc[start angle=0, end angle=-180, radius=1] 
+;
+    \end{tikzpicture}
+    }
+    Napíš program, ktorý pre zadané $n$ vyráta $n$-té Fibonacciho číslo.
+
+\end{uloha}
+
+\ods
+Podobne ako podmienky, aj cykly môžu byť vnorené: príkaz, ktorý sa vykonáva v cykle,
+môže opäť obsahovať cyklus. Pozrime na na takýto príklad: používateľ na vstupe napíše číslo
+$n$. Program má vypísať šachovnicový vzor rozmerov $n\times n$, pričom sa v ňom
+striedavo opakujú \prg!0!
+a \prg!1!. Napríklad pre vstup \prg!5! by program vypísal
+
+\begin{verbatim}
+01010
+10101
+01010
+10101
+01010
+\end{verbatim}
+
+Ako naprogramovať niečo takéto? Začiatok je ľahký: budeme mať premennú \prg!int r!, v ktorej
+vždy bude uložené, ktorý riadok robíme. Začneme s tým, že do nej uložíme nulu a v cykle
+ju budeme postupne zväčšovať až po $n$. V rámci cyklu ešte potrebujeme vypísať riadok.
+Riadok sa skladá z $n$ znakov, preto môžme použiť inú premennú, \prg!int s!, v ktorej 
+bude uložené, ktorý stĺpec v riadku práve robíme. Na začiatku riadku uložíme do
+\prg!s! nulu a v cykle budeme $n$-krát pripočítavať jednotku 
+a budeme striedavo vypisovať nulu
+a jednotku. Vystriedame ich ľahko: ak \prg!x! je 0, tak \prg!1-x! je 1 a naopak.
+Posledná otázka: ako zistíme prvý znak v riadku? Premenná \prg!r! udáva číslo riadku
+(začína od 0), takže stačí na začiatku zobrať zvyšok po delení 2. Celý program vyzerá takto:
+
+\vbox{
+\begin{lstlisting}[]
+#include <iostream>
+using namespace std;
+int main() {
+  int r, s, x, n;
+  cin >> n;
+  r = 0;
+  while (r < n) {    // tento cykus sa zopakuje raz pre každý riadok
+    x = r % 2;       // x je začiatočný znak
+    s = 0;           
+    while (s < n) {  // tento cyklus vypisuje znaky v riadku
+      cout << x;
+      x = 1 - x;     // zmení vypisovaný znak
+      s = s + 1;
+    }                // koniec cyklu pre znaky v riadku
+    cout << endl;    
+    r = r + 1;
+  }                  // koniec cyklu pre riadky
+}
+\end{lstlisting}
+}
+
+\begin{uloha}
+  Napíš program, ktorý načíta jedno číslo $n$ a vypíše štvorec z núl 
+  orámovaný jednotkami, ktorý má $n$ riadkov. Pre $n=5$ má vzor vyzerať takto:
+\begin{verbatim}
+11111
+10001
+10001
+10001
+11111
+\end{verbatim}
+\end{uloha}
+
+\begin{uloha}
+  Napíš program, ktorý načíta jedno číslo $n$ a vypíše štvorec z núl 
+  a jednotiek, ktorý má $n+1$ riadkov. Pre $n=5$ má vzor vyzerať takto:
+\begin{verbatim}
+00000
+00001
+00011
+00111
+01111
+11111
+\end{verbatim}
+\end{uloha}
+
+\begin{uloha}
+  Napíš program, ktorý načíta jedno číslo $n$ a vypíše trojuholníkový vzor z núl 
+  a jednotiek, ktorý má $n$ riadkov. Pre $n=5$ má vzor vyzerať takto:
+\begin{verbatim}
+000010000
+000111000
+001111100
+011111110
+111111111
+\end{verbatim}
+\end{uloha}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectiv1
+\section{Polia}
+
+Chceme napísať takýto program: používateľ najprv zadá číslo $n$ a potom $n$ prirodzených 
+čísel. Nakoniec zadá ešte jedno číslo $a$. Program má vypísať najmenšie zo zadaných čísel,
+ktoré je väčšie ako $a$, alebo $a$ ak také číslo neexistuje. 
+Napríklad:
+
+\ods
+\bp
+\inp
+\begin{verbatim}
+5
+1 10 100 1000 10000
+427
+\end{verbatim}
+\ep
+\hfill
+\bp
+\outp
+\begin{verbatim}
+1000
+\end{verbatim}
+\ep
+
+\ods
+Problém je v tom, že keď načítavame čísla zo vstupu, ešte nevieme, ako ich bude treba 
+spracovať, takže by sme si ich potrebovali uložiť do premenných. Keby bol počet čísel
+známy v čase písania programu (napr. by bolo povedané, že používateľ zadá päť čísel),
+mohli by sme si vyrobiť premennú pre každé číslo. Počet čísel je ale známy až počas behu 
+programu. Použijeme preto {\em pole} premenných. Pole je vlastne veľa premenných, ktoré
+majú spoločné meno a rozlišujú sa číslom (tzv. {\em indexom}). Pole sa vyrobí podobne,
+ako jedna premenná, ale v hranatých zátvorkách je uvedený počet premenných.
+Tak napr. \prg!int x[10];! vyrobí pole premenných \prg!x[0]!, \prg!x[1]!, až
+\prg!x[9]!, z ktorých každá vie mať uložené celé číslo\footnote{Všimni si, že prvá premenná
+má číslo 0, preto ak chceme 10 premenných, posledná má číslo 9.}.
+Výhoda je, že keď chceme použiť nejakú premennú z poľa, nemusíme písať jej meno priamo,
+napr. \prg!x[5]!, ale na mieste indexu môžeme použiť hocijaký výraz. Takže môžeme
+napísať \prg!x[2+3]! a tiež dostaneme hodnotu z premennej \prg!x[5]!. A samozrejme,
+výraz môže obsahovať aj mená premenných, takže \prg!x[i+3]! znamená \cmd{Pozri sa,
+čo je práve teraz uložené v premennej \prg!i!, pripočítaj k tomu 3, výsledok zober ako
+číslo premennej z poľa a vráť hodnotu, ktorá je v nej uložená.} Ak by v \prg!i! bola uložená dvojka, tak \prg!x[i+3]! vráti hodnotu
+uloženú v premennej \prg!x[5]!. 
+Pole nie je premenná, ale veľa premenných. Preto aj príkaz priradenia funguje
+na jednotlivých premenných, ale nie na celom poli. Ak by sme mali premenné
+\prg!int a[10], b, c[10], d;!, môžme napísať \prg!b=d;! aj \prg!a[d]=b;! aj
+\prg!c[b+a[d]]=a[d+b]+c[3];!, ale nemôžeme napísať \prg!a=c;! a už vôbec nie
+\prg!a=b;!. Rovnako, keďže pole nie je premenná, tak nemôžeme používať ani
+operácie ako \prg!a+c! alebo \prg!a==c!, ale musíme ich robiť na jednotlivých premenných 
+poľa.
+
+\ods Predpokladajme, že máme pole \prg!int a[10];!. Čo spraví príkaz
+\prg!int x=a[22];!? Vyhlási chybu? Problém je v tom, že nie. Príkazom \prg!int a[10];!
+si vyhradil miesto na 10 premenných typu \prg!int!, ale program si pamätá len to,
+kde v pamäti začínajú, ich počet nie.
+Keď napíšeš \prg!a[5]!, znamená to \cmd{šiesta premenná v poli \prg!a!}. Ak napíšeš
+\prg!a[22]!, program sa pozrie do pamäte, kde by bola 23. premenná z poľa, keby to 
+pole bolo dosť dlhé. Ak je kratšie, môže na tom mieste byť hocičo (napríklad nejaká
+iná premenná) a program sa
+začne správať veľmi podivne. Chyby tohto typu sa v programe veľmi ťažko hľadajú.
+Preto je dobré dávať veľký pozor, na aké miesta poľa pristupuješ.
+
+\ods
+Vráťme sa k nášmu príkladu. S pomocou poľa a cyklu si vieme zapamätať všetky čísla, ktoré 
+používateľ zadá:
+
+\vbox{
+\begin{lstlisting}[] 
+int i, n;
+cin >> n;       // prečítam počet čísel 
+int x[n];       // vyrobíme pole potrebnej veľkosti
+i = 0;         
+while (i < n) { // v cykle prečítame všetky prvky poľa
+  cin >> a[i];
+  i = i + 1;
+}
+\end{lstlisting}
+}
+
+Keď už budeme mať všetky čísla uložené v poli, prečítame zo vstupu číslo $a$. Ak chceme
+zistiť najmenšie číslo, ktoré je väčšie ako $a$, urobíme si ďalšiu premennú \prg!min!,
+v ktorej si budeme pamätať doteraz nájdené číslo. V cykle sa pozrieme na každú premennú z 
+poľa a zistíme, či je jej hodnota väčšia ako $a$. Ak áno a je zároveň menšia ako
+\prg!min!, aktualizujeme \prg!min!. Posledná vec: na začiatku potrebujeme do \prg!min!
+dať vhodnú zarážku. Môžeme použiť najväčšie číslo, ktoré si môžeme zistiť priebežne
+pri ukladaní vstupného poľa. Celý program by vyzeral takto:
+
+\vbox{
+\begin{lstlisting}[]
+#include <iostream>
+using namespace std;
+int main() {
+  int n, i, a, min;
+  cin >> n;
+  int x[n];       // vyrobíme pole správnej dĺžky        
+  i = 0;
+  min = 0;
+  while (i < n) { // načítavame vstup a zároveň počítame maximum
+    cin >> x[i];
+    if (x[i] > min) min = x[i];
+    i = i + 1;
+  }
+  cin >> a;       // prečítame a
+  i = 0;
+  while (i < n) { // v cykle nájdeme hľadané číslo
+    if (x[i] > a && x[i] < min) min = x[i];
+    i = i + 1;
+  }
+  cout << min << endl;
+}
+\end{lstlisting}
+}
+
+\begin{uloha}
+  Používateľ zadá číslo $n$, potom $n$ čísel a nakoniec číslo $a$. Napíš
+  program, ktorý zistí, koľkokrát bolo zadané číslo $a$. Napríklad
+
+\ods
+\bp
+\inp
+\begin{verbatim}
+9
+3 9 3 1 3 2 3 4 5 
+3
+\end{verbatim}
+\ep
+\hfill
+\bp
+\outp
+\begin{verbatim}
+4
+\end{verbatim}
+\ep
+\end{uloha}
+
+\begin{uloha}
+  Používateľ zadá číslo $n$, potom $n$ čísel a nakoniec číslo $a$. Napíš
+  program, ktorý vypíše všetkých $n$ čísel, ale zväčšených o $a$.
+\end{uloha}
+
+\begin{uloha}
+   Používateľ zadá číslo $n$ a potom zoznam $n$ kariet s číslami. 
+   Dvaja hráči, $A$ a $B$ hrajú takúto hru. V každom kole sa $A$ pozrie
+   na prvú kartu a $B$ na poslednú kartu (ak je v zozname iba jedna karta,
+   je zároveň prvá aj posledná; ak je zoznam prázdny, hra sa skončila).
+   Ak $A$ vidí väčšie číslo, výsledok kola je $1$ a $B$ zahodí kartu z konca, 
+   ak $A$ vidí menšie číslo, výsledok
+   je $-1$ a $A$ zahodí kartu zo začiatku, a ak vidia rovnaké, výsledok je $0$
+   a zahodí sa karta z konca aj zo začiatku.
+   Napíš program, ktorý prečíta začiatočný zoznam a vypíše postupne výsledky
+   všetkých kôl. Napr. pre $n=3$ a vstup {\tt 1 2 3} sú výsledky
+   kôl {\tt -1 -1 0}.
+\end{uloha}
+
+\begin{uloha}
+  \label{uloha:sort1}
+  Používateľ zadá číslo $n$ a potom $n$ rôznych čísel. Napíš program, ktorý
+  najprv vypíše najmenšie číslo a potom vždy najmenšie číslo, ktoré
+  je väčšie, ako posledné vypísané. (Všimni si, že program vlastne
+  vypíše všetky zadané čísla v utriedenom poradí.)
+\end{uloha}
+
+\begin{uloha}
+  Používateľ zadá číslo $n$ a potom pole $n$ prirodzených čísel. Napíš program,
+  ktorý zistí najväčšie také číslo $k$, že sa v poli nachádza aspoň $k$
+  čísel veľkosti aspoň $k$. Napr. pre vstup \prg!9 3 9 1 1 2 2 3 4 5! (prvá
+  deviatka znamená 9 čísel, potom nasleduje pole) je odpoveď \prg!3!, lebo
+  sú tam aspoň tri čísla väčšie alebo rovné $3$ (je tam $5$ takých: $3, 9, 3, 4, 5$),
+  ale nie sú tam štyri čísla väčšie alebo rovné $4$ (sú tam len tri: $9, 4, 5$).
+\end{uloha}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectv1
+\section{Ďalšie cykly}
+
+Poznáme už príkaz cyklu \prg!while! a úplne by nám stačil, aby sme s ním mohli 
+naprogramovať všetko, čo chceme. Sú ale aj ďalšie príkazy cyklov, ktoré môžme
+použiť, aby sme dostali kratší a čitateľnejší program. Veľakrát sme potrebovali
+prejsť pomocou cyklu postupne niečo prechádzať. Na to sme vždy mali premennú,
+ktorú sme na začiatku nastavili (napr.) na nulu
+a v cykle sme ju zvyšovali nejak takto:
+
+\vbox{
+\begin{lstlisting}[] 
+int i;
+i = 0;
+while (i < n) {
+  // niečo urob
+  i = i + 1;
+}
+\end{lstlisting}
+}
+
+Na skrátenie programu a zlepšenie čitateľnosti je možné vyrobenie premennej
+a priradenie do nej urobiť naraz, t.j. môžme napísať
+
+\vbox{
+\begin{lstlisting}[] 
+int i = 0;
+while (i < n) {
+  // niečo urob
+  i = i + 1;
+}
+\end{lstlisting}
+}
+
+Tento typ programu sa dá čitateľnejšie zapísať iným príkazom cyklu, \prg!for!.
+Príkaz \prg!for! má v zátvorkách tri časti, oddelené bodkočiarkami. Prvá časť
+je príkaz, ktorý sa má vykonať na začiatku, druhá časť je podmienka ako v \prg!while!
+cykle a tretia časť je príkaz, ktorý sa má vykonať po každom vykonaní cyklu.
+Predchádzajúci príklad by mohol vyzerať:
+
+\vbox{
+\begin{lstlisting}[] 
+int i;
+for (i = 0; i < n; i = i + 1) {
+  // niečo urob
+}
+\end{lstlisting}
+}
+
+Rovnako častý je aj príkaz \prg!i = i + 1!, ktorý hovorí \cmd{Zober to, čo je uložené
+v premennej \prg!i!, prirátaj 1 a výsledok ulož naspäť do \prg!i!}. Tento príkaz je tak
+častý, že má vlastnú skratku, stačí napísať \prg!i++!. Cyklus tvaru
+\prg!for (i = 0; i < n; i++) { ... }! 
+je veľmi častý.
+
+Príkaz \prg!while! vyhodnocuje podmienku na začiatku, pred vykonaním príkazu. Niekedy
+sa viac hodí, aby sa podmienka vyhodnocovala na konci. Na to slúži príkaz 
+\hbox{\prg!do!-\prg!while!}. Dajme tomu, že chceme čítať čísla zo vstupu
+a vypisovať o jedno väčšie, až kým neprečítame -1. Môžme to napísať takto:
+
+\vbox{
+\begin{lstlisting}[]
+int x;
+do {
+  cin >> x;
+  cout << x + 1 << endl;
+} while (x >= 0);
+\end{lstlisting}
+}
+
+Niekedy je dobré prerušiť vykonávanie cyklu. Na to slúžia príkazy \prg!break! (skonči
+vykonávanie celého cyklu) a \prg!continue! (skonči vykonávanie jednej iterácie a prejdi 
+na ďalšiu). Napr. nasledujúci program kopíruje čísla zo vstupu na výstup, 
+až kým neprečíta $-1$ a potom skončí:
+
+\vbox{
+\begin{lstlisting}[] 
+while (true) {
+  cin >> x;
+  if (x == -1) break;
+  cout << x << endl;
+}
+\end{lstlisting}
+}
+
+Podobne nasledujúci program vypisuje iba nepárne čísla, až kým neprečíta -1:
+
+\vbox{
+\begin{lstlisting}[] 
+do {
+  cin >> x;
+  if (x % 2 == 0) continue;
+  cout << x << endl;
+} while (x != -1);
+\end{lstlisting}
+}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectvi1
+\section{Algoritmické úlohy a príkazový riadok}
+
+Všetky úlohy, ktoré si doteraz robil, vyzerali podobne: používateľ niečo napíše na vstupe
+(napríklad 7 čísel väčších ako 3),
+program s tým má urobiť presne popísanú činnosť (napríklad nájsť najväčšie číslo) a výsledok 
+vypísať. Takýmto úlohám, ktoré zo vstupu robia výstup podľa presne stanovených pravidiel
+sa hovorí {\em algoritmické úlohy}. Sú dôležité preto, lebo pri nich vieme presne
+povedať, kedy je program správny: musí vypísať správny výstup {\bf pre všetky} možné vstupy.
+Keby sme napr. v úlohe o hľadaní najväčšieho čísla mali program, ktorý skoro vždy
+napíše skutočne najväčšie číslo, ale ak je jedno z čísel na vstupe 12343, 
+tak program sa zacyklí,
+tak takýto program by bol zlý (aj keby väčšinou fungoval správne).
+Aj keď programuješ väčší program, napr. hru, je dobré si ho rozdeliť na menšie, algoritmické,
+časti, ktoré sa dajú samostatne skontrolovať. 
+
+\ods Ako sa dajú algoritmické úlohy kontrolovať? Väčšinou nie je možné spustiť program
+na všetky možné vstupy, lebo ich je priveľa. Keďže majú presne definované, ako má vyzerať
+výstup, je možné o nejakom programe aj matematicky dokázať, že je správny. To býva ale
+ťažké, preto sa väčšinou programy {\em testujú}. Snažíme sa vybrať rôzne vstupy a na nich
+program spustíme, Keď na všetkých vstupoch dáva správne výsledky, veríme, že je dobrý.
+Nájsť dobrú sadu testovacích vstupov býva samo osebe dosť náročné. Je veľa stránok,
+kde sa dajú algoritmické úlohy trénovať (napr. 
+\link{https://testovac.ksp.sk}{testovac,ksp.sk}, \link{https://www.spoj.com}{spoj.com} 
+a ďalšie). Tieto stránky majú úlohy s možnosťou testovania: odošleš svoj program, na
+stránke sa skompiluje, spustí na veľa rôznych vstupoch a oznámi sa ti výsledok. Je aj
+veľa súťaží v riešení algoritmických úloh (napr. 
+\link{https://www.ksp.sk/}{KSP}, \link{http://oi.sk/}{slovenská} a 
+\link{https://ioinformatics.org/}{medzinárodná} olympiáda, \ldots).
+
+\ods
+Ako si môžeš testovať programy aj sám? Keď program číta vstup pomocou \prg!cin>>! a 
+vypisuje na výstup pomocou \prg!cout<<!, používa pri tom tzv. {\em štandardný vstup a výstup}.
+Za normálnych okolností je to klávesnica a obrazovka, ale je možné ich 
+{\em presmerovať}. Keď v linuxovom termináli spustíš 
+\prg!./program <vstup >vystup!, program bude čítať vstup namiesto z klávesnice 
+zo súboru \prg!vstup! a vypisovať namiesto obrazovky do súboru \prg!vystup!. Môžeš
+si teda napísať rôzne vstupné súbory, ktoré si nazveš napr. \prg!1.in!, \prg!2.in!
+atď. a k nim si pripravíš výstupné súbory \prg!1.out!, \prg!2.out! atď so správnymi 
+odpoveďami.
+Potom môžeš spustiť {\tt ./program <1.in >1.prg} a v súbore {\tt 1.prg} bude výstup 
+programu zo vstupu {\tt 1.in}. Teraz stačí porovnať, či sú {\tt 1.prg} a {\tt 1.out}
+rovnaké. To sa dá aj automaticky, pomocou programu {\tt diff}: napíšeš 
+\prg!diff 1.prg 1.out!. 
+Ak sú rovnaké, 
+nevypíše sa nič, inak sa vypíše, kde sa líšia.
+
+\ods Ďalšia možnosť spájania vstupu a výstupu je tzv. {\em pipe}. Ak napíšeš
+\prg!./program1 | ./program2! tak sa spustí {\tt program1} a jeho výstup sa použije
+ako vstup pre {\tt program2}.  Z príkazového riadku môžeš automaticky spustiť veľa testov.
+Príkaz
+
+{\tt for f in *.in; do ./program <\$f | diff - `basename \$f .in`.out; done}
+
+spustí {\tt program} pre všetky súbory s príponou {\tt .in} a pre každý porovná výstup so
+súborom {\tt .out} s rovnakým menom. 
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectvii1
+\section{Čísla, znaky, reťazce}
+\label{sect:cisla}
+
+Doteraz sme hovorili, že typ \prg!int! obsahuje celé čísla. Je to ale trošku zložitejšie.
+Skús si napísať takýto program:
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+int main() {
+  int i, n = 1000;
+  for (i = 0; i < 20; i++) {
+    cout << n << endl;
+    n = 10 * n;
+  }
+}
+\end{lstlisting}
+}
+
+Čo sa deje? Zo začiatku program vypisuje vždy desaťnásobky čísla, tak ako by si čakal:
+{\tt 1000, 10000, 100000, \ldots}. Po čase sa ale namiesto násobkov desiatky začnú objavovať
+čudné čísla. Prečo? Súvisí to s tým, ako sú čísla v počítači uložené. Pamäť sa skladá
+zo súčiastok, ktoré môžu byť zapnuté alebo vypnuté, takže celá pamäť počítača sa dá predstaviť
+ako véééľmi dlhé pole premenných, z ktorých každá môže byť 0 alebo 1. Takéto premenné
+sa volajú {\em bity}. Keď chceme zapísať iné číslo, ako 0 alebo 1, musíme ho uložiť
+do viacerých bitov. Urobíme to pomocou dvojkovej sústavy.
+
+\ods
+Keď zapisujeme čísla, spravidla to robíme v desiatkovej sústave. Pre čísla $0$ až $9$
+máme znaky (číslice). Keď potrebujeme zapísať desiatku, na ktorú už nemáme znak, zabalíme
+desať jednotiek do jedného balíka a počítame počet balíkov. Číslo $42$ teda znamená 
+\cmd{štyri balíky po desať a ešte dve}. Keď sa nám minú číslice pre balíky, začneme
+robiť balíky balíkov; počítame stovky a tak ďalej. Robíme to po desať, lebo máme na rukách
+10 prstov, ale to isté môžme robiť s akýmkoľvek číslom. Keď to budeme robiť s dvojkou,
+budeme namiesto balíkov po desať robiť balíky po dvoch. Teda budeme počítať $0$, $1$,
+potm $10$ (t.j. \cmd{jeden balík po dvoch a žiadna}), $11$, $100$ (t.j. 
+\cmd{jeden balík po štyroch a nič iné}, $101$, $110$, $111$, $1000$, atď.
+Napr. číslo $90$ zapíšeme v dvojkovej sústave $1011010$, pretože
+$90=1\cdot64+0\cdot32+1\cdot16+1\cdot8+0\cdot4+1\cdot2+0\cdot1$
+
+\ods
+\centerline{\begin{tikzpicture}
+  \foreach \v/\p [count=\i] in { 1/64, 0/32, 1/16, 1/8, 0/4, 1/2, 0/1} {
+    \draw[dotted, shorten <= 2ex, shorten >= 2ex] 
+    (\i,0) node [color=green!70!black] {{\small \p}}
+     -- (\i,-6ex) node {\v};
+  }
+\end{tikzpicture}}
+
+\ods
+Keď v programe napíšeš \prg!int x;!, kompilátor si nájde nejaké voľné
+miesto v pamäti, kde bude uložená
+premenná \prg!x!. Miesto v pamäti sa volá {\em adresa}. Kompilátor si adresu premennej 
+\prg!x! zapamätá, a kedykoľvek v programe napíšeš napr. \prg!x=a!, tak 
+kompilátor do 
+binárky zapíše
+inštrukciu pre procesor, aby počas behu programu 
+v pamäti na mieste, kde je \prg!x! uložené,
+nastavil bity podľa dvojkového zápisu $a$. Problém je v tom, že rôzne veľké čísla 
+majú rôzne dlhý zápis. Keby napr. za premennou \prg!x! mala byť uložená premenná
+\prg!y!, jej adresa by sa počas behu programu menila podľa toho, aké veľké číslo
+je v premennej \prg!x! práve uložené. To by bolo veľmi nepraktické. Preto sa to rieši tak,
+že na každú premennú sa vyhradí fixná dĺžka.
+Keby si napísal 
+
+\vbox{
+\begin{lstlisting}[] 
+int x = 5591, a[2], r = 6893;
+a[0] = 6802;
+a[1] = 6737;
+\end{lstlisting}
+}
+
+a veľkosť \prg!int! by bola
+16 bitov, v pamäti by to mohlo vyzerať napr. takto\footnote{%
+  Keď sme hovorili o poliach, vravel som, že treba dávať pozor, aby si
+  nepísal za koniec poľa. Keby si v tejto situácii napísal \prg!a[2]=55;!,
+  prepísala by sa ti premenná \prg!r! a ty by si netušil, kde sa tá chyba nabrala.
+  }
+
+\ods
+\centerline{\begin{tikzpicture}[scale=0.2]
+  \def\var#1#2#3{%
+    \draw[#3] decorate[
+       decoration={brace, amplitude=2ex}]{
+       (#1,1.8) -- (#1+16,1.8) node [align=center,midway,anchor=south,yshift=2ex] {{\tt #2}}
+        };
+   \draw[#3,thick] (#1,0) rectangle (#1+16,1.5);
+
+  }
+  \foreach \v [count=\i] in {
+    0,1,0,0,0,1,0,1,0,1,1,1,0,1,0,1,1,1,0,0,0,1,1,0,1,
+    0,1,0,0,1,0,0,1,0,0,0,0,1,1,0,1,0,0,1,0,1,0,0,0,1,
+    0,0,0,1,1,0,1,0,1,
+    1,1,0,1,1,0,1,0,1
+  }{
+    \draw (\i,0) rectangle node [anchor=center] {{\scriptsize\ttfamily \v}} (\i+1,1.5);
+  }
+  \var3x{blue!50!black}
+  \var{19}{a[0]}{red!30!black}
+  \var{35}{a[1]}{orange!60!black}
+  \var{51}{r}{green!30!black}
+
+  \foreach \x/\v/\a in {3.5/x/142, 19.5/a[0]/158, 35.5/a[1]/174, 51.5/r/190 }{
+  \draw[dotted] (\x,-0.1) -- (\x,-3) 
+  node[draw, anchor = north west]{\scriptsize adresa {\tt \v} je \a};
+  }
+
+\end{tikzpicture}}
+
+\ods
+Skutočná veľkosť \prg!int! sa líši podľa systému, ale na väčšine súčasných počítačov je to 
+32 bitov. Pretože prvý bit je vyhradený na znamienko ($+/-$), najväčšie číslo, aké
+si môžeš v premennej typu \prg!int! zapamätať, je $1+2+2^2+2^3+\cdots+2^{30}=2147483647$.
+Keby si sa pokúsil ešte pripočítať 1, prvý bit by sa nastavil na 1 a dostal by si záporné 
+číslo. 
+
+\ods
+Preto existujú rôzne typy čísel: okrem \prg!int! je \prg!long!, ktorý je spravidla
+dvakrát tak dlhý, t.j. má 64 bitov, takže najväčšie číslo je 
+$1+2+2^2+\cdots+2^{62}=9223372036854775807$. Oba typy môžeš použiť vo verzii bez
+znamienka (\prg!unsigned int!, \prg!unsigned long!) vtedy sa najväčšie číslo zdvojnásobí,
+ale nedajú sa pamätať záporné čísla. Vyskúšaj si napísať
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+int main() {
+  unsigned int x = 0;
+  cout << x << endl;
+  x = x - 1;
+  cout << x << endl;
+}
+\end{lstlisting}
+}
+
+Ako sa dá zapamätať text? Samozrejme, ako čísla. Máme typ \prg!char! (resp. 
+\prg!unsigned char!) ktorý je dlhý 8 bitov (t.j. 1 byte). Funguje rovnako ako
+typ \prg!int!. Každý znak anglickej abecedy má priradenú číselnú hodnotu podľa
+\link{http://www.csc.villanova.edu/~tway/resources/ascii-table.html}{ASCII tabuľky}.
+V programe sa dá použiť buď príslušné číslo, alebo znak v apostrofoch.
+Keď máš premennú \prg!char x;! tak \prg!x=107;! a \prg!x='k';! urobia to isté.
+Keďže je to číslo, dá sa s ním normálne rátať, napr. \prg!'a'+3=='d'! je \prg!true!.
+
+\ods Text sa pamätá ako pole znakov, napr. \prg!char hero[8];! Textu, zloženému
+zo znakov, sa zvykne hovoriť {\em reťazec} ({\em string}). Príkaz na vypísanie,
+\prg!cout<<! za normálnych okolností neakceptuje polia, ale pre pole znakov má výnimku
+a vypíše ho ako text. Takisto, zadávať hodnoty \prg!hero[0]=71;! \prg!hero[1]=97;!\ldots
+je nepraktické, preto existuje výnimka: pri vyrábaní poľa znakov sa dá priamo
+inicializovať textom, napr. \prg!char hero[8]="Gandalf";! vyrobí pole
+
+\ods
+\centerline{\begin{tikzpicture}[scale=0.2]
+  \def\var#1#2#3{%
+    \draw[#3] decorate[
+       decoration={brace, amplitude=2ex}]{
+       (#1,1.8) -- (#1+8,1.8) node [align=center,midway,anchor=south,yshift=2ex] {{\tt #2}}
+        };
+   \draw[#3,thick] (#1,0) rectangle (#1+8,1.5);
+
+  }
+  \foreach \v [count=\i] in {
+    0,1,
+    0,1,0,0,0,1,1,1,
+    0,1,1,0,0,0,0,1,
+    0,1,1,0,1,1,1,0,
+    0,1,1,0,0,1,0,0,
+    0,1,1,0,0,0,0,1,
+    0,1,1,0,1,1,0,0,
+    0,1,1,0,0,1,1,0,
+    0,0,0,0,0,0,0,0,
+    0,1
+  }{
+    \draw (\i,0) rectangle node [anchor=center] {{\scriptsize\ttfamily \v}} (\i+1,1.5);
+  }
+  \var3G{blue!50!black}
+  \var{11}a{red!30!black}
+  \var{19}{n}{orange!60!black}
+  \var{27}{d}{green!30!black}
+  \var{35}a{red!30!black}
+  \var{43}l{yellow!50!black}
+  \var{51}f{brown!50!black}
+  \var{59}{0}{brown!50!black}
+  
+  \draw[dotted] (3.5,-0.1) -- (3.5,-3) 
+  node[draw, anchor = north west]{\scriptsize adresa {\tt hero}};
+\end{tikzpicture}}
+
+\ods 
+Je konvencia, že posledný znak reťazca je nula, tak sa ľahko
+zabezpečí, že do poľa viem uložiť aj kratší text než
+na aký bolo rezervované. 
+Len treba myslieť na to, rezervovať pole aspoň
+o 1 dlhšie ako najdlhší plánovaný reťazec. 
+Pri priradení reťazca do poľa znakov sa dá dľžka poľa vynechať, ak napíšeš
+\prg!char hero[]="Gandalf";!, pole \prg!hero! sa vyrobí s dĺžkou $8$.
+Pre vypisovanie existuje aj skratka,
+že do príkazu \prg!cout<<! sa napíše priamo reťazec v dvojitých úvodzovkách, napr:
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+int main() {
+  char hero[8] = "Gandalf";
+  cout << hero << " is hero" << endl;
+}
+\end{lstlisting}
+}
+
+Príkaz na vypisovanie vypisuje zaradom 
+znaky a skončí, keď narazí na znak 0, takže môže vypísať aj kratšie reťazce.
+Čo vypíše tento program?
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+int main() {
+  char hero[8] = "Gandalf";
+  hero[2] = 0;
+  cout << "Hero is " << hero << endl;
+}
+\end{lstlisting}
+}
+
+Priradenie do poľa znakov naraz sa dá ale urobiť iba pri jeho vytváraní, takže
+napísať neskôr \prg!hero="Batman";! sa nedá.
+
+\ods
+S načítavaním textu zo vstupu je to podobné, môžeš napísať
+
+\vbox{
+\begin{lstlisting}[] 
+char mojText[20];
+cin >> mojText;
+\end{lstlisting}
+}
+
+Zo vstupu sa začnú čítať znaky až po prvú medzeru, tab, alebo koniec riadku\footnote{%
+  Znaky medzera, tabulátor a nový riadok sa volajú {\em whitespace}.
+Toto je dôležité: \prg!cin>>! prestane na prvom whitespace znaku. Aj pri načítavaní
+čísel sa whitespace znaky preskakujú, takže je jedno, či sú vstupné čísla oddelené
+medzerami alebo koncami riadkov.
+Iná je situácia, ak sa načítava typ \prg!char!, vtedy sa whitespace nepreskakuje.
+}a budú
+sa ukladať do poľa {\tt mojText}. Toto sa ale prudko neodporúča robiť, 
+lebo ak je na vstupe viac znakov,
+ako je dĺžka poľa, začnú sa prepisovať ďalšie premenné. Vyskúšaj si
+písať rôzne vstupy do tohto programu:
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+int main() {
+  char mojText[5];
+  char x = '!';
+  cin >> mojText;
+  cout << mojText << " " << x << endl;
+}
+\end{lstlisting}
+}
+
+
+\begin{tabular}{@{\hspace*{0pt}}l@{\hspace*{1cm}}lp{10cm}}
+Vstup:&Výstup:\\
+{\tt pes} & {\tt pes !} &  nič zvláštne \\
+{\tt pes a macka} & {\tt pes !} &  pohoda, načítava sa po prvú medzeru \\
+{\tt macka} & {\tt macka } &  znak 0 z konca reťazca prepísal premennú \prg!x!\\
+{\tt ABCDEFG} & {\tt ABCDEFG F} &  vypisuje sa až po znak 0, premenná \prg!x!
+je prepísaná šiestym znakom
+\end{tabular}
+
+\ods
+Keď na vstupe napíšeš veľmi dlhý text,
+asi spôsobíš, že program skončí s chybou {\tt Segmentation fault}: to je chyba, 
+keď sa program snaží písať do takej časti pamäte, kde nemá prístup.
+Načítavanie reťazcov je teda lepšie riešiť inak, ale o tom budeme hovoriť neskôr.
+Nateraz nám toto stačí.
+
+\begin{uloha}
+  Používateľ zadá číslo $n$, potom $n$ čísel.
+  Cieľom je vypísať ''súčtovú pyramídu'',
+napr. 
+
+\ods
+\bp
+\inp
+\begin{verbatim}
+6
+1 2 3 4 5 6
+\end{verbatim}
+\ep
+\hfill
+\bp
+\outp
+\begin{verbatim}
+1 2 3 4 5 6
+3 5 7 9 11
+8 12 16 20
+20 28 36
+48 64
+112
+\end{verbatim}
+\ep
+\end{uloha}
+
+
+\begin{uloha}
+  Na vstupe je najprv číslo $n$, ktoré udáva počet kôp. Potom nasleduje
+  niekoľko príkazov. Príkaz sa skladá z kľúčového slova a prípadných parametrov.
+  Príkazy môžu byť:
+\begin{itemize}\itemsep=-1mm
+    \item \textcolor{magenta}{{\tt pridaj} {\em kam koľko}} 
+      pridá {\em koľko} na kopu číslo {\em kam}
+    \item \textcolor{magenta}{{\tt uber} {\em odkiaľ koľko}}
+      uberie {\em koľko} z kopy číslo {\em kam}
+    \item \textcolor{magenta}{\tt max?}
+      zisti, aká veľká je najväčšia kopa
+    \item \textcolor{magenta}{\tt koniec}
+      skonči načítavanie
+\end{itemize}
+  Napíšte program, ktorý načíta vstup a pri každom príkaze {\tt max?}
+  vypíše veľkosť najväčšej kopy. Napr. 
+
+\ods
+\bp
+\inp
+\begin{verbatim}
+3
+pridaj 1 10
+uber 1 6
+max?
+pridaj 2 7
+pridaj 2 3
+max?
+pridaj 0 11
+uber 2 7
+max?
+uber 0 7
+max?
+uber 1 2
+pridaj 0 5
+max?
+koniec
+\end{verbatim}
+\ep
+\hfill
+\bp
+\outp
+\begin{verbatim}
+4
+10
+11
+4
+9
+\end{verbatim}
+\ep
+\end{uloha}
+
+\begin{uloha}
+  Na stole sú rôzne geometrické útvary: body, kruhy a úsečky.
+  Napíš program, ktorý z opisu predmetov vyráta najmenší obdĺžnik (ktorého
+  strany sú rovnobežné s okrajmi stola), v ktorom sú všetky útvary.
+  Na začiatku vstupu je počet útvarov $n$, Nasleduje $n$ riadkov,
+  každý z nich je jedna z možností
+\begin{itemize}\itemsep=-1mm
+    \item \textcolor{magenta}{{\tt bod} {\em x y}} 
+      bod so súradnicami $[x,y]$
+    \item \textcolor{magenta}{{\tt kruh} {\em x y r}}
+      kruh so stredom v bode $[x,y]$ a polomerom $r$
+    \item \textcolor{magenta}{{\tt usecka} $x_1$ $y_1$ $x_2$ $y_2$}
+      úsečka z bodu $[x_1,y_1]$ do bodu $[x_2,y_2]$
+\end{itemize}
+  \ods
+\bp
+\inp
+\begin{verbatim}
+8
+kruh 5 5 3
+usecka 1 2 3 4
+kruh 7 8 2
+kruh 4 3 2
+bod 10 5
+bod 11 3
+usecka 3 3 14 9
+kruh 16 5 2
+\end{verbatim}
+\ep
+\hfill
+\bp
+\outp
+\begin{verbatim}
+1 1 18 10
+\end{verbatim}
+\ep
+ 
+  \ods
+  \begin{tikzpicture}[scale=0.5]
+    \def\pp{1pt}
+    \def\bb(#1,#2){;\filldraw(#1,#2) circle(2pt);}
+    \def\cc(#1,#2)#3{\draw(#1,#2) circle (#3);\filldraw(#1,#2) circle(\pp);}
+    \def\ll(#1,#2)(#3,#4){
+      \draw(#1,#2) -- (#3,#4);
+      \filldraw(#1,#2) circle(\pp);
+      \filldraw(#3,#4) circle(\pp);
+    }
+    \draw[step=1.0,black,thin,dotted] (0,0) grid (19,11);
+    \foreach \x in {0,...,19} {
+      \node at (\x,-0.5) {{\scriptsize $\x$}};
+    }
+    \foreach \y in {0,...,11} {
+      \node[anchor=east] at (0,\y) {{\scriptsize $\y$}};
+    }
+    \cc(5,5)3
+    \ll(1,2)(3,4)
+    \cc(7,8)2
+    \cc(4,3)2
+    \bb(10,5)
+    \bb(11,3)
+    \ll(3,3)(14,9)
+    \cc(16,5)2
+    \draw[blue,thick](1,1) rectangle (18,10);
+  \end{tikzpicture}
+\end{uloha}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectviii1
+\section{Dvojrozmerné polia}
+
+Po troch vysvetľujúcich kapitolách poďme naspäť k programovaniu. 
+Chceme riešiť takúto úlohu: na vstupe sú dve čísla $r$ a $s$ a potom 
+tabuľka čísel s $r$ riadkami a $s$ stĺpcami. Úlohou je napísať program, ktorý
+tabuľku otočí takto:
+
+\ods
+\bp
+\vbox{
+Vstup:\\
+{\tt
+3 4 \\[1ex]
+\begin{tabular}{@{\hspace*{0pt}}cccc}
+0&1&2&3\\
+  4&5&6&7\\
+  8&9&10&11
+\end{tabular}
+}
+}
+\ep
+\hfill
+\bp
+\vbox{
+Výstup:\\
+{\tt
+\begin{tabular}{@{\hspace*{0pt}}ccc}
+  0&4&8\\
+  1&5&9 \\
+  2&6&10\\
+  3&7&11
+\end{tabular}
+}
+}
+\ep
+
+\ods
+Jeden prístup je prečítať celý vstup do jedného poľa veľkosti $rs$:
+
+\vbox{
+\begin{lstlisting}[] 
+int r, s, i;
+cin >> r >> s;
+int a[r * s];
+for (i = 0; i < r * s; i++) cin >> a[i];
+\end{lstlisting}
+}
+
+\ods Fajn, ale ako ho vypísať? Keď si očíslujeme riadky aj stĺpce od 0, tak vidíme,
+že číslo v riadku $i$ a stĺpci $j$ bude na pozícii $is+j$: je pred ním $i$ celých
+riadkov po $s$ čísel a ešte $j$ čísel z riadku $i$. Napr. v riadku $2$ a stĺpci $1$ je
+číslo $10$:
+
+\ods
+\centerline{\begin{tikzpicture}[scale=0.5]
+  \def\row#1#2#3{%
+    \draw[#3] decorate[
+       decoration={brace, amplitude=2ex}]{
+       (#1,1.1) -- (#1+4,1.1) node [align=center,midway,anchor=south,yshift=2ex] {$#2$}
+        };
+   \draw[#3,thick] (#1,0) rectangle (#1+4,1);
+  }
+  \foreach \i in {0,...,2} {
+    \foreach \j in {0,...,3} {
+       \pgfmathtruncatemacro{\v}{\i*4+\j}
+       \draw(\j,-\i) rectangle node[anchor=center] {{\tt \v}}  (\j+1,-\i+1) ;
+     }
+  \draw[blue, -> ] 
+    (-1,-1.5) node[anchor=east]{riadok 2} -- (0,-1.5);
+  \draw[blue,->]
+  (1.5, 2) node[anchor=south]{stĺpec 1} -- (1.5,1);
+  \draw[blue,thick] (1,-2) rectangle (2,-1);
+    
+  \draw[red] decorate[
+       decoration={brace, amplitude=2ex}]{
+       (4,-2) -- (0,-2) node [align=center,midway,anchor=north,shift={(0,-0.4)}] {$s$}
+        };
+ 
+  \begin{scope}[shift={(8,-2)}]
+    \foreach \x in {0,...,11} {
+      \draw (\x,0) rectangle node[anchor=center]{{\tt \x}} (\x+1,1);
+    }
+    \row0{s}{red}  
+    \row4{s}{red}  
+    \draw[blue,thick] (9,0) rectangle (10,1); 
+    \draw[blue, ->] (9.5,3) node[black,anchor=south]{$2s+1$} -- (9.5,1);
+    \draw (0,0.5) node[anchor=east] {{\tt a:}};
+  \end{scope}
+
+}
+\end{tikzpicture}}
+
+Takže vypisovanie vieme urobiť tak, že v jednom cykle (v premennej \prg!j!)
+prechádzame po stĺpcoch a pre každý stĺpec ideme v druhom cykle po všetkých
+číslach toho stĺpca a vypíšeme ich:
+
+\vbox{
+\begin{lstlisting}[] 
+for (j = 0; j < s; j++) {
+  for (i = 0; i < r; i++)
+    cout << a[i * s + j] << " ";
+  cout << endl;
+}
+\end{lstlisting}
+}
+
+Aby sa nám takéto výpočty zjednodušili, môžme použiť dvojrozmerné pole, ktoré
+vytvorí tabuľku premenných. Príkaz \prg!int a[3][4];! vyrobí premenné
+
+\ods
+\begin{tikzpicture}[xscale=2,yscale=0.5]
+  \foreach \i in {0,...,2}
+  \foreach \j in {0,...,3} {
+    \draw[draw=none] (\j,-\i) rectangle node [anchor=center]{\tt a[\i][\j]} (\j+1,-\i+1);
+  }
+\end{tikzpicture}
+
+Celý program bude vyzerať takto:
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+int main() {
+  int r, s, i, j;
+  cin >> r >> s;
+  int a[r][s];
+
+  for (i = 0; i < r; i++)    // cyklus pre riadky
+    for (j = 0; j < s; j++)  // cyklus pre stĺpce
+      cin >> a[i][j];
+
+  for (j = 0; j < s; j++) {  // vypíšeme vymenené riadky a stĺpce
+    for (i = 0; i < r; i++) 
+      cout << a[i][j] << " ";
+    cout << endl;
+  }
+}
+\end{lstlisting}
+}
+
+\begin{uloha}
+  Na vstupe sú čísla $r$, $s$, $d$ a tabuľka čísel s $r$ riadkami a $s$ stĺpcami.
+  Napíšte program, ktorý zistí, či sa v tabuľke vyskytuje štvorec $d\times d$
+  zo samých núl.
+\end{uloha}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectix1
+\section{Čiernobiele obrázky}
+\label{sec:CB obrazky}
+
+Dvojrozmerné pole núl a jednotiek sa dá chápať ako čiernobiely obrázok, kde 1 je biela
+a 0 čierna. Aby sa dali lepšie pozerať, môžeš si stiahnuť súbor 
+\link{https://beda.dcs.fmph.uniba.sk/programovanie/obrazok.h}{obrazok.h}, v ktorom som ti
+pripravil\footnote{V skutočnosti som len použil program {\tt lodePNG}, ktorý je
+voľne prístupný a vie zapisovať obrázky vo formáte PNG.} 
+príkaz na zapísanie dvojrozmerného poľa do obrázku. Ukážem ti, ako sa s ním
+pracuje. Povedzme, že chceme urobiť obrázok rozmerov $300\times200$, ktorý bude mať
+v strede čierny štvorec rozmerov $80\times80$ takto:
+
+\ods
+\centerline{\begin{tikzpicture}[xscale=0.02,yscale=-0.02]
+  \def\d{15}
+  \def\hl#1{
+    \draw[dotted] (-\d,#1) node[anchor=east]{#1} -- (310,#1);
+  }
+  \def\vl#1{
+    \draw[dotted] (#1,-\d)node[anchor=south]{#1} -- (#1,210);
+  }
+  \draw (0,0) rectangle (300,200);
+  \filldraw (110,60) rectangle (190,140);
+  \hl0
+  \hl{100}
+  \hl{200}
+  \hl{140}
+  \hl{60}
+  \vl0
+  \vl{300}
+  \vl{150}
+  \vl{110}
+  \vl{190}
+\end{tikzpicture}}
+
+Začni tým, že si súbor {\tt obrazok.h} ulož do toho istého adresára, kde máš program
+a napíš:
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+#include "obrazok.h"
+
+int main() {
+  int a[200][300], i, j;
+  for (i = 0; i < 200; i++)
+    for (j = 0; j < 300; j++)
+      if (i >= 60 && i <= 140 && j >= 110 && j <= 190)
+        a[i][j] = 0;
+      else
+        a[i][j] = 1;
+  zapis_cb_png(200, 300, a, "vystup.png");
+}
+\end{lstlisting}
+}
+
+V druhom riadku hovoríš, že sa má použiť súbor {\tt obrazok.h}. V poslednom riadku
+používaš príkaz {\tt zapis\_cb\_png}, ktorý je naprogramovaný v tom súbore a má tri parametre:
+počet riadkov, počet stĺpcov, dvojrozmerné pole núl a jednotiek a meno výstupného
+súboru. Zvyšok by mal byť jasný: premennou \prg!i! prechádzame v cykle cez všetky riadky,
+pre každý riadok premennou \prg!j! prechádzame cez všetky stĺpce. 
+Pre každé políčko poľa zistíme, aká farba tam má byť, a zapíšeme.
+Keď program skompiluješ a spustíš, vyrobí ti súbor {\tt vystup.png}, ktorý
+sa dá pozrieť v prehliadači obrázkov.
+
+\begin{uloha}
+  Napíš program, ktorý načíta čísla $n$ a $d$ a vyrobí štvorcový obrázok rozmerov 
+  $n\times n$ s čiernym rámikom hrúbky $d$.
+\end{uloha}
+
+\begin{uloha}
+  Napíš program, ktorý prečíta číslo $d$ a spraví obrázok rozmerov $d\times d$
+  s čiernym trojuholníkom takto:
+
+  \ods
+  \centerline{\begin{tikzpicture}[scale=2]
+    \draw (0,0) rectangle (1,1);
+    \filldraw (0,0) -- (1,1) -- (0,1) -- (0,0);
+  \end{tikzpicture}
+  }
+\end{uloha}
+
+
+\begin{uloha}
+  Napíš program, ktorý prečíta čísla $n$, $d$ a vyrobí obrázok so štvorcovou
+  mriežkou $n\times n$ a rozostupmi $d$. Napr. pre $n=301$ a $d=15$ bude obrázok:
+
+  \ods
+\centerline{\includegraphics[width=4cm]{out/grid.png}}
+
+\end{uloha}
+
+
+\begin{uloha}
+  Napíš program, ktorý prečíta číslo $d$ a vyrobí obrázok šachovnice ($8\times 8$
+  políčok, v ľavom dolnom rohu je čierne políčko) rozmerov $8d\times 8d$, ktorej
+  jedno políčko má rozmery $d\times d$.
+\end{uloha}
+
+
+\subsection*{Malá odbočka: Pytagorova veta, Euklidova vzdialenosť a kruhy}
+
+Poznáš Pytagorovu vetu? Nie je nová, starí Gréci ju poznali viac ako 300 rokov pr. Kr. 
+Asi vieš, že obsah štvorca so stranou $x$ sa dá vypočítať ako $x\cdot x=x^2$.
+Pytagorova veta hovorí, že v pravouhlom trojuholníku sa obsah štvorca nad preponou
+rovná súčtu obsahov štvorcov nad odvesnami. Alebo kratšie, $c^2=a^2+b^2$:
+
+\ods
+\centerline{
+  \begin{tikzpicture}[scale=0.55]
+    \filldraw[fill=yellow!20!white] (0,0) -- (4,0) -- (4,3) -- cycle;
+    \filldraw[fill=blue!10!white] (0,0) -- (4,0) -- (4,-4) -- (0,-4) -- cycle;
+    \filldraw[fill=green!10!white] (4,0) -- (7,0) -- (7,3) -- (4,3) -- cycle;
+    \filldraw[fill=red!10!white] (0,0) -- (-3,4) -- (1,7) -- (4,3) -- cycle;
+    \draw (2,0) node[anchor = north] {$a$};
+    \draw (4,1.5) node [anchor=west] {$b$};
+    \draw (2,1.5) node [anchor=south east] {$c$};
+    \draw (0.5,3.5) node [anchor=center] {\textcolor{black}{\LARGE $c^2$}};
+    \draw (2,-2) node [anchor=center] {\textcolor{black}{\LARGE $a^2$}};
+    \draw (5.5,1.5) node [anchor=center] {\textcolor{black}{\LARGE $b^2$}};
+  \end{tikzpicture}
+}
+
+\ods Prečo to platí ľahko vidno z tohto obrázka. Vo veľkom štvorci sa iba premiestnili
+farebné trojuholníky, takže plocha bielej časti v oboch častiach musí byť rovnaká:
+
+\ods
+\centerline{\begin{tikzpicture}[scale=0.55]
+  \draw (0,0) rectangle (7,7);
+  \filldraw[fill=yellow!50!white] (0,3) -- (0,0) -- (4,0) -- cycle;
+  \filldraw[fill=red!50!white] (4,0) -- (7,0) -- (7,4) -- cycle;
+  \filldraw[fill=blue!50!white] (7,4) -- (7,7) -- (3,7) -- cycle;
+  \filldraw[fill=green!50!white] (3,7) -- (0,7) -- (0,3) -- cycle;
+  
+  \draw (2,0) node[anchor=north] {$a$};
+  \draw (5.5,0) node[anchor=north] {$b$};
+  \draw (5,7) node[anchor=south] {$a$};
+  \draw (1.5,7) node[anchor=south] {$b$};
+  \draw (0,1.5) node[anchor=east]{$b$};
+  \draw (7,2) node[anchor=west]{$a$};
+  \draw (0,5) node[anchor=east]{$a$};
+  \draw (7,5.5) node[anchor=west]{$b$};
+
+  \draw (3.5,3.5) node[anchor=center]{{\LARGE $c^2$}};
+
+  \begin{scope}[shift={(12,0)}]
+    \draw (0,0) rectangle (7,7);
+    \filldraw[fill=green!50!white] (3,7) -- (0,7) -- (0,3) -- cycle;
+    \filldraw[fill=red!50!white] (0,3) -- (3,3) -- (3,7) -- cycle;
+    \filldraw[fill=yellow!50!white] (3,3) -- (3,0) -- (7,0) -- cycle;
+    \filldraw[fill=blue!50!white] (7,0) -- (7,3) -- (3,3) -- cycle;
+  
+    \draw (0,1.5) node[anchor=east]{$b$};
+    \draw (0,5) node[anchor=east]{$a$};
+    \draw (5,7) node[anchor=south] {$a$};
+  \draw (1.5,7) node[anchor=south] {$b$};
+    \draw (7,1.5) node[anchor=west]{$b$};
+    \draw (7,5) node[anchor=west]{$a$};
+    \draw (5,0) node[anchor=north] {$a$};
+  \draw (1.5,0) node[anchor=north] {$b$};
+    \draw (1.5,1.5) node[anchor=center]{{\LARGE $b^2$}};
+    \draw (5,5) node[anchor=center]{{\LARGE $a^2$}};
+
+  \end{scope}
+  
+\end{tikzpicture}
+}
+
+Pytagorova veta zároveň hovorí, že ak mám v rovine dva body, bod $A$ so súradnicami
+$[x_1,y_1]$ a bod $B$ so súradnicami $[x_2,y_2]$, tak ich vzdialenosť je 
+$\sqrt{(x_2-x_1)^2+(y_2-y_1)^2}$:
+
+\ods
+\centerline{\begin{tikzpicture}[scale=0.8]
+  \filldraw (0,0) circle (1pt) node[anchor=east] {$A=[x_1,y_1]$};
+  \filldraw (4,3) circle (1pt) node[anchor=south west] {$B=[x_2,y_2]$};
+  \draw(0,0)--(4,3);
+  \draw[dotted] (0,0) -- (4,0) -- (4,3);
+    
+    \draw[blue] decorate[
+       decoration={brace, amplitude=2ex}]{
+       (4,0) -- (0,0) node [align=center,midway,anchor=south,shift={(0,-0.8)}] {$x_2-x_1$}
+        };
+    \draw[red] decorate[
+       decoration={brace, amplitude=2ex}]{
+       (4,3) -- (4,0) node [align=center,midway,anchor=west,xshift=2ex] {$y_2-y_1$}
+        };
+\end{tikzpicture}}
+
+\ods
+No a napokon kruh so stredom v bode $S=[x,y]$ a polomerom $r$ je tvorený bodmi
+$X=[x',y']$, pre ktoré vzdialenosť od $S$ je nanajvýš $r$, takže platí
+$(x-x')^2+(y-y')^2\le r^2$. S týmto už ľahko vyriešiš túto úlohu:
+
+\begin{uloha}
+  \label{uloha:kruh}
+Na vstupe sú čísla $a$ a $r$. Napíš program, ktorý vyrobí obrázok 
+rozmerov $a\times a$, ktorý bude mať v strede kruh s polomerom $r$.
+Napr. pre $a=300$, $r=100$ bude obrázok vyzerať takto:
+
+\ods
+\centerline{\fbox{\includegraphics[width=4cm]{out/kruh.png}}}
+
+\end{uloha}
+
+\subsection*{Projekt: Celulárny automat}
+
+Máme kolóniu baktérií, ktoré žijú na čiare. 
+Na začiatku je živá iba jedna baktéria:
+
+\centerline{{\tt ..........*..........}}
+
+\ods
+V každej ďalšej generácii sa kolónia vyvíja podľa nasledovných pravidiel: 
+\begin{enumerate}\itemsep=-1mm
+    \item ak je na políčku baktéria, ktorá má dvoch susedov, tak skape, lebo nemá dosť miesta
+    \item ak je prázdne políčko, ktoré nesusedí s baktériou, ostane prázdne
+    \item vo všetkých ostatných prípadoch na políčku bude baktéria
+\end{enumerate}
+
+Prvé štyri generácie budú vyzerať takto:
+
+\centerline{{\tt 0: ..........*..........}}
+\centerline{{\tt 1: .........***.........}}
+\centerline{{\tt 2: ........**.**........}}
+\centerline{{\tt 3: .......*******.......}}
+\centerline{{\tt 4: ......**.....**......}}
+
+\begin{uloha}
+Napíš program, ktorý načíta $t$ a vypíše jeden riadok z bodiek a hviezdičiek, ktorý
+bude znázorňovať, ako bude kolónia vyzerať po $t$ generáciách.
+\end{uloha}
+
+\begin{uloha}
+  Napíš program, ktorý prečíta $t$ a vykreslí obrázok rozmerov $(2t+1)\times t$, v ktorom
+  $i$-ty riadok bude zodpovedať $i$-tej generácii: ak je na políčku baktéria, bude tam 
+  čierny pixel,
+  inak biely. Prvý riadok bude celý biely, iba v strede (na pozícii $[0][t]$) bude
+  čierny pixel.
+\end{uloha}
+
+\ods Môžme ďalej skúmať, ako by vyzeral náš obrázok, keby kolónia mala iné pravidlá.
+Pre dané políčko je osem možností, ako môže jeho okolie vyzerať:
+
+\ods
+\centerline{\begin{tikzpicture}[scale=0.3]
+  \def\n#1#2{
+    \filldraw[fill=\if#10white\else black!30!white\fi] (#2,0) rectangle (#2+1,1);
+  }
+  \def\N#1#2#3#4{
+    \draw(1.5,1.5) node[anchor=south] {$#4$};
+    \n#10\n#21\n#32
+  }
+  
+  \foreach \v [count = \i] in {0000,0011,0102,0113,1004,1015,1106,1117} {
+    \begin{scope}[shift={(-4*\i,0)}]
+      \expandafter\N\v
+    \end{scope}
+  }
+\end{tikzpicture}}
+
+\ods
+Ak si všimneš, očísloval som ich tak, že ak plné políčko je jednotka a prázdne políčko je 
+nula, tak políčka vlastne tvoria číslo okolia zapísané v dvojkovej sústave, napr. okolie
+s číslom 5 je
+{\tt 101}. Inak povedané, ak mám tri čísla (nuly a jednotky) 
+$x,y,z$, tak číslo okolia je $4x+2y+z$.
+
+\ods
+Pravidlo pre rast kolónie musí pre každé okolie povedať, či v ňom v ďalšej generácii
+bude baktéria alebo nie. Naše pravidlo vyzerá takto:
+
+\ods
+\centerline{\begin{tikzpicture}[scale=0.3]
+  \def\n#1#2{
+    \filldraw[fill=\if#10white\else black!30!white\fi] (#2,0) rectangle (#2+1,1);
+  }
+  \def\N#1#2#3#4#5{
+    \draw(1.5,1.5) node[anchor=south] {$#4$};
+    \n#10\n#21\n#32
+    \begin{scope}[shift={(1,-1)}]\n#50\end{scope}
+  }
+  
+  \foreach \v [count = \i] in {00000,00111,01021,01131,10041,10151,11061,11170} {
+    \begin{scope}[shift={(-4*\i,0)}]
+      \expandafter\N\v
+    \end{scope}
+  }
+\end{tikzpicture}}
+
+\ods
+Každé pravidlo obsahuje 8 núl alebo jednotiek, ktoré hovoria výsledok pre 
+jednotlivé okolia. Naše pravidlo je {\tt 01111110}. Keď si predstavíme, 
+že to je zápis nejakého čísla v dvojkovej sústave, každé z 256 možných
+pravidiel kolónie môžeme označiť číslom z rozsahu $0$ až $255$.
+Naše pravidlo je
+
+\ods
+\centerline{\begin{tikzpicture}
+  \foreach \v/\p [count=\i] in { 0/128, 1/64, 1/32, 1/16, 1/8, 1/4, 1/2, 0/1} {
+    \draw[dotted, shorten <= 2ex, shorten >= 2ex] 
+    (\i,0) node [color=green!70!black] {{\small \p}}
+     -- (\i,-6ex) node {\v};
+  }
+\end{tikzpicture}}
+
+\ods
+$64+32+16+8+4+2=126$. Našim cieľom teraz bude preskúmať rôzne pravidlá.
+Ako ľahko pracovať s číslom pravidla? Na to pomôžu tzv. {\em bitové operácie}. Sú to
+operácie nad celými číslami (podobne ako {\tt +,-,*,/,\%}), ale pracujú s jednotlivými
+bitmi čísla v dvojkovej sústave.
+
+\def\prikl#1#2#3{\raisebox{-1.5cm}{%
+  \begin{tikzpicture}[scale=0.45]
+    \def\p(##1,##2)##3{\draw[draw=none] (##1,##2) 
+    rectangle node[align=center]{{\tt ##3}} (##1+1,##2+1);
+    }
+    \foreach \x[count=\i] in {8, 4, 2, 1}{
+      \draw[draw=none] (\i,1) rectangle node[color=green!60!black, align=center]
+      {{\scriptsize\ttfamily \x}} (\i+1,2);
+    }
+    \p(0,0){#1:}
+    \foreach \x [count=\i] in \opA {\p(\i,0){\x}}
+    \p(0,-1){#2:}
+    \foreach \x [count=\i] in \opB {\p(\i,-1){\x}}
+    \draw (0,-1.2) -- (5,-1.2);
+    \p(0,-2.2){#3:}
+    \foreach \x [count=\i] in \res {\p(\i,-2.2){\x}}
+  \end{tikzpicture}}
+}
+
+
+\ods
+\centerline{\begin{tabular}{|c|c|p{7cm}|l|p{2.5cm}|}\hline
+{\tt \&} & AND & 
+  výsledok je číslo, ktoré má bit nastavený na 1, ak obe čísla majú
+  príslušný bit 1
+  & {\tt 10 \& 9 == 8} &
+\global\def\opA{1,0,1,0}
+\global\def\opB{1,0,0,1}
+\global\def\res{1,0,0,0}
+  \prikl{10}{9}{8} \\\hline
+{\tt |} & OR & 
+  výsledok je číslo, ktoré má bit nastavený na 1, ak aspoň jedno číslo má
+  príslušný bit 1
+  & {\tt 10 | 9 == 11} &
+\global\def\opA{1,0,1,0}
+\global\def\opB{1,0,0,1}
+\global\def\res{1,0,1,1}
+  \prikl{10}{9}{11} \\\hline
+  {\tt \^{}} & XOR & 
+  výsledok je číslo, ktoré má bit nastavený na 1, ak práve jedno číslo má
+  príslušný bit 1
+  & {\tt 10 \^{} 9 == 3} &
+\global\def\opA{1,0,1,0}
+\global\def\opB{1,0,0,1}
+\global\def\res{0,0,1,1}
+  \prikl{10}{9}{3} \\\hline
+\end{tabular}}
+
+\ods
+Ešte sa hodia dve bitové operácie. Operácia {\tt <<} posúva binárny zápis čísla doľava.
+{\tt x << a } pripíše {\tt a} núl na koniec dvojkového zápisu {\tt x}. To je to isté,
+ako keby som ho {\tt a}-rát za sebou vynásobil dvomi. Napr $5$ je v dvojkovej sústave
+{\tt 101}. {\tt 5 << 3} preto bude číslo s dvojkovým zápisom {\tt 101000}, čo je
+$5\cdot8=40$. Opačná operácia {\tt >>} posúva číslo doprava, t.j. delí dvomi.
+Napr. $45$ je v dvojkovej sústave {\tt 101101}. Keď ho trikrát vydelím dvomi, dostanem
+{\tt 10110}, čo je $22$. Preto {\tt 45 >> 3 } je $5$. 
+
+\ods
+S týmito operáciami viem jednoducho vyhodnocovať pravidlá. Predpokladajme, že mám
+pravidlo \prg!r! a niekde
+v poli mám hodnoty políčok \prg!a[i-1]!, \prg!a[i]!, \prg!a[i+1]!. 
+Číslo okolia (od 0 do 7) dostanem tak, že
+vyrátam \hbox{\prg!z = 4 * a[i-1] + 2 * a[i] + a[i+1]!}. 
+Bit na pozícii {\tt z} v pravidle mi hovorí, či bude políčko v ďalšej generácii 
+obsadené. Preto stačí vyrátať \prg!r & (1 << z)!, t.j. jednotku posunúť o {\tt z}
+pozícií doprava a urobiť operáciu AND s pravidlom. Ak je výsledok 0, políčko má byť
+prázdne. Ak je výsledok nenulový (t.j rovný \prg!1 << z!), na políčku bude baktéria.
+
+\begin{uloha}
+  Napíš program, ktorý načíta číslo pravidla $r$ a počet iterácií $t$ a vyrobí obrázok
+  (rozmerov $2t+1\times t$),
+  ako vyzerá vývoj kolónie s pravidlom $r$ počas $t$ generácií.
+\end{uloha}
+
+\ods
+Môžeš skúmať rôzne pravidlá: niektoré kolónie rýchlo vymrú, niektoré vyrobia jednoduché útvary 
+(napr. čiaru), iné robia tzv. deterministický chaos, a ešte iné rôzne pravidelné
+obrazce. Niekoľko pravidiel je tu:
+
+\ods
+\vbox{
+\includegraphics[width=7cm]{out/r86.png}
+\hfill
+\includegraphics[width=7cm]{out/r150.png}\\
+\hbox to 7cm{\hss pravidlo 86\hss}
+\hfill
+\hbox to 7cm{\hss pravidlo 150\hss}
+}
+\ods
+\vbox{
+\includegraphics[width=7cm]{out/r89.png}
+\hfill
+\includegraphics[width=7cm]{out/r107.png}\\
+\hbox to 7cm{\hss pravidlo 89\hss}
+\hfill
+\hbox to 7cm{\hss pravidlo 107\hss}
+}
+
+\ods
+Rovnako dobre sa dá skúšať, čo sa stane, ak kolónia nezačína z jednej baktérie, ale z 
+niekoľkých, ako sa správajú dve rastúce kolónie, ktoré do seba narazia, čo ak 
+je pravidlo z väčšieho okolia a pod.
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectx1
+\section{Funkcie}
+
+Kapitolu~\ref{sec:CB obrazky} som začal tým, že som ti pripravil súbor, v ktorom
+bol nový príkaz \prg!zapis_cb_png!. Teraz ti idem ukázať, ako si nové príkazy, ktorým
+sa hovorí {\em funkcie}, môžeš vyrobiť aj ty. 
+Možnosť vyrobiť si vlastné funkcie je veľmi dôležitá:
+umožňuje ti rozdeliť si veľký program na malé časti, ktoré potom môžeš používať viackrát.
+
+\ods
+Najjednoduchšia funkcia vyzerá takto:
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+int sedem() {
+  return 7;
+}
+
+int main() {
+  cout << sedem() << endl;
+}
+\end{lstlisting}
+}
+
+Všimni si, že sa veľmi podobá na zápis, ktorý používame na program. Nie je to náhoda.
+Celý program je v skutočnosti len kopa funkcií, ibaže jedna z nich je špeciálna: tá, ktorá
+sa volá \prg!main! sa začne vykonávať ako prvá. Každá funkcia je samostatný program,
+ktorý má svoj vlastný svet.
+
+\ods Funkcia má meno\footnote{Podobne
+ako pri premenných, meno funkcie môže byť čokoľvek z veľkých a malých písmen, podčiarkovníkov
+a čísel, ale nesmie začínať číslom.} a typ. V našom programe sme spravili funkciu, ktorá
+sa volá {\tt sedem}. Typ \prg!int! pred jej menom hovorí, že táto funkcia je príkaz, ktorý
+keď sa spustí, tak vyráta výsledok, a to bude nejaké celé číslo.
+Guľaté zátvorky za menom slúžia
+na parametre. Zatiaľ žiadne nemáme, ale zátvorky aj tak treba písať. 
+Potom nasleduje zložený príkaz, t.j. v kučeravých zátvorkách napísané príkazy. 
+
+\ods Funkciu vieme v nejakej inej funkcii použiť tak, že napíšeme jej meno a parametre,
+v našom prípade \prg!sedem()!. Pretože naša funkcia má typ \prg!int!, môžme ju použiť
+vo výrazoch rovnako, ako by sme používali číslo. Môžme napr. urobiť 
+\prg!int x = 3 + sedem();! a pod. Kedykoľvek treba vyhodnotiť výraz, v ktorom
+sa volá funkcia, všetko sa preruší a spustí sa tá funkcia. Príkaz
+\prg!cout << sedem() << endl;! v našom programe hovorí \cmd{
+  Začni vypisovať, mal by si vypísať číslo. Preruš robotu, spusti funkciu \prg!sedem()! 
+  a počkaj, kým skončí.
+Keď skončí, ako výsledok ti dá číslo. Pokračuj vo vypisovaní, vypíš  toto číslo a potom znak 
+konca riadku.}
+
+\ods Príkazy, ktoré sa vo funkcii vykonávajú sa volajú {\em telo} funkcie. Špeciálny 
+príkaz \prg!return! urobí to, že skončí funkciu a výsledok funkcie 
+(tzv. {\em návratová hodnota}) bude hodnota výrazu. Každá funkcia musí skončiť príkazom
+\prg!return!\footnote{Slušné by bolo, aby sme aj na konci hlavného programu písali 
+\prg!return 0;!, ale keďže už potom program skončí, tak to nevadí, keď to vynecháme.}.
+Funkcia je samostatný svet, takže môže mať vlastné premenné. Tie sú úplne nezávislé
+od iných funkcií (hovoríme im {\em lokálne premenné}). Čo urobí tento program?
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+int pridaj() {
+  int x;
+  cin >> x;
+  return x + 7;
+}
+
+int main() {
+  int x = pridaj();
+  cout << x + pridaj() << endl;
+}
+\end{lstlisting}
+}
+
+Hlavný program vyrobí premennú \prg!x!. Zavolá funkciu \prg!pridaj()! a jej
+výsledok má uložiť do \prg!x!. Keď sa zavolá funkcia \prg!pridaj()!, vznikne 
+nový svet, v ktorom sa vytvorí iná premenná \prg!x! a načíta sa do nej číslo zo vstupu.
+Dajme tomu, že používateľ napíše 2.
+Potom sa funkcia \prg!pridaj()! skončí, jej svet zanikne, a ostane len výsledok, číslo 9. 
+Pracovať pokračuje hlavný program, do svojej premennej \prg!x! 
+uloží výsledok volania funkcie, t.j. 9. Pokračuje príkazom \prg!cout <<!, 
+na to potrebuje vyhodnotiť
+výraz \prg!x + pridaj()!. V \prg!x! má 9, opäť preruší robotu a zavolá \prg!pridaj()!.
+Zase vznikne nový svet s premennou \prg!x!, do ktorej sa prečíta hodnota. 
+Dajme tomu, že teraz
+je na vstupe 3. Funkcia skončí, jej svet zanikne a ostane číslo 10. Hlavný program
+teraz dokončí rátanie výrazu \prg!9 + 10! a vypíše \prg!19!.
+
+\ods
+Doteraz sme nehovorili o parametroch. Parametre umožňujú používať tú istú funkciu na
+rátanie rôznych vecí. Sú to premenné, ktoré sú lokálne premenné funkcie, ale
+ich hodnota sa dá nastaviť zvonka pri volaní funkcie. Parametre a ich typy
+sú uvedené v zátvorkách za menom funkcie, takže napr.
+
+\vbox{
+\begin{lstlisting}[] 
+int sctitaj(int x, int y) {
+  int z = x + y;
+  return z;
+}
+\end{lstlisting}
+}
+
+je funkcia, ktorá má dva parametre a oba sú celé čísla. Vo vnútri funkcie sa 
+k nim dá správať ako k normálnym premenným. Majme hlavný program:
+
+\vbox{
+\begin{lstlisting}[] 
+int main() {
+  int x = 1;
+  x = scitaj(x, scitaj(x, 3 * x));
+  cout << x << endl;
+}
+\end{lstlisting}
+}
+
+Skús sa zamyslieť, čo vypíše. Máš to? Poďme to pozrieť detailne. Hlavný program
+sa spustí, vyrobí si svoju premennú {\tt x} a dá do nej $1$. Potom ide
+vyhodnocovať výraz, ktorého výsledok má uložiť do {\tt x} a zistí, že je to 
+volanie funkcie.
+
+\def\tw{2}
+\def\th{3ex}
+\def\r{1ex}
+\def\vw{3.5ex}
+\def\mimo{\color{black!50!white}}
+\def\hi{\color{red!50!black}}
+\def\dn{\color{blue!80!white}}
+\def\fr#1{
+  \draw[thick,draw=\clr,rounded corners=\r] (0,\th) rectangle (\tw,-\r);
+  \filldraw[draw=none, fill=white] (0,0) rectangle (\w,-\h);
+  \draw[thick,draw=\clr] (0,-\h) -- (0,0) -- (\w,0) -- (\w,-\h);
+  \draw[thick,draw=none] (0,\th) rectangle node[color=\clr,anchor=center]{{\tt #1}} (\tw,0);
+}
+\def\var(#1,#2)#3#4#5{
+  \draw (#1,#2) rectangle node[anchor=center]{#4} (#1+\vw,#2-\vw) 
+  coordinate[pos=0.5] (#5);
+  \node [anchor=east] at (#1,#2-0.5*\vw) {{\tt #3:}};
+}
+
+\def\conn[#1][#2](#3,#4){
+    \draw[draw=orange, thick, ->, shorten >= 3ex, shorten <= 3ex] (#1) to[in=#3,out=#4] 
+    node[midway, above, color=orange]{}(#2);
+}
+\ods
+\begin{tikzpicture}
+  \def\h{1.8}
+  \def\w{6.2}
+  \def\clr{green!55!black}
+  \fr{main}
+  \var(4ex,-1ex){x}{1}{mX}
+  \node [anchor=south west] at (0,-10ex) {{\tt  
+  {\mimo x = {\hi scitaj(}x, scitaj(x, 3 * x){\hi )}};}};
+\end{tikzpicture}
+
+\ods
+Vyrobí sa teda nový svet funkcie {\tt scitaj} a hlavný program chce nastaviť
+hodnoty parametrov. 
+Prvý parameter nastaví podľa aktuálneho obsahu {\tt x}, 
+ale pri druhom zistí, že je to výraz, v ktorom 
+je opäť volanie funkcie.
+ 
+\ods
+\begin{tikzpicture}
+  \def\h{1.8}
+  \def\w{6.2}
+  \def\clr{green!55!black}
+  \fr{main}
+  \var(4ex,-1ex){x}{1}{mX}
+  \node [anchor=south west] at (0,-10ex) {{\tt  
+  {\mimo x = {\dn scitaj(x, }{\hi scitaj(}x, 3 * x{\hi )}{\dn )}};}};
+
+  \begin{scope}[shift={(8,-1)}]
+  \def\h{1}
+  \def\w{4}
+  \def\clr{blue!55!black}
+  \fr{scitaj}
+  \var(4ex,-1ex){x}{1}{vX}  
+  \var(15ex,-1ex){y}{}{vY}  
+  \draw[draw=\clr](0,-5ex) -- (\w,-5ex); 
+  \conn[mX][vX](150,10);
+  \end{scope}
+\end{tikzpicture}
+
+\ods Vytvorí sa teda ďalší, nezávislý, svet funkcie {\tt scitaj}, nastavia sa mu hodnoty
+parametrov a vyráta sa výsledok, ktorý sa potom vráti tomu, kto funkciu zavolal.
+
+\ods
+\begin{tikzpicture}
+  \def\h{1.8}
+  \def\w{6.2}
+  \def\clr{green!55!black}
+  \fr{main}
+  \var(4ex,-1ex){x}{1}{mX}
+  \node [anchor=south west] at (0,-10ex) {{\tt  
+  {\mimo x = {\dn scitaj(x, }{\hi scitaj(}x, 3 * x{\hi )}{\dn )}};}};
+
+  \begin{scope}[shift={(9,1)}]
+  \def\h{1}
+  \def\w{4}
+  \def\clr{blue!55!black}
+  \fr{scitaj}
+  \var(4ex,-1ex){x}{1}{vX}  
+  \var(15ex,-1ex){y}{}{vY}  
+  \draw[draw=\clr](0,-5ex) -- (\w,-5ex); 
+  \end{scope}
+  
+  \begin{scope}[shift={(7.5,-1.5)}]
+  \def\h{2.6}
+  \def\w{4}
+  \def\clr{orange!55!black}
+  \fr{scitaj}
+  \var(4ex,-1ex){x}{1}{vvX}  
+  \var(15ex,-1ex){y}{3}{vvY}  
+  \draw[draw=\clr](0,-5ex) -- (\w,-5ex); 
+  \conn[mX][vvX](150,10);
+  \conn[mX][vvY](150,10);
+  \var(4ex,-6ex){z}{4}{vvZ}  
+    \node [anchor=south west] at (0,-13ex) {{\tt ... }};
+    \node [anchor=south west] at (0,-16ex) {{\tt return z;}};
+  \draw[draw=\clr](0,-\h) -- (\w,-\h); 
+  \end{scope}
+\end{tikzpicture}
+
+\ods Teraz druhý svet zanikne, ostane z neho iba výsledok $4$, a tým sa nastaví parameter
+v prvom svete:
+
+\ods
+\begin{tikzpicture}
+  \def\h{1.8}
+  \def\w{6.2}
+  \def\clr{green!55!black}
+  \fr{main}
+  \var(4ex,-1ex){x}{1}{mX}
+  \node [anchor=south west] at (0,-10ex) {{\tt  
+  {\mimo x = {\dn scitaj(x, }{\color{white} scitaj(x, 3 * x )}{\dn )}};}};
+  \node[anchor=south west] (vys) at (24ex,-10ex) {\color{orange} 4};
+
+  \begin{scope}[shift={(8,-0.5)}]
+  \def\h{2.6}
+  \def\w{4}
+  \def\clr{blue!55!black}
+  \fr{scitaj}
+  \var(4ex,-1ex){x}{1}{vX}  
+  \var(15ex,-1ex){y}{4}{vY}  
+  \draw[draw=\clr](0,-5ex) -- (\w,-5ex); 
+  \var(4ex,-6ex){z}{5}{vZ}  
+    \node [anchor=south west] at (0,-13ex) {{\tt ... }};
+    \node [anchor=south west] at (0,-16ex) {{\tt return z;}};
+  \draw[draw=\clr](0,-\h) -- (\w,-\h); 
+  \end{scope}
+ 
+  \conn[vys][vY](150,10);
+\end{tikzpicture}
+
+\ods
+Napokon zanikne aj prvý svet, ostane hodnota 5 a tá sa zapíše do premennej {\tt x}
+v hlavnom programe. Takže si to zhrňme: funkcia je samostatný program, ktorý má 
+výstupnú hodnotu\footnote{Tu len pripomeniem: úplne na začiatku sme hovorili,
+že najjednoduchší príkaz {\tt 3*(2+5);} len vyráta hodnotu $21$ a výsledok zahodí. 
+To je, samozrejme, zbytočné, ale niekedy môžeš chcieť zahodiť hodnotu funkcie. Napríklad
+volanie \prg!pridaj();! z predchádzajúceho odstavca načíta číslo zo vstupu a 
+ignoruje ho.}.
+Dá sa použiť vo výrazoch. Pri volaní funkcie sa vytvorí
+nový nezávislý svet, nastavia sa hodnoty parametrov\footnote{%
+Zatiaľ vieme ako parametre funkciám posielať premenné, ale nie polia. 
+Polia sa tiež dajú ako parametre použiť, ale o tom až neskôr.
+} a vypočíta sa výstupná hodnota.
+
+
+\begin{uloha}
+  Napíš funkciu {\tt max} s tromi parametrami, ktorá vráti najväčší z nich.
+\end{uloha}
+
+\ods
+Doposiaľ sme mali každú premennú vyrobenú v nejakej funkcii (či už {\tt main} alebo 
+v nejakej inej). Dajú sa však vyrobiť aj premenné, ktoré žiadnej funkcii nepatria
+a sú viditeľné z každého sveta: hovorí sa im {\em globálne premenné}. Najľahšie
+sa to ukáže na píklade:
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+int a;
+
+void pridaj(int kolko) { a = a + kolko; }
+
+int main() {
+  int i;
+  a = 0;
+  for (i = 0; i < 10; i++) pridaj(i);
+  cout << a << endl;
+}
+\end{lstlisting}
+}
+
+\ods
+Tu sme vyrobili globálnu premennú {\tt a}. Keďže je vyrobená skôr, ako
+definujeme funkciu {\tt pridaj}, telo funkcie môže k premennej {\tt a} pristupovať.
+Tu som použil ako návratový typ nový typ: \prg!void!. Je to prázdny typ, ktorým hovoríme,
+že funkciu chcem vždy použiť iba v situácii, keď výslednú hodnotu zahodím. Takéto funkcie
+nemusia končiť príkazom \prg!return!. Po spustení program vypíše $0+1+2+\cdots+9=45$.
+
+\ods
+Rovnako dobre sa dajú vyrobiť aj globálne polia. Tu je ale problém, akú veľkosť má
+pole mať. Pretože ho vyrábam skôr, ako sa spustí hlavný program, nemôžem čakať, kým
+zo vstupu dostanem veľkosť poľa. Najjednoduchší spôsob je povedať si dopredu ohraničenie
+na veľkosť poľa, vyrobiť dostatočne veľké pole a potom z neho použiť len potrebný kus.
+Toto nie je ideálny prístup (okrem iného mrhá pamäťou), ale nateraz nám postačí.
+Napr. tento program:
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+int a[1000];
+
+int main() {
+  int n = -1;
+  do {
+    n++;
+    cin >> a[n];
+  } while (a[n] > 0);
+}
+\end{lstlisting}
+}
+
+číta do poľa {\tt a} vstupné kladné čísla a skončí, keď sa prvýkrát prečíta niečo 
+$\le 0$. V premennej {\tt n} (ktorá je lokálna funkcii {\tt main}) je uložená ''skutočná''
+dĺžka poľa. Ak by bolo na vstupe viac ako 1000 čísel, stanú sa hrozné veci.
+
+\begin{uloha}
+  \label{uloha:sort2}
+  Napíš funkciu s parametromm \prg!int n!, ktorá v globálnom poli {\tt a} 
+  (o ktorom predpokladáme, že obsahuje kladné čísla) nájde najväčší
+  prvok spomedzi prvých {\tt n}, prepíše ho v poli na {\tt -1} a vráti jeho hodnotu
+  (ešte predtým, ako ho prepísala). Potom s pomocou nej
+  napíš program, ktorý do poľa prečíta kladné
+  čísla zo vstupu a vypíše ich v utriedenom poradí.
+\end{uloha}
+
+Na ľahšiu prácu s globálnymi premennými je v súbore {\tt obrazok.h}
+definovaná funkcia {\tt zapis\_cb\_png\_vyrez}, ktorá má dodatočné
+štyri parametre. Tie hovoria, ktoré riadky a ktoré stĺpce sa majú do obrázka zapísať.
+Program
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+#include "obrazok.h"
+using namespace std;
+
+const int N = 2000;
+int a[N][N];
+
+int main() {
+  // tuto niečo nakresli
+  zapis_cb_png_vyrez(N, N, a, "vystup.png", 50, 80, 300, 200);
+}
+\end{lstlisting}
+}
+
+vypíše do súboru {\tt vystup.png} výrez z poľa {\tt a}  tvorený riadkami
+$50$ až $299$ a stĺpcami $80$ až $199$. Pretože {\tt a} je teraz vyrobené ako globálna
+premenná, jeho rozmery musia byť známe už v čase kompilácie. Na to je špeciálny
+modifikátor \prg!const!, ktorý sme použili pri vytváraní premennej {\tt N} a ktorý
+hovorí, že {\tt N} sa v programe nebude meniť (môžeš si vyskúšať, že to nejde).
+
+\begin{uloha}
+  Napíš funkciu \prg!void stvorec(int r, int s, int d)!, ktorá v globálnom poli
+  vyplní jednotkami štovrec $d\times d$ začínajúci na riadku $r$ a stĺpci $s$.
+  S jej pomocou napíš program, ktorý načíta tri čísla $a, b, c$ také, že
+  $a+b+c<100$ a vyrobí obrázok rozmerov $100\times 100$, v ktorom budú tri štvorce
+  rozmerov $a\times a$, $b\times b$ a $c\times c$ položené jeden na druhom 
+  v strede obrázka. Napr. pre vstup $40, 30, 20$ bude obrázok vyzerať takto:
+
+\ods
+\centerline{\fbox{\includegraphics[width=4cm]{out/tristvorce.png}}}
+\end{uloha}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectxi1
+\section{Rekurzia}
+
+Volanie funkcie pri vyhodnocovaní výrazu, ako sme ho opísali v minulej kapitole,
+nemusí byť len z hlavného programu, ale z hocijakej funkcie, tento program
+vypíše 16:
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+int a(int x) { return x + 1; }
+
+int b(int x) { return a(x) * a(x); }
+
+int main() { cout << b(3) << endl; }
+\end{lstlisting}
+}
+
+Jediná vec, ktorú treba dodržať je, podobne ako pri premenných, že každé použitie
+(volanie) musí byť až vtedy, keď funkcia bola v programe vyrobená. Keby si
+napr. v predchádzajúcom programe prehodil riadky s definíciou funkcií {\tt a} a {\tt b},
+nefungoval by. 
+
+\ods Špeciálne zaujímavá je situácia, keď funkcia vo svojom tele volá sama seba. Takéto
+volanie je možné a hovorí sa mu {\em rekurzia}. Na prvý pohľad to možno vyzerá divne, ale
+nie je to. Treba len, podobne ako pri cykle, zabezpečiť, aby sa volanie nezacyklilo
+ako táto funkcia:
+
+\vbox{
+\begin{lstlisting}[] 
+int a(int x) { return 1 + a(x + 1); }
+\end{lstlisting}
+}
+
+\ods
+Čo sa začne diať, ak zavoláš \prg!a(0)!? Najprv sa spraví nový svet funkcie \prg!a!,
+v ktorom sa {\tt x} nastaví na 0 a začne sa vykonávať telo funkcie. V ňom
+sa spraví nový nezávislý svet funkcie {\tt a}, v ktorom sa  {\tt x} nastaví na 1
+a začne sa vykonávať telo funkcie. V ňom
+sa spraví nový nezávislý svet funkcie {\tt a}, v ktorom sa  {\tt x} nastaví na 2
+a začne sa vykonávať telo funkcie. V ňom
+sa spraví nový nezávislý svet funkcie {\tt a}, v ktorom sa \ldots
+
+
+\ods
+Keď ale funkcii naprogramuješ správne ''dno'', niektoré rekurzívne formulácie
+sú veľmi prirodzené. Zober si napríklad hľadanie najväčšieho spoločného deliteľa.
+Euklides vedel, že ak máme dve čísla $a$ a $b$ také, že $a>b$, 
+a obidve sú deliteľné číslom $k$,
+to znamená že $a=xk$ a $b=yk$ pre nejaké $x$ a $y$. Potom $a-b=xk-yk=(x-y)k$,
+a teda aj $x-y$ je deliteľné číslom $k$. Preto každý spoločný deliteľ $a$ a $b$
+je zároveň spoločným deliteľom $a-b$ a $b$. Najväčšieho spoločného deliteľa
+preto vieme nájsť takto:
+
+\vbox{
+\begin{lstlisting}[] 
+int NSD(int a, int b) {
+  if (a == b) return a;
+  if (a == 1 || b == 1) return 1;
+  if (a > b) return NSD(a - b, b);
+  return NSD(b - a, a);
+}
+\end{lstlisting}
+}
+
+Keď zavoláme napr \prg!NSD(4,6)!, toto volanie následne zavolá \prg!NSD(2,4)!,
+toto zase \prg!NSD(2,2)! a toto volanie už ďalší svet {\tt NSD} nevytvorí,
+ale vráti 2. Potom už reťazovo všetky ostatné volania dobehnú a vrátia 2.
+Ako sa presvedčíme, že sa táto funkcia nikdy nezacyklí? Všimni si, že keď
+funkciu zavoláme s hocijakými $a>0$, $b>0$, každé ďalšie volanie zmenší
+súčet $a+b$. Zároveň ani $a$, ani $b$ neklesne na nulu (to by museli byť 
+v predchádzajúcom volaní rovnaké, ale vtedy by sa už ďalšie volanie nevyrobilo).
+Keďže súčet nemôže klesať donekonečna, vidíme, že funkcia sa nikdy nezacyklí.
+
+\ods S rekurziu sa často stretneš pri definícii rôznych výrazov. Napríklad takto:
+\begin{uloha}
+  \label{uloha:vyrazy}
+  Zjednodušený výraz je buď jednociferné číslo, alebo má tvar 
+  {\tt ($\clubsuit$+$\heartsuit$)}, kde $\clubsuit$ a $\heartsuit$ sú zjednodušené
+  výrazy. Napíš program, ktorý prečíta zo vstupu zjednodušený výraz a vyráta jeho
+  hodnotu.
+\end{uloha}
+
+Zo zadania vidíme, že zjednodušené výrazy sú napr. {\tt 4}, alebo {\tt (5*3)},
+alebo {\tt (2+((3*2)+(1+(6*3))))}, ale nie {\tt 12} (nie je jednociferné), ani 
+{\tt 5+1} (nie je v zátvorkách), ani {\tt (3+8+1)}. 
+Na čítanie vstupu použijeme premennú typu \prg!char c;! (pozri kapitolu \ref{sect:cisla}).
+Príkaz \prg!cin>>c;! prečíta jeden znak zo vstupu. Ak je tento znak číslica, t.j.
+\prg!c>='0' && c<='9'!, tak hodnota výrazu je číslo, ktoré táto číslica reprezentuje,
+t.j. \prg!c-'0';! (tu využívame, že v ASCII tabuľke idú znaky číslic za sebou).
+Ak prvý znak nebola číslica, musela to byť otváracia zátvorka. Hodnotu výrazu potom
+získame tak, že rekurzívne vyhodnotíme prvý výraz, prečítame znak operácie, rekurzívne
+vyhodnotíme druhý výraz a vrátime výsledok (predtým ale nezabudneme prečítať
+zatváraciu zátvorku). Výsledok by mohol vyzerať takto:
+
+\vbox{
+\begin{lstlisting}[] 
+int vyraz() {
+  char c;
+  cin >> c;
+  if (c >= '0' && c <= '9') return c - '0';
+  int v1 = vyraz(); // rekurzivne volanie 
+  cin >> c;         // operator
+  int v2 = vyraz(); // druhe rekurzivne volanie 
+  int vysledok;
+  if (c == '+')
+    vysledok = v1 + v2;
+  else
+    vysledok = v1 * v2;
+  cin >> c;         // zatvaracia zatvorka
+  return vysledok;
+}
+\end{lstlisting}
+}
+
+\ods
+Keby si chcel mať viacciferné čísla, uvedom si, že napr. hodnota čísla \prg!'4567'! je
+desaťkrát hodnota čísla \prg!'456'! plus hodnota cifry \prg!'7'!.
+
+\begin{uloha}
+  Uprav predchádzajúce riešenie tak, aby pracovalo s viaccifernými číslami.
+\end{uloha}
+
+
+
+\begin{uloha}
+  Napíš program, ktorý načíta zo vstupu jedno prirodzené číslo a vypíše ho otočené.
+  Má to ale háčik: v celom programe môžeš použiť iba jedinú premennú (tú, do 
+  ktorej načítaš vstup).
+\end{uloha}
+
+\begin{uloha}
+Napíš program, ktorý prečíta číslo $n$ a vypíše všetky možné usporiadania
+  čísel $1,2,\ldots,n$. Napr. pre $n=3$ vypíše (v nejakom poradí):
+  \begin{verbatim}
+1 2 3
+1 3 2
+2 1 3
+2 3 1
+3 2 1
+3 1 2
+\end{verbatim}
+\end{uloha}
+
+\begin{uloha}
+  \label{uloha:fill}
+  Na vstupe sú čísla $n$, $m$ a dvojrozmerné pole núl a jednotiek s $n$ riadkami
+  a $m$ stĺpcami. Napokon sú tam dve čísla $r$, $s$.
+  Napíš program, ktorý vyplní jednotkami uzavretú oblasť núl ohraničenú jednotkami,
+  ktorá obsahuje políčko na riadku $r$ a stĺpci $s$.
+  Konkrétne treba urobiť toto: prefarbiť políčko na riadku $r$ a stĺpci $s$ na 1,
+  pozrieť sa na štyroch susedov (hore, dole, vľavo a vpravo) a pre každého z nich,
+  ktorý má hodnotu 0, urobiť to isté (t.j. prefarbiť ho na 1, pozrieť sa na štyroch 
+  susedov, \ldots)
+
+
+  \ods
+\bp
+\inp
+\begin{verbatim}
+8 11
+0 0 1 1 1 1 0 0 0 0 0
+0 1 0 0 0 0 1 0 0 1 0
+0 1 0 0 0 0 1 0 1 0 1
+0 0 1 0 0 0 1 0 1 0 1
+0 0 1 0 0 1 0 0 1 0 1
+0 0 1 0 1 0 1 1 1 0 1 
+0 0 1 0 0 0 0 0 0 0 1 
+0 0 0 1 1 1 1 1 1 1 0 
+2 4
+\end{verbatim}
+\ep
+\hfill
+\bp
+\outp
+\begin{verbatim}
+0 0 1 1 1 1 0 0 0 0 0
+0 1 1 1 1 1 1 0 0 1 0
+0 1 1 1 1 1 1 0 1 1 1
+0 0 1 1 1 1 1 0 1 1 1
+0 0 1 1 1 1 0 0 1 1 1
+0 0 1 1 1 1 1 1 1 1 1 
+0 0 1 1 1 1 1 1 1 1 1 
+0 0 0 1 1 1 1 1 1 1 0 
+\end{verbatim}
+\ep
+
+\end{uloha}
+
+\begin{uloha}
+  \def\sierp#1{
+    \def\tre{0.333333333}
+    \if#10
+    \filldraw(0,0) rectangle (1,1);
+    \else
+    \foreach \x in {0,...,2}
+    \foreach \y in {0,...,2} {
+      \pgfmathparse{\x==1 && \y==1?int(1):int(0)}
+      \ifnum\pgfmathresult=0{
+        \begin{scope}[shift={(\tre*\x,\tre*\y)}, scale=\tre]
+          \pgfmathtruncatemacro{\n}{#1-1}
+          \sierp{\n}
+        \end{scope}
+      }
+      \fi
+    }
+    \fi 
+  }
+
+  Sierpińského koberec je vzor, ktorý je popísaný rekurzívne. Koberec úrovne nula
+  je čierny štvorec. Koberec úrovne $n$ dostaneme tak, že zoberieme štvorec, rozdelíme
+  ho na mriežku $3\times3$, stredný štvorec vyrežeme, a osem zvyšných štvorcov nahradíme
+  kópiami koberca úrovne $n-1$. Prvých päť kobercov vyzerá takto:
+
+  \ods
+  \begin{tikzpicture}[scale=2.8]
+    \foreach\i in {0,...,\if\longSierp14\else1\fi} {
+    \begin{scope}[shift={(\i*1.1,0)}]
+      \sierp{\i}
+    \end{scope}}
+  \end{tikzpicture}
+
+  \ods
+  Napíš program, ktorý zo vstupu prečíta $n$ a vyrobí obrázok rozmerov
+  $3^n\times3^n$ (t.j. úroveň 0 má stranu dĺžky $1$, úroveň $1$ stranu $3$,
+  a úroveň $n$ stranu $3^n=\overbrace{3\cdot3\cdots3}^n$), v ktorom bude koberec úrovne $n$.
+\end{uloha}
+
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectxii1
+\section{Zložitosť}
+
+Keď máme niečo naprogramovať, väčšinou je viac možností, ako to urobiť. A nie všetky sú 
+rovnako dobré. Fibonacciho čísla z úlohy~\ref{uloha:Fibonacci} môžem naprogramovať
+dvoma spôsobmi takto:
+
+\ods
+\bp
+\begin{lstlisting}[] 
+long int Fib1(int n) {
+  if (n < 3) return n - 1;
+  long int a = 0, b = 1, c;
+  int i;
+  for (i = 2; i < n; i++) {
+    c = a + b;
+    a = b;
+    b = c;
+  }
+  return c;
+}
+\end{lstlisting}
+\ep
+\hfil
+\bp
+\begin{lstlisting}[] 
+long int Fib2(int n) {
+  if (n < 3) return n - 1;
+  return Fib2(n - 1) + Fib2(n - 2);
+}
+\end{lstlisting}
+\ep
+
+\ods
+Rekurzívna verzia vpravo je kratšia a lepšie pochopiteľná, lebo z nej priamo vidíme
+posup \cmd{$n$-té číslo vyrátaš tak, že sčítaš dve predchádzajúce}.
+Má to ale háčik. Začal som si merať čas, koľko trvá, kým sa vyráta $n$-té číslo. 
+Funkcia \prg!Fib1! všetky čísla po $90$ (cca toľko sa zmestí do \prg!long int!) vyrátala
+pod jednu milisekundu. Pri funkcii \prg!Fib2! som sa dostal po $54$-té číslo. Tam to trvalo
+cca 518 sekúnd a potom ma to prestalo baviť. Tu vidíš graf, ako závisel čas behu od veľkosti
+$n$. Čísla {\tt Fib2(90)} by som sa nedočkal ani do konca vesmíru.
+
+\ods
+\begin{tikzpicture}
+\begin{axis}[
+  width=\textwidth, 
+  height=10cm,
+  xlabel=$n$,
+  ylabel=čas (s),
+  legend cell align={left},
+  legend pos = north west
+]
+  \addplot+[blue!80!white, 
+  line join=round, mark size=0.5pt] table [y=f, x=n]{out/fibcas.dat};
+  \addlegendentry{koľko sekúnd trvá vyrátať {\tt Fib2(n)}}
+\end{axis}
+\end{tikzpicture}
+
+\ods
+Problém tu bol v tom, že rekurzívna verzia ráta veľa vecí zbytočne: keď chce vyrátať
+{\tt Fib2(10)}, najprv ráta {\tt Fib2(9)}. Pri rátaní {\tt Fib2(9)}, vyráta 
+{\tt Fib2(8)=13}
+a {\tt Fib2(7)=8}, takže vráti hodnotu {\tt Fib2(9)=21}. Pokračuje sa v rátaní
+{\tt Fib2(10)}: {\tt Fib2(9)} už je vyrátané, ide sa 
+ rátať {\tt Fib2(8)}. To sa už síce raz rátalo, ale výsledok
+zanikol spolu so svetom predchádzajúceho rekurzívneho volania, takže sa bude rátať
+znova. Takto sa nabaľuje veľa 
+zbytočnej práce a už aj pre relatívne malé $n$ to začne byť celkom dosť problém.
+
+\ods
+Keď máme dva programy, ako môžme povedať, ktorý z nich je rýchlejší?
+Keby som ti povedal, že vyrátať 37. Fibonacciho číslo mi tvalo 140 ms, nič ti to nepovie,
+lebo to závisí od toho, aký mám rýchly počítač. Hlavný problém s funkciou {\tt Fib2} nebol 
+v konkrétnych časoch, ale v tom, že sa príliš rýchlo zväčšovali. Chceme teda vymyslieť 
+spôsob, ako povedať, ako rýchlo rastie čas programu v závislosti od veľkosti vstupu.
+Ukážeme si to na príklade. Povedzme, že už máme načítané pole {\tt a},
+v ktorom je $n$ čísel, každé
+z nich z rozsahu $0,\ldots,999$. 
+Chcem ho preusporiadať tak, aby bolo v poradí od najväčšieho čísla po najmenšie.
+Podobný problém si už riešil v úlohách~\ref{uloha:sort1} a \ref{uloha:sort2}, 
+teraz skúsme trochu iný prístup, vlastne dva.
+
+\ods
+Prvý algoritmus je tzv. {\em Insertion Sort}. Idea je takáto: budeme sa snažiť
+prehadzovať prvky v poli tak, aby nakoniec polo utriedené. Algoritmus bude pracovať v
+kolách. Na začiatku $i$-teho kola chceme, aby platilo, že prvých $i$ pozícií je
+utriedených. Na začiatku prvého kola to platí -- prvý jeden prvok je utriedený vždy.
+Ak sa nám podarí, aby to platilo aj po $n$ kolách, budeme mať utriedených
+prvých $n$ pozícií, t.j. celé pole. Predpokladajme teraz, že sme na začiaku $i$-teho kola.
+Skontrolujeme, či je prvok {\tt a[i]} je menší, ako {\tt a[i-1]}. 
+Ak áno, môžme toto kolo skončiť,
+lebo prvých $i+1$ prvkov je utriedených. Ak nie, vymeníme prvky {\tt a[i]} a 
+{\tt a[i-1]}
+a skontrolujeme, či je {\tt a[i-1]} menší ako {\tt a[i-2]}. Takto pokračujeme ďalej, kým
+nedostaneme prvok {\tt a[i]} na správne miesto:
+
+\ods
+\begin{tikzpicture}[xscale=0.132,yscale=0.135]
+  \def\bar(#1,#2)#3{
+    \filldraw[draw=black,fill=#3](#1,0) rectangle (#1+1,#2);
+  }
+  \def\prf{orange!60!white}
+  \def\rst{rgb:green,5;yellow,4;blue,2;black,3}
+  \def\act{rgb:blue,5;green,3;white,4}
+  \def\base{
+    \foreach \x[count=\i] in {20,19,17,15,14,13} {
+      \bar(\i,\x){\prf}
+    }
+    \foreach \x[count=\i] in {12,4,3,18,7} {
+      \bar(\i+11,\x){\rst}
+    }
+    \draw [<-, shorten <= 4] (11.5,0) -- (11.5,-4) node [anchor=north]{$i$};
+  }
+  \def\dj#1{  
+  \draw [<-, shorten <= 5] (#1+.5,11) -- (#1+.5,19) node [anchor=south]{$j$};
+  }
+  \def\sh{23}
+
+  \begin{scope}[shift={(0,0)}]
+    \base
+    \foreach \x[count=\i] in {10,9,8,5} {
+      \bar(\i+6,\x){\prf}
+    }
+    \bar(11,11.5){\act}
+    \dj{11}
+  \end{scope}
+
+  \begin{scope}[shift={(\sh,0)}]
+    \base
+    \foreach \x[count=\i] in {10,9,8} {
+      \bar(\i+6,\x){\prf}
+    }
+    \bar(10,11.5){\act}
+    \bar(11,5){\prf}
+    \dj{10}
+  \end{scope}
+
+  \begin{scope}[shift={(2*\sh,0)}]
+    \base
+    \foreach \x[count=\i] in {10,9} {
+      \bar(\i+6,\x){\prf}
+    }
+    \bar(9,11.5){\act}
+    \bar(10,8){\prf}
+    \bar(11,5){\prf}
+    \dj{9}
+  \end{scope}
+
+  \begin{scope}[shift={(3*\sh,0)}]
+    \base
+    \bar(7,10){\prf}
+    \bar(8,11.5){\act}
+    \bar(9,9){\prf}
+    \bar(10,8){\prf}
+    \bar(11,5){\prf}
+    \dj{8}
+  \end{scope}
+
+  \begin{scope}[shift={(4*\sh,0)}]
+    \base
+    \bar(7,11.5){\act}
+    \bar(8,10){\prf}
+    \bar(9,9){\prf}
+    \bar(10,8){\prf}
+    \bar(11,5){\prf}
+    \dj{7}
+  \end{scope}
+\end{tikzpicture}
+
+\ods
+Celá funkcia bude vyzerať takto:
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+void vymen(int i, int j) {
+  int x;
+  x = a[i];
+  a[i] = a[j];
+  a[j] = x;
+}
+
+void InsertSort(int n) {
+  int i, j;
+  for (i = 1; i < n; i++)
+    for (j = i; j > 0 && a[j - 1] < a[j]; j--) 
+      vymen(j - 1, j);
+}
+\end{lstlisting}
+}
+
+\ods
+Druhý algoritmus, tzv. {\em CountSort} 
+vychádza z toho, že vieme, že vstupné čísla sú z malého rozsahu
+(od 0 do 999). Vyrobíme si pomocné pole \prg!pocty[1000]!, v ktorom si budeme
+pamätať počty jednotlivých prvkov (\prg!pocty[i]==j! namená, že sa v poli vyskytuje
+{\tt j}-krát hodnota {\tt i}). Takže raz prejdeme vstupným poľom a zistíme počty
+a potom len zapíšeme správny počet hodnôt takto:
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+void CountSort(int n) {
+  int pocty[1000];
+  int i, c;
+
+  for (i = 0; i < 1000; i++) pocty[i] = 0;
+  for (i = 0; i < n; i++) pocty[a[i]]++;
+  i = 0;
+  for (c = 999; c>=0 ; c--)
+    while (pocty[c] > 0) {
+      a[i] = c;
+      i++;
+      pocty[c]--;
+    }
+}
+\end{lstlisting}
+}
+
+\ods
+Teraz som spravil to, že som oba algoritmy veľakrát spustil na rôznych poliach
+a meral im čas. Výsledky sú v nasledovných grafoch\footnote{Vyzerajú síce podobne, 
+ale všimni si, že obrázok vľavo je v sekundách a vpravo v mikrosekundách. CounSort
+bol na dlhých poliach výrazne rýchlejší.}
+
+\if\longCharts1
+\ods
+\begin{tikzpicture}
+\begin{axis}[
+  title={InseretSort},
+  width=0.5*\textwidth, 
+  height=10cm,
+  xlabel=$n$,
+  ylabel=čas (s),
+  scaled x ticks=false,
+  scaled y ticks=false,
+  domain=0:20000,
+  xmin=0,
+  xmax=20000,
+  /pgf/number format/.cd,
+        1000 sep={}
+]
+  \addplot+[only marks, mark size=0.4pt, mark options={
+    draw=orange!80!white,
+    fill=red!80!orange
+  }
+  ] 
+  table [y expr=\thisrow{t}/1000000, x=n, ]{out/is.dat};
+  \addplot[no markers,red!50!white]{0.0000000027*x*x+0.01};
+\end{axis}
+\end{tikzpicture}
+\begin{tikzpicture}
+\begin{axis}[
+  title={CountSort},
+  width=0.5*\textwidth, 
+  height=10cm,
+  xlabel=$n$,
+  ylabel=čas ($\mu$s),
+  scaled x ticks=false,
+  scaled y ticks=false,
+  domain=0:20000,
+  xmin=0,
+  xmax=20000,
+  /pgf/number format/.cd,
+        1000 sep={}
+]
+  \addplot+[only marks, mark size=0.4pt, mark options={
+    draw=cyan!80!white,
+    fill=blue!80!cyan
+  }
+  ] 
+  table [y=t, x=n ]{out/cs.dat};
+  \addplot[no markers,blue!50!white]{0.015*x+25};
+\end{axis}
+\end{tikzpicture}
+\fi
+
+\ods
+Z grafov vidno, že obom algoritmom dlhšie polia trvajú dlhšie, ale aj na rovnako dlhých
+poliach môžu bežať rôzne dlho (podľa toho, aké konkrétne čísla v tom poli sú).
+Ničmenej všetky body na ľavom obrázku sa dajú schovať pod parabolu\footnote{%
+  graf funkcie $y=ax^2+b$ pre nejaké čísla $a$, $b$} a všetky body vpravo 
+  pod priamku. Preto hovoríme, že InsertSort má {\em kvadratickú zložitosť}, kým
+CountSort má {\em lineárnu}.
+
+\ods
+Je algoritmus s lineárnou zložitosťou vždy lepší, ako ten s kvadratickou?
+Predpokladajme, že máme lineárny algoritmus ${\cal A}$, ktorého čas na vstupe veľkosti
+$n$ je najviac $42n+200$. Majme hocijaký kvadratický algoritmus ${\cal B}$,
+ktorého čas na vstupe veľkosti $n$ je $an^2+b$ pre nejaké čísla $a$, $b$. 
+Pre malé hodnoty $n$ môže byť algoritmus ${\cal B}$ rýchlejší. Ale existuje
+$n$, kedy $24n+200=an^2+b$, a od tohto $n$ ďalej už bude rýchlejší algoritmus 
+${\cal A}$. 
+
+\ods
+\centerline{
+\begin{tikzpicture}
+\begin{axis}[
+  width=0.7*\textwidth, 
+  height=7cm,
+  xlabel=$n$,
+  %scaled x ticks=false,
+  scaled y ticks=false,
+  domain=0:20000,
+  xmin=0,
+  xmax=20000,
+  /pgf/number format/.cd,
+        1000 sep={},
+  legend cell align={left},
+  legend pos = south east
+]
+  \addplot[no markers,red!50!white]{42*x+200};
+  \addlegendentry{$42x+200$}
+  \addplot[domain=0:3200,no markers,teal!40!white]{0.1*x*x};
+  \addlegendentry{$0.1x^2$}
+  \addplot[domain=0:10000,no markers,teal!60!white]{0.01*x*x};
+  \addlegendentry{$0.01x^2$}
+  \addplot[domain=0:14000,no markers,teal!80!white]{0.005*x*x};
+  \addlegendentry{$0.005x^2$}
+  \addplot[domain=0:19500,no markers,teal]{0.0025*x*x};
+  \addlegendentry{$0.0025x^2$}
+\end{axis}
+\end{tikzpicture}}
+
+\ods
+Inými slovami, pre každý kvadratický algoritmus platí, že pre dosť veľké vstupy je
+${\cal A}$ rýchlejší. Podobne vieme hovoriť o kubických algoritmoch, algoritmoch štvrtého 
+stupňa atď. A ako by dopadol algoritmus {\tt Fib2}? Jeho zložitosť je až $2^n$: rastie
+rýchlejšie, ako akýkoľvek polynóm $x^c$. Takýmto algoritmom hovoríme {\em exponenciálne}.
+
+\ods 
+Typický príklad algoritmu s lineárnou zložitosťou je jeden cyklus, ktorý
+raz prejde cez vstupné hodnoty a niečo na nich ráta (napr. hľadá maximum): keď bude
+vstup dvojnásobne dlhý, program pobeží dvakrát dlhšie -- to je lineárna závislosť.
+Dva vnorené cykly takto:
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+for (i = 0; i < n; i++)
+  for (j = 0; j < n; j++)
+    if (i != j) {
+      x = a[j] - a[i];
+      if (x < 0) x = -x;
+      if (x < m) m = x;
+    }
+\end{lstlisting}
+}
+
+sú zas typický príklad kvadratického algoritmu: keď má vstup dĺžku $n$, vnútro cyklu
+sa vykoná $n^2$-krát (mimochodom: skús sa zamyslieť, čo ten program robí).
+Treba byť ale opatrný, nie všetky vnorené cykly znamenajú kvadratickú
+zložitosť. Pozrime sa na takýto príklad: v poli {\tt a} je uložených {\tt n}
+rôznych čísel. Naším cieľom je nájsť najdlhší úsek, v ktorom sú čísla utriedené od 
+najmenšieho. Napr. v poli
+{\tt 12 \textcolor{teal}{4 5 8} 6 \textcolor{orange}{5 10}
+\textcolor{rgb:green,5;yellow,4;blue,2;black,3}{ 9 11 13 14} 3
+}
+sú tri také úseky označené farebne a najdlhší z nich má dľžku $4$.
+
+\ods
+Priamočiary spôsob riešenia je pre každú pozíciu v poli vyskúšať, aký dlhý rastúci úsek 
+sa z nej začína. Budeme mať teda jednu premennú {\tt i}, ktorou prejdeme v cykle
+cez celé pole a zakaždým v druhom cykle premennou {\tt j} zistíme dĺžku rastúceho úseku.
+Napríklad pre ${\tt i}=1$, bude najprv ${\tt j}=2$ a pretože ${\tt a[2]}=5 > 4={\tt a[1]}$,
+{\tt j} sa nastaví na $3$ a cyklus sa zopakuje. Rovnako  ${\tt a[3]}=8 > 5={\tt a[2]}$,
+preto sa cyklus opäť zopakuje a {\tt j} bude $4$. Teraz  ${\tt a[4]}=6 < 8={\tt a[3]}$,
+preto cyklus skončí s hodnotou ${\tt j}=4$. Dĺžka rastúceho úseku so začiatkom
+v {\tt i} je preto {\tt j - i}.
+
+\ods
+\begin{tikzpicture}[scale=0.6]
+  \def\cc{rgb:green,5;yellow,4;blue,2;black,3}
+  \foreach \x/\c[count=\i] in {12/black, 4/teal, 5/teal, 8/teal, 6/black, 5/orange, 10/orange, 9/0, 11/0, 13/0, 14/0, 3/black} {
+  \draw[draw=none] (\i,0) rectangle node[anchor=center]{{\tt 
+    \textcolor{\if\c0\cc\else\c\fi}{\x }}} (\i+1,1);
+  }
+  \draw[->, shorten <= 5] (2.5,2) node[anchor=base]{${\tt i}=1$}-- (2.5,1);
+  \draw[->, shorten <= 5] (5.5,2) node[anchor=base]{${\tt j}=4$}-- (5.5,1);
+\end{tikzpicture}
+
+\ods
+Program by vyzeral napr. takto:
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+int usek1() {
+  int i = 0, j, m = 0;
+  while (i < n - 1) {
+    j = i + 1;
+    while (j < n && a[j] > a[j - 1]) j++;
+    if (j - i > m) m = j - i;
+    i++;
+  }
+  return m;
+}
+\end{lstlisting}
+}
+
+
+V programe máme dva vnorené cykly. Koľkokrát sa vykoná inštrukcia {\tt j++}
+vo vnútornom cykle? Predpokladajme, že na vstupe sú čísla usporiadané vzostupne
+{\tt 1 2 3 ... $n$}. Na začiatku je {\tt i}=0, takže vnútorný cyklus začína od 0,
+a keďže je celé pole rastúce, zopakuje sa $n-1$ krát. Potom sa nastaví
+{\tt i}=1 a vnútorný cyklus sa zopakuje $n-2$ krát atď. Celkovo
+sa teda vnútorný cyklus zopakuje $(n-1)+(n-2)+(n-3)+\cdots+3+2+1$ krát.
+Ako takýto súčet môžme vyrátať? Stačí si preusporiadať čísla: prvé s posledným
+dá dokopy $(n-1)+1=n$. Druhé s predposledným dá $(n-2)+2=n$ atď. Dokopy takto získame
+$(n-1)/2$ dvojíc po $n$, teda výsledok\footnote{%
+  Toto, čo sme povedali, platí pre nepárne $n$, aby $(n-1)/2$ bolo celé číslo. Ako je to pre
+  párne $n$? Dostaneme $(n-2)/2$ dvojíc po $n$ a ešte v strede ostane jedno číslo $n/2$.
+  Dokopy to teda bude $n(n-2)/2+n/2=(n^2-2n)/2+n/2=(n^2-2n+n)/2=(n^2-n)/2=n(n-1)/2$,
+  takže výsledok sedí aj v tomto prípade.
+}je $n(n-1)/2$, čo je kvadratická funkcia.
+
+\ods
+Vedel by si zložitosť tejto funkcie vylepšiť? Stačí si uvedomiť, že veľa roboty 
+sa robí zbytočne. Napríklad pre ${\tt i}=1$ skončí vnútorný cyklus s hodnotou
+${\tt j}=4$. Čo sa stane pre ${\tt i}=2$? Vnútorný cyklus opäť príde po ${\tt j}=4$
+a potom zastane, lebo nájde menšie číslo  ${\tt a[4]}=6 < 8={\tt a[3]}$. Samozrejme,
+rastúci úsek od ${\tt i}=2$ je kratší. Nás ale zaujíma najdlhší rastúci úsek, preto
+nepotrebujeme skúšať ${\tt i}=2$ ani ${\tt i}=3$, ale
+najbližšie {\tt i}, ktoré potrebujeme skúsiť je {\tt i = j}. Upravme program takto:
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+int usek2() {
+  int i = 0, j, m = 0;
+  while (i < n - 1) {
+    j = i + 1;
+    while (j < n && a[j] > a[j - 1]) j++;
+    if (j - i > m) m = j - i;
+    i = j;
+  }
+  return m;
+}
+\end{lstlisting}
+}
+
+Zdanlivo je to malá zmena, stále máme dva vnorené cykly, ale vidno, že každá premenná
+v poli {\tt a} sa testuje na {\tt a[j] > a[j - 1]} iba raz za celý program (keď sa raz
+v nejakom cykle otestuje, ďalšia iterácia vonkajšieho cyklu ju už preskočí). Funkcia
+{\tt usek2} má teda lineárnu zložitosť. Naozaj sa ten rozdiel prejaví? 
+Skúšal som si merať časy na rôznych vstupoch. Pre funkciu {\tt usek1} je najhoršie,
+ak je vstup celý rastúco utriedený, lebo vtedy vnútorný cyklus vždy prejde až do konca.
+Tento prípad bol tak pomalý, že všetky ostatné som musel stokrát spomaliť, aby na
+obrázku bolo vôbec niečo vidno. Okrem toho som skúšal aj náhodné postupnosti pre rôzne dĺžky
+(pre každú dĺžku som zobral priemer 100 náhodných vstupov). Výsledky vyzerajú takto:
+
+\ods\centerline{
+\begin{tikzpicture}
+\begin{axis}[
+  %title={CountSort},
+  width=\textwidth, 
+  height=10cm,
+  xlabel=$n$,
+  ylabel=čas (ms),
+  scaled x ticks=false,
+  scaled y ticks=false,
+  y tick label style={
+        /pgf/number format/.cd,
+            fixed,
+            fixed zerofill,
+            precision=1,
+        /tikz/.cd
+    },
+  legend cell align={left},
+  legend pos = north west,
+  %scale only axis,
+  %separate axis lines,
+  %domain=0:50000,
+  %xmin=0,
+  %xmax=50000,
+  ymin=0,
+  %ymax=20,
+  /pgf/number format/.cd,
+        1000 sep={}
+]
+  \addplot+[no markers,orange!80!white] table 
+  [y expr=\thisrow{max1}/1000000, x=n ]{out/usek.dat};
+  \addlegendentry{funkcia {\tt usek1}, utriedený vstup}
+  \addplot+[no markers,orange!20!white] table 
+  [y expr=\thisrow{avg1}/10000, x=n ]{out/usek.dat};
+  \addlegendentry{funkcia {\tt usek1}, náhodný vstup, stokrát spomalená}
+  \addplot+[no markers,blue!80!cyan] table 
+  [y expr=\thisrow{max2}/10000, x=n ]{out/usek.dat};
+  \addlegendentry{funkcia {\tt usek2}, utriedený vstup, stokrát spomalená}
+  \addplot+[no markers,blue!20!cyan] table 
+  [y expr=\thisrow{avg2}/10000, x=n ]{out/usek.dat};
+  \addlegendentry{funkcia {\tt usek2}, utriedený vstup, stokrát spomalená}
+\end{axis}
+\end{tikzpicture}
+}
+
+\ods
+Na to, aby sme určili zložitosť (t.j. aby sme vedeli povedať, či sa čas behu programu
+v závislosti od veľkosti vstupu vždy
+zmestí pod priamku, parabolu, atď) treba vedieť, čo je pre program najhorší vstup
+a celé to môže byť aj celkom ťažké (kresliť si grafy nie je ideálny
+prístup). Ale je treba si zapamätať, že tá istá úloha sa dá naprogramovať rôznymi spôsobmi 
+a veľmi záleží na tom, ako to urobíš. Pri súťažiach je pre úlohy väčšinou stanovený aj 
+časový limit: ak tvoj program neskončí dosť rýchlo, testovač ho preruší a neuzná 
+(dostaneš odpoveď TLE = {\em time limit exceeded}).
+V tom prípade máš dve možnosti: skúsiť nejaké finty, ako veci trochu zrýchliť, alebo
+sa zamyslieť nad úplne iným spôsobom, ako úlohu naprogramovať.
+
+\ods
+Tu je zopár úloh, ktoré sa dajú naprogramovať rôzne rýchlo. Skús nájsť najrýchlejší spôsob.
+
+\begin{uloha}
+  Na vstupe je číslo $n$, potom pole $n$ čísel a potom $n$ otázok, pričom každá otázka
+  pozostáva z dvoch čísel {\tt i}, {\tt j}, pričom platí $0\le i\le j<n$. 
+  Úlohou je napísať program, ktorý pre každú
+  otázku $i,j$ vypíše súčet ${\tt a}[{\tt i}]+{\tt a}[{\tt i}+1]+\cdots+{\tt a}[{\tt j}]$.
+  Napr. pre pole {\tt 5 7 -1 8 3 -2} a otázku {\tt 1 3} je odpoveď
+  $7-1+8=14$.
+\end{uloha}
+
+\begin{uloha}
+  Na vstupe je číslo $n$, utriedené pole $n$ čísel a číslo $k$. Úlohou je napísať
+  program, ktorý nájde počet dvojíc čísel, ktorých rozdiel je $k$.
+  Napr. pre pole {\tt 3 4 7 8 11 12 16} a $k=5$ je odpoveď $3$, lebo v poli
+  sú dvojice $(3,8)$, $(7,12)$, $(11,16)$.
+\end{uloha}
+
+
+Na záver ešte jedna ukážka, ktorú použijeme aj v ďalšej kapitole.
+
+\begin{uloha}
+ $n$ klaunov s výškami $1,2,\ldots,n$ sa postavilo do radu v nejakom poradí. 
+  Každý z nich hodil smerom doprava šľahačkovú tortu, ktorá dopadla na 
+  najbližšieho vyššieho klauna (ak tam taký nebol, torta
+  preletela preč). Napíš program, ktorý načíta číslo $n$
+  a poradie klaunov a vypíše, koľko najviac zásahov nejaký klaun dostal.
+  Napr. pre ${\tt n}=5$ a poradie {\tt 3 2 5 4 1} je odpoveď $2$, lebo na klaunovi
+  $5$ pristane torta od dvojky aj trojky.
+\end{uloha}
+
+Priamočiary spôsob riešenia je napísať si funkciu, ktorá pre dvojicu klaunov 
+{\tt j} a {\tt i} povie, či klaun {\tt j} trafí klauna {\tt i}. To je jednoduché:
+stačí zistiť, či je medzi nimi niekto vyšší:
+
+\ods
+\centerline{
+  \begin{tikzpicture}[xscale=0.3,yscale=0.2]
+  \draw[dotted,gray,thin] (1,0) grid (17,16);
+  \def\bar(#1,#2)#3{
+    \filldraw[draw=black,fill=#3](#1,0) rectangle (#1+1,#2);
+  }
+  \def\prf{orange!60!white}
+  \def\rst{rgb:green,5;yellow,4;blue,2;black,3}
+  \def\act{rgb:blue,5;green,3;white,4}
+    \foreach \h [count=\i] in {16,4,14,6,2,3,12,8,10,1,9,7,15,5,11,13} {
+    \bar(\i,\h){\prf}
+  }
+  \bar(13,15){\act}
+  \draw[->,shorten >= 2](13.5,-2) node[anchor=north]{{\tt i}} -- (13.5,0);
+  \bar(3,14){\act}
+  \draw[->,shorten >= 2](3.5,-2) node[anchor=north]{{\tt j}} -- (3.5,0);
+
+    \draw[magenta,thick](4,12) -- (13,12);
+
+    \draw[->,thick,shorten >=2, dashed](4,14)--(13,14);  
+  \end{tikzpicture}
+}
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+bool trafi(int j, int i) {
+  int k;
+  if (a[i] < a[j]) return false;
+  for (k = j + 1; k < i; k++)
+    if (a[k] > a[j]) return false;
+  return true;
+}
+\end{lstlisting}
+}
+
+\ods
+S pomocou tejto funkcie už ľahko otestujeme všetky dvojice klaunov:
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+int klauni1() {
+  int i, j, max = 0;
+  for (i = 1; i < n; i++) {  // skusame kazdeho klauna
+    int hits = 0;            // kolko zasahov dostal
+    for (j = 0; j < i; j++)  // vsetci klauni nalavo od i
+      if (trafi(j, i)) hits++;
+    if (hits > max) max = hits;
+  }
+  return max;
+}
+\end{lstlisting}
+}
+
+Akú má tento program zložitosť? Funkcia {\tt trafi(j,i)} urobí $i-j$
+operácií. Na otestovanie klauna $i$ voláme {\tt trafi(j,i)} pre všetky
+menšie {\tt j}, preto ten test spotrebuje $i+(i-1)+(i-2)+\cdots+1$ operácií.
+Takýto súčet si už rátal, je to $(i+1)i/2$. Napokon toto celé robíme pre 
+všetkých klaunov, teda dokopy máme $(1+1)1/2+(2+1)2/2+(3+1)3/2+\cdots n(n-1)/2$
+operácií. Presne zrátať tento súčet je trochu ťažšie\footnote{výsledok
+je $\frac{1}{6}n(n+1)(n+2)$}, ale ľahko môžeš odhadnúť, že $(i+1)i/2>i^2/2$,
+a preto v súčte je aspoň $(n-1)/2$ členov, z ktorých každý je väčší
+ako $(n/2)^2/2$. Dokopy je teda zložitosť väčšia ako
+$\frac{n-1}{2}\frac{(n/2)^2}{2}=\frac{1}{4}(n-1)n^2/4>\frac{1}{16}n^3$.
+Takáto zložitosť sa volá {\em kubická} (čas sa vždy zmestí pod graf funkcie
+$an^3$ pre nejaké číslo $a$). Vzťah medzi kubickou a kvadratickou zložitosťou
+je rovnaký ako medzi kvadratickou a lineárnou: hocijaký kvadratický program 
+začne byť pre dosť veľké vstupy lepší ako daný kubický.
+
+\ods Poďme to trochu vylepšiť. Kde sa robí zbytočná robota? Vo funkcii {\tt trafi}
+zakaždým hľadáme najvyššieho klauna medzi {\tt i} a {\tt j}. Túto prácu si vieme ušetriť,
+ak si ho budeme pamätať priebežne a iba aktualizovať. Vo vylepšenej verzii budeme
+opäť prechádzať v cykle cez všetkých klaunov (na to bude
+premenná {\tt i}) a pre každého zistiť, koľko zásahov dostane. 
+To budeme robiť v druhom cykle (s premennou {\tt j}).
+Budeme postupne prechádzať klaunov od $i-1$ smerom doľava,
+až kým neprídeme na začiatok, alebo nestretneme väčšsieho klauna (spoza neho
+už klauna {\tt i} nikto netrafí). Kazždý klaun {\tt j}, ktorého takto stretneme,
+trafí klauna {\tt i}, ak je vyšší, ako najvyšší klaun, ktorý je medzi nimi. Jeho výšku
+si budeme pamätať v premennej {\tt v} a vždy, keď stretneme klauna
+{\tt j}, ktorý je vyšší ako {\tt v}, si ju upravíme.
+
+\ods
+\centerline{
+  \begin{tikzpicture}[xscale=0.3,yscale=0.2]
+  \draw[dotted,gray,thin] (1,0) grid (17,16);
+  \def\bar(#1,#2)#3{
+    \filldraw[draw=black,fill=#3](#1,0) rectangle (#1+1,#2);
+  }
+  \def\prf{orange!60!white}
+  \def\rst{rgb:green,5;yellow,4;blue,2;black,3}
+  \def\act{rgb:blue,5;green,3;white,4}
+    \foreach \h [count=\i] in {16,4,14,6,2,3,12,8,10,1,9,7,15,5,11,13} {
+    \bar(\i,\h){\prf}
+  }
+  \bar(13,15){\rst}
+  \draw[->,shorten >= 2](13.5,-2) node[anchor=north]{{\tt i}} -- (13.5,0);
+  \bar(3,14){\act}
+  \draw[->,shorten >= 2](3.5,-2) node[anchor=north]{{\tt j}} -- (3.5,0);
+
+    \draw[magenta,thick](7,12) -- (17,12) node[anchor=west]{{\tt v}};
+
+    \draw[->,thick,shorten >=2, dashed](4,14)--(13,14);  
+  \end{tikzpicture}
+}
+
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+int klauni2() {
+  int i, j, max = 0;
+  for (i = 1; i < n; i++) {  // skusame kazdeho klauna
+    int hits = 0,            // kolko zasahov dostal
+        v = 0;               // najvyssi klaun medzi nimi
+    for (j = i - 1; j >= 0 && a[j] < a[i]; j--)  // skusame vlavo
+      if (a[j] > v) {                            // trafi ?
+        hits++;                                  // zaratame zasah
+        v = a[j];                                // upravime vysku
+      }
+    if (hits > max) max = hits;  // pamatame si najzapatlanejsieho
+  }
+  return max;
+}
+\end{lstlisting}
+}
+
+\ods
+Akú má zložitosť? Podobne, ako v predchádzajúcom príklade, najhorší prípad je, 
+keď sú klauni utriedení: vtedy vnútorný cyklus pôjde zakaždým až po začiatok,
+a teda celkový počet opakovaní bude $1+2+3+\cdots+(n-2)+(n-1)$, čo je kvadraticky
+veľa.
+
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectxiii1
+\section{Dátové štruktúry: zásobník}
+
+Pokračujme v úlohe o klaunoch. Verzia {\tt klauni2} má kvadratickú zložitosť. 
+Dá sa to ešte zlepšiť? Stále sa ešte robí dosť zbytočnej roboty: ak je medzi klaunom
+{\tt i} a {\tt j} veľa malých klaunov, budeme ich testovať znova pri {\tt i+1}, {\tt i+2}
+atď, aj keď je jasné, že už nikoho netrafia. Chceli by sme si preto pamätať
+iba takých klaunov, ktorí ešte majú šancu niekoho trafiť. Na to ale potrebujeme
+pomocné premenné, kde si ich uložíme, lebo vo vstupnom poli môžu byť na rôznych miestach.
+
+\ods
+{\em Dátová štruktúra} je spôsob rozmýšľania o programe, ktorý pomáha rozdeliť program
+na menšie nezávislé časti. Podobnú úlohu majú funkcie: v prvej verzii sme mali
+funkciu {\tt trafi(j,i)}, ktorá testovala, či klaun {\tt j} trafí {\tt i}. V hlavnom
+programe sme ju mohli používať a nestarať sa o to, ako je naprogramovaná vnútri, stačila
+nám jej {\em špecifikácia}, t.j. charakteristika toho, čo robí. S dátovými 
+štruktúrami je to podobné.
+Povieme si, aké operácie potrebujeme s premennými vedieť robiť a zvlášť rozmýšľame o tom,
+ako naprogramovať tie operácie a o tom, ako s ich pomocou vyriešiť našu úlohu. 
+
+\ods V našom prípade
+použijeme dátovú štruktúru {\em zásobník} (stack). 
+Zásobník je kopa vecí poukladaných na sebe. Dá
+sa položiť vec na vrch, zobrať vec z vrchu a pozrieť sa, či je zásobník prázdny.
+Ak dopredu vieme, aký najväčší zásobník budeme potrebovať, ľahko ho vyrobíme v poli.
+Budeme mať pole \prg!int stack[n]! a premennú \prg!int m!, ktorá hovorí, koľko prvkov
+je momentálne v zásobníku. Keďže prvky číslujeme od nuly, {\tt stack[m-1]} je 
+prvok na vrchu, zobrať prvok z vrchu znamená urobiť {\tt m--} a pridať {\tt x} na vrch
+znamená
+{\tt stack[m]=x; m++}. 
+
+\ods
+S pomocou zásobníka vieme vylepšiť našu klaunskú úlohu. Keď testujeme klauna {\tt i},
+budeme mať v zásobníku uložených všetkých kandidátov: t.j. klaunov, ktorých torty 
+ešte letia vzduchom (modré prvky v ľavom obrázku sú v zásobníku pri spracovaní
+klauna {\tt i}). Pri spracovaní klauna {\tt i} nepôjdeme doľava v pôvodnom poli,
+ale iba v zásobníku (o klaunoch mimo zásobníka vieme, že ich torty aj tak
+{\tt i}-čka netrafia). Pre všetkých menších ako {\tt i}, ktorých stretneme, 
+zarátame zásah do {\tt i} a zároveň ich zo zásobníka vyhodíme, lebo za {\tt i}-čkom
+už nikoho netrafia. Na obrázku vpravo je situácia po prechode na ďalšieho klauna.
+
+\ods
+\bp
+  \begin{tikzpicture}[xscale=0.3,yscale=0.2]
+  \draw[dotted,gray,thin] (1,0) grid (17,17);
+  \def\bar(#1,#2)#3{
+    \filldraw[draw=black,fill=#3](#1,0) rectangle (#1+1,#2);
+  }
+  \def\prf{orange!60!white}
+  \def\rst{rgb:green,5;yellow,4;blue,2;black,3}
+  \def\act{rgb:blue,5;green,3;white,4}
+    \foreach \h [count=\i] in {16,4,14,6,2,3,12,8,10,1,9,7,15,5,11,13} {
+    \bar(\i,\h){\prf}
+  }
+  \bar(13,15){\rst}
+  \draw[->,shorten >= 2](13.5,-2) node[anchor=north]{{\tt i}} -- (13.5,0);
+
+    \foreach \x/\h [count=\i]in {1/16, 3/14,7/12,9/10,11/9} {
+    \bar(\x,\h){\act}
+    \pgfmathtruncatemacro{\l}{\i-1}
+    \draw[thick, dashed, ->](\x,\h)--(13,\h);  
+    \draw[->,shorten >= 2](\x+.5,-2) node[anchor=north]{{\tt\textcolor{\act}{\l}} } 
+    -- (\x+.5,0);
+
+  }
+  \end{tikzpicture}
+\ep
+\hfill
+\bp
+  \begin{tikzpicture}[xscale=0.3,yscale=0.2]
+  \draw[dotted,gray,thin] (1,0) grid (17,17);
+  \def\bar(#1,#2)#3{
+    \filldraw[draw=black,fill=#3](#1,0) rectangle (#1+1,#2);
+  }
+  \def\prf{orange!60!white}
+  \def\rst{rgb:green,5;yellow,4;blue,2;black,3}
+  \def\act{rgb:blue,5;green,3;white,4}
+    \foreach \h [count=\i] in {16,4,14,6,2,3,12,8,10,1,9,7,15,5,11,13} {
+    \bar(\i,\h){\prf}
+  }
+  \bar(14,5){\rst}
+  \draw[->,shorten >= 2](14.5,-2) node[anchor=north]{{\tt i}} -- (14.5,0);
+  
+    \foreach \x/\h [count=\i]in {1/16,13/15} {
+    \bar(\x,\h){\act}
+    \pgfmathtruncatemacro{\l}{\i-1}
+    \draw[thick, dashed, ->](\x,\h)--(15,\h);  
+    \draw[->,shorten >= 2](\x+.5,-2) node[anchor=north]{{\tt\textcolor{\act}{\l}} } 
+    -- (\x+.5,0);
+  }
+  \end{tikzpicture}
+\ep
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+int klauni3() {
+  int i, max = 0;
+  int s[n], m = 0;           // zasobnik a jeho velkost
+  for (i = 0; i < n; i++) {  // skusame kazdeho klauna
+    int h = 0;               // kolko zasahov dostal
+    while (m > 0 && s[m - 1] < a[i]) {
+      // prechadzame zasobnikom az kym neprideme
+      // na zaciatok alebo na vyssieho
+      h++;  // zaratame zasah
+      m--;  // vyhodime zo zasobnika
+    }
+    s[m] = a[i];  // pridame i-cka do zasobnika
+    m++;
+    if (h > max) max = h;  // aktualizujeme zasahy
+  }
+  return max;
+}
+\end{lstlisting}
+}
+
+\ods
+Aký má tento program zložitosť? Zdalo by sa, že sme si moc nepomohli, lebo stále
+máme dva vnorené cykly, ale v skutočnosti každý prvok raz do zásobníka pridáme
+a raz vyhodíme. Preto celková zložitosť bude lineárna. Ako vychádzajú skutočné časy?
+Tentokrát som zobral som pre každé $n$ 500 náhodných 
+vstupov a vyrátal priemerný čas (v mikrosekundách). 
+
+\def\tmp#1{%
+\begin{tikzpicture}
+\begin{axis}[
+    title={{\tt klauni#1}},  
+  width=0.3*\textwidth, 
+  height=7cm,
+  xlabel={$n\cdot1000$},
+  scaled x ticks=false,
+  scaled y ticks=false,
+  %domain=0:20000,
+  xmin=0,
+  %xmax=20000,
+  /pgf/number format/.cd,
+  1000 sep={},
+  %legend cell align={left},
+  %legend pos = south east
+]
+  \addplot+[no markers,orange!80!red] table 
+  [y expr=\thisrow{v#1}, x expr=\thisrow{n}/1000 ]{out/klauni.dat};
+\end{axis}
+\end{tikzpicture}
+\hfill
+}
+
+\tmp1
+\tmp2
+\tmp3
+
+\ods
+Vidno, že verzia {\tt klauni1} už na vstupoch dĺžky $8000$ (čo nie je nijak príliš veľa)
+beží viac ako $1000$-krát pomalšie
+oproti ostatným dvom. Medzi {\tt klauni2} a {\tt klauni3} taký veľký rozdiel nie je,
+pretože na náhodných vstupoch sa aj vnútorný cyklus v {\tt klauni2} zastaví pomerne skoro.
+Keď si ale pozrieme utriedený vstup, situácia sa zmení:
+
+\def\tmp#1{%
+\begin{tikzpicture}
+\begin{axis}[
+    title={{\tt klauni#1}},  
+  width=0.3*\textwidth, 
+  height=7cm,
+  xlabel={$n\cdot1000$},
+  scaled x ticks=false,
+  scaled y ticks=false,
+  %domain=0:20000,
+  xmin=0,
+  %xmax=20000,
+  /pgf/number format/.cd,
+  1000 sep={},
+  %legend cell align={left},
+  %legend pos = south east
+]
+  \addplot+[no markers,blue!20!cyan] table 
+  [y expr=\thisrow{v#1}, x expr=\thisrow{n}/1000 ]{out/klauni2.dat};
+\end{axis}
+\end{tikzpicture}
+\hfill
+}
+
+\hspace*{0.3\textwidth}\phantom{a}\hfill
+\tmp2\tmp3
+
+
+\begin{uloha}
+  Na vstupe je pole $n$ čísel. Napíš program, ktorý pre každé 
+  číslo vypíše pozíciu najbližšieho menšieho čísla vľavo, 
+  alebo {\tt -1} ak také neexistuje.
+  Napr. pre vstup {\tt 5 2 3 4} treba vypísať {\tt -1 -1 1 2}.
+\end{uloha}
+
+\begin{uloha}
+  Na vstupe je výraz zložený z rôznych druhov zátvoriek: \prg!'(',')','[',']','{','}'!.
+  Napíš program, ktorý zistí, či sú zátvorky vyvážené a či každá otvorená zátvorka
+  je uzavretá správnou zatváracou zátvorkou. Napr. výraz \prg!"({[](){}}())"!
+  je správny, ale výraz \prg!"({])"! ani \prg!")("! nie je.
+\end{uloha}
+
+\begin{uloha}
+  Napíš program, ktorý prečíta prirodzené číslo a vypíše jeho zápis v dvojkovej
+  sústave.
+\end{uloha}
+
+\begin{uloha}
+Naprogramuj úlohu \ref{uloha:vyrazy} bez rekurzie s použitím zásobníka.
+\end{uloha}
+
+\begin{uloha}
+  \label{uloha:zatvorky}
+Na vstupe je v prvom riadku číslo $n$ a v druhom riadku reťazec $n$ znakov 
+zložený z malých písmen a zátvoriek. Zátvorky sú správne uzátvorkované.
+Napíš program, ktorý vyrobí pole {\tt p} v ktorom pre každú pozíciu vstupu,
+na ktorej je písmeno, bude {\tt -1} a pre pozície, kde je zátvorka, bude
+pozícia zodpovedajúcej zátvorky. Napr. pre $n=25$ a reťazec 
+  {\tt (o(atk)((nece)e(sarp)i)p)} má v poli {\tt p} byť\\
+  {\tt 24 -1 6 -1 -1 -1 2 22 13 -1 -1 -1 -1 8 -1 20 -1 -1 -1 -1 15 -1 7 -1 0}
+\end{uloha}
+
+\begin{uloha}
+  Vstup je rovnaký ako v predchádzajúcej úlohe s tým, že prvý a posledný znak 
+  sú zátvorky \prg!'(',')'!. Vstup predstavuje zašifrovaný text, ktorý treba 
+  rozlúštiť takto: zober nejakú najvnútornejšiu dvojicu zátvoriek (t.j. otváraciu
+  a zatváraciu zátvorku, medzi ktorými sú iba znaky), zátvorky zahoď a znaky medzi nimi
+  otoč. Toto opakuj, kým sa neminú zátvorky. Napíš program, ktorý dešifruje text na vstupe.
+  Ideálne by bolo, aby mal lineárnu zložitosť.
+  Napr. pre vstup z predchádzajúcej úlohy je dešifrovaný text {\tt peceneprasiatko}.
+\end{uloha}
+
+\fi
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectxiv1
+\section{Vlastné typy: \prg!struct!}
+
+Základné typy, o ktorých sme si hovorili v kapitole~\ref{sect:cisla}
+majú spoločné to, že zaberajú nejakú fixnú časť pamäte. Okrem základných typov je 
+možnosť vyrobiť si aj vlastné typy. Na to slúži kľúčové slovo \prg!struct! (záznam).
+Vlastný typ, ktorý si vyrobíš v programe, bude pozostávať z niekoľkých častí,
+z ktorých každá má meno a svoj typ. Napríklad pre prácu s farbami sa často
+používa RGBA model: farba je pamätaná ako štyri čísla z rozsahu $0\ldots255$,
+ktoré udávajú množstvo červenej, zelenej a modrej zložky. Posledné číslo je
+tzv. alfa zložka a udáva priesvitnosť: 0 je úplne priesvitná a 255 úplne nepriesvitná.
+
+
+\vbox{
+\begin{lstlisting}[] 
+struct Farba {
+  unsigned char r, g, b, a;
+};
+\end{lstlisting}
+}
+
+Týmto si vyrobil typ {\tt Farba}. Premenné tohto typu budú v pamäti zaberať 
+4 byty, pričom každý z nich sa bude správať ako celé číslo bez znamienka (t.j. budú
+mať hodnoty $0\ldots255$). Premennú tohto typu vyrobíš rovnako ako akúkoľvek inú, napr.
+\prg!Farba f;! vyrobí premennú {\tt f} typu {\tt Farba}. K jej jednotlivým zložkám
+sa dá pristupovať pomocou operátora {\tt .} (bodka): \prg!f.r! je premenná typu 
+\prg!unsigned char!, ktorá je zložka {\tt r} z premennej {\tt f}. 
+Celú premennú môžeš nastaviť zápisom v kučeravých zátvorkách, napr. 
+\prg!f = {255, 255, 0, 255};!
+urobí žltú farbu. Jednu premennú môžeš skopírovať do druhej pomocou priradenia. 
+Keďže to ale nie sú čísla, nemôžeš použiť iné operácie, napr. sčítanie. Program
+
+\vbox{
+\begin{lstlisting}[] 
+struct Farba {
+  unsigned char r, g, b, a;
+};
+
+int main() {
+  Farba f, h;
+  f = {100, 100, 255, 255};
+  h = f;
+  h.r = 0;
+  h.b = 80;
+  cout << (int)h.r << " " << (int)h.g << " " << (int)h.b << endl;
+}
+\end{lstlisting}
+}
+
+vypíše {\tt 0 100 80}. Všimni si zápis \prg!(int)h.r!. Ten sa volá pretypovanie
+({\em konverzia}). Výraz
+{\tt ($\langle typ\rangle$)$\langle vyraz\rangle$} hovorí \cmd{Zober hodnotu výrazu $\langle
+vyraz\rangle$ a urob z nej typ $\langle typ\rangle$.} V našom prípade je 
+$\langle vyraz\rangle$ {\tt h.r}, čo je hodnota typu \prg!unsigned char!.
+Bez konverzie by sa k nej príkaz \prg!cout <<! správal ako k znaku: vypísal by znak s 
+príslušnou ASCII hodnotou. Konverzia spôsobí, že hodnota výrazu sa síce nezmení, ale 
+\prg!cout <<! vypíše príslušné číslo. Podobne príkaz
+
+\ods
+\prg!int i = -1; cout << (unsigned int)i << " " << i << endl;! 
+
+\ods vypíše
+{\tt 4294967295 -1} (v pamäti na adrese premennej {\tt i} je stále uložená
+tá istá hodnota, 32 jednotiek v dvojkovom zápise).
+
+\ods
+Jednotlivé zložky typu \prg!struct! môžu byť akékoľvek typy alebo polia, takže 
+môžeš mať napr.
+
+\vbox{
+\begin{lstlisting}[] 
+struct Farba {
+  unsigned char r, g, b, a;
+};
+
+struct Gradient{
+  Farba x[2];  // ak je tu pole, musí mat fixnu velkost
+  bool linear;
+};
+\end{lstlisting}
+}
+
+a písať \prg!Gradient g = {{f, {100, 100, 100, 255}}, false};! alebo 
+\prg!g.x[1].r = g.x[0].b;! a pod. V súbore  
+\link{https://beda.dcs.fmph.uniba.sk/programovanie/obrazok.h}{obrazok.h}
+je aj jednoduchá podpora na prácu s farebnými obrázkami, takže napr. program
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+#include "obrazok.h"
+using namespace std;
+
+struct Farba {
+  unsigned char r, g, b, a;
+};
+
+const int N = 1000;
+Farba x[N][N], pal[2] = {{0, 0, 255, 255}, {255, 255, 0, 255}};
+
+int main() {
+  int d = 100;
+  int n = 8 * d, m = 8 * d;
+  for (int i = 0; i < 8; i++)
+    for (int j = 0; j < 8; j++)
+      for (int k = 0; k < d; k++)
+        for (int l = 0; l < d; l++)
+          x[i * d + k][j * d + l] = pal[(1 + i + j) % 2];
+
+  zapis_rgba_png_vyrez(N, N, x, "vystup.png", 0, 0, n, m);
+}
+\end{lstlisting}
+}
+
+\ods
+vyrobí súbor {\tt vystup.png}, v ktorom bude žlto-modrá šachovnica.
+
+\begin{uloha}
+  Pozri si stránku 
+  \link{https://sk.wikipedia.org/wiki/Gal\%C3\%A9ria_\%C5\%A1t\%C3\%A1tnych_vlajok}{%
+  galéria štátnych vlajok} a napíš program, ktorý pre zadaný názov štátu vyrobí obrázok
+  s jeho vlajkou. Pre ktoré štáty to vieš urobiť?
+\end{uloha}
+
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectxv1
+\section{(Ne)Reálne čísla}
+
+Naše rozprávanie o základných typoch treba doplniť o ďalšie dva dôležité typy:
+\prg!float! a \prg!double!. Slúžia na prásu s reálnymi (desatinnými) číslami.
+V kapitole~\ref{sect:cisla} sme hovorili, že typy \prg!int!, \prg!long!, 
+\prg!unsigned int!, \prg!char! a pod. ukladajú čísla v pamäti v dvojkovej
+sústave fo fixnom počte bitov. Pri práci s desatinnými číslami je o jeden
+problém naviac, a to, že idú donekonečna nielen smerom k veľkým číslam, ale
+sú aj nekonečne husté. Keďže, podobne ako celočíselné typy, aj typy \prg!float!
+a \prg!double! majú v pamäti rezervovaný fixný počet bitov (32, resp. 64), môže sa stať,
+že dve veľmi blízke čísla sa zlejú do jedného. Aby sa šetrilo pamäťou, používa
+sa tzv. vedecká notácia s {\em mantisou} a {\em exponentom}. Možno si niekedy videl
+taký zápis v desiatkovej sústave, napr. $1.3\cdot10^5$, čo je $1.3\cdot100000=130000$.
+Podobne $1.3\cdot10^{-5}=1.3\cdot0.00001=0.000013$. Je to veľmi príjemné, keď treba pracovať
+s veľmi veľkými alebo veľmi malými číslami. V počítači je to podobné, iba
+sa používa dvojková sústava. V dvojkovej sústave tiež môžeme používať ''desatinnú''
+čiarku, napr. číslo $1011010.10011$ v dvojkovej sústave je
+
+\ods
+\centerline{\begin{tikzpicture}
+  \foreach \v/\p [count=\i] in { 1/64, 0/32, 1/16, 1/8, 0/4, 1/2, 0/1, 
+  1/{\frac{1}{2}}, 0/{\frac{1}{4}}, 0/{\frac{1}{8}}, 1/{\frac{1}{16}}, 1/{\frac{1}{32}}  } {
+    \draw[dotted, shorten <= 2ex, shorten >= 2ex] 
+    (\i,0) node [color=green!70!black] {{\small $\p$}}
+     -- (\i,-6ex) node {\v};
+  }
+\end{tikzpicture}}
+
+\ods
+$64+16+8+2+0.5+0.0625+0.03125=90.59375$ v desiatkovej. Pre zapamätanie čísel
+sa najprv normalizujú tak, aby ''desatinná'' čiarka bola hneď za prvou jednotkou.
+Naše číslo $90.59375$ by sme preto v dvjkovej sústave zapísali $1.01101010011\cdot2^6$.
+Časť {\tt 01101010011} sa volá mantisa a {\tt 6} je exponent. Typ \prg!float!
+má vyhradený jeden bit na znamienko, 8 bitov na exponent a 23 bitov na mantisu. 
+K hodnote exponentu sa priráta 127, aby sme mohli mať kladné aj záporné exponenty.
+Naše číslo by preto v pamäti vyzeralo takto (exponent je $127+6=133$, čo je v 
+dvojkovej sústave {\tt 10000101}):
+
+\ods
+\centerline{\begin{tikzpicture}[scale=0.25]
+  \def\var#1#2#3#4{%
+    \draw[#4] decorate[
+       decoration={brace, amplitude=2ex}]{
+       (#1,1.8) -- (#1+#2,1.8) node [align=center,midway,anchor=south,yshift=2ex] {{\tt #3}}
+        };
+   \draw[#4,thick] (#1,0) rectangle (#1+#2,1.5);
+
+  }
+
+  \filldraw[draw=none,fill=red!20!white](3,0) rectangle (4,1.5); 
+  \filldraw[draw=none,fill=green!20!white](4,0) rectangle (12,1.5); 
+  \filldraw[draw=none,fill=blue!20!white](12,0) rectangle (35,1.5); 
+
+  \foreach \v [count=\i] in { 0,1, 
+    0,  1,0,0,0,0,1,0,1,  0,1,1,0,1,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,    1,0,1
+  }{
+    \draw (\i,0) rectangle node [anchor=center] {{\scriptsize\ttfamily \v}} (\i+1,1.5);
+  }
+
+  \draw [->, shorten >= 3] (3.5,3) node[anchor=south]{$+$} -- (3.5,1.5);
+  
+  \var48{{\small exponent}}{green!50!black}
+  \var{12}{23}{{\small mantisa}}{blue!50!black}
+
+  \draw[dotted] (3.5,-0.1) -- (3.5,-3) 
+  node[draw, anchor = north west]{\scriptsize adresa};
+
+\end{tikzpicture}}
+
+\ods Drobné technické detaily som zamlčal, ale pre nás to teraz stačí. To, čo je dôležité 
+vedieť je, že v premennej typu \prg!float! síce môžeme mať zapamätané aj veľmi veľké
+čísla, ale potom nemáme veľkú presnosť. Skús si napríklad takýto program:
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+int main() {
+  float a, b;
+  cin >> a;
+  b = a + 1;
+  cout << fixed << a << endl;
+  cout << b << endl;
+  if (a == b) cout << "rovnake" << endl;
+  else cout << "rozne" << endl;
+}
+\end{lstlisting}
+}
+
+\ods ({\tt fixed} je, podobne ako {\tt endl}, špeciálna hodnota, ktorá spôsobí, 
+že \prg!cout <<! nebude používať vedeckú notáciu). Keď program spustíš a na vstupe 
+napíšeš {\tt 12.3}, vypíše sa, presne ako očakávaš, 
+
+\begin{verbatim}
+12.300000
+13.300000
+rozne
+\end{verbatim}
+
+Ale keď na vstupe zadáš {\tt 16777216} (čo je $2^{24}$),
+vypíše sa
+
+\begin{verbatim}
+16777216.000000
+16777216.000000
+rovnake
+\end{verbatim}
+
+Čo sa stalo? Vstupné (celé) číslo je v dvojkovej sústave jednotka a za ňou
+24 núl, zapamätá sa teda ako $1.0\ldots0\cdot2^{24}$, čiže má
+exponent $151$ ($127+24$)  a mantisu $0$. Potom k nemu prirátaš 1 a dostaneš
+číslo, ktoré má jednotku, potom 23 núl a potom zase jednotku. Opäť by teda exponent
+bol $151$, ale mantisa nemá dosť miest -- prvých 23 miest mantisy sú muly a jednotka
+na 24tom mieste sa stratí. Na podobné efekty si treba dávať pozor, môžu okrem iného
+spôsobiť, že výsledok niekoľkých operácií môže stratiť presnosť a test na rovnosť
+dvoch \prg!float! čísel je vždy ošemetný. Pri type \prg!double!, ktorý má 64 bitov
+(exponent 11 bitov a mantisa 52 bitov) sú efekty straty presnosti menej viditeľné,
+ale treba ich mať na pamäti. Posledná vec: konverzia \prg!(int)a!, kde {\tt a}
+je typu \prg!float! alebo \prg!double! vráti odrezanú desatinnú časť (t.j.
+\prg!(int)12.3! je {\tt 12} a \prg!(int)-12.3! je {\tt -12}). Ak sa výsledné číslo
+nezmestí do \prg!int!, hodnota môže pretiecť, napr. ak máš
+\prg!float a = 4294967297.0;! tak \prg!cout<<(int)a;! vypíše {\tt -2147483648} (čo je
+$-2^{31}$)a \prg!cout << (unsigned int)a;! vypíše {\tt 0}.
+
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectxvi1
+\section{Projekt: offline grafický editor}
+
+Majme dovjrozmerné pole {\tt obr} s $r$ riadkami a $s$ stĺpcami. Bod v rovine
+so súradnicami $x,y$ (kde $x$, $y$ sú reálne čísla) sa zobrazí na pixel
+\prg!obr[r-(int)y][(int)x]!:
+
+\ods
+\centerline{
+\begin{tikzpicture}[scale=0.3]
+  \def\X{12}
+  \def\Y{7}
+  \def\x{5}
+  \def\y{3}
+  \filldraw[draw=none,fill=blue!20!white](\x,\y-1) rectangle (\x+1,\y);
+  \filldraw[fill=black](\x+0.5,\y-0.5) circle (5pt);
+  \draw[thin,gray,dotted](0,0) grid (\X,\Y);
+  \draw(0,0) rectangle (\X,\Y);
+  \draw[->, shorten >= 2] (0.5,-2) node[anchor=north]{0} -- (0.5,0);
+  \draw[->, shorten >= 2] (\X-0.5,-2) node[anchor=north]{$s$} -- (\X-0.5,0);
+  \draw[->, shorten >= 2] (-2,0.5) node[anchor=east]{0} -- (0,0.5);
+  \draw[->, shorten >= 2] (-2,\Y-0.5) node[anchor=east]{$r$} -- (0,\Y-0.5);
+  \draw[->, shorten >= 2] (0.5,-2) node[anchor=north]{0} -- (0.5,0);
+  
+  \draw[blue,->, shorten >= 2] (\x+0.5,-2) node[anchor=north]{$x$} -- (\x+0.5,0);
+  \draw[blue,->, shorten >= 2] (-2,\y-0.5) node[anchor=east]{$y$} -- (0,\y-0.5);
+  \draw[thin,blue,dotted] (\x+0.5,0) -- (\x+0.5,\y-0.5) (0,\y-0.5) -- (\x+0.5,\y-0.5);
+
+\end{tikzpicture}
+}
+
+\ods
+Majme teraz nasledovnú úlohu. Máme dané dva body $A=[x_1,y_1]$, $B=[x_2,y_2]$
+a chceme vykresliť čiaru z bodu $A$ do bodu $B$.
+Ak čiara ide zvislo alebo vodorovne, 
+ situácia je jednoduchá, stačí nám jeden cyklus. V opačnom 
+ prípade máme viac roboty. Priamka, ktorá prechádza bodmi $A$, $B$ má {\em sklon}
+ $s=\frac{y_2-y_1}{x_2-x_1}$, to znamená, že keď som v nejakom bode na priamke
+ a v smere osi $x$ sa pohnem o 1, v smere osi $y$ sa pohnem o $s$ (zelená šípka).
+ Predpokladajme, že $x_1<x_2$ a $-1\le s\le1$, t.j. priamka má ''malý'' sklon 
+ (opačný prípad je symetrický, skús ho vymyslieť).
+
+\ods
+\centerline{
+\begin{tikzpicture}[scale=0.7]
+  \def\X{12}
+  \def\Y{7}
+
+  \def\x{1.3}
+  \def\y{5.7}
+  \def\ix{1}
+  \def\iy{5}
+  
+  \def\xx{10.6}
+  \def\yy{1.7}
+  \def\ixx{10}
+  \def\iyy{1}
+
+  \pgfmathsetmacro{\s}{(\yy-\y)/(\xx-\x)}
+  \pgfmathsetmacro{\dx}{\ix+0.5-\x}
+
+  \def\ab {\x/\y/\ix/\iy,\xx/\yy/\ixx/\iyy}
+  
+  \pgfmathtruncatemacro{\n}{\ixx-\ix}
+  
+  \foreach \i in {0,...,\n} {
+    \pgfmathtruncatemacro{\tmpx}{\ix+0.5+\i}
+    \pgfmathtruncatemacro{\tmpy}{\y+(\dx+\i)*\s}
+    \filldraw[draw=none,fill=yellow!30!white] (\tmpx,\tmpy) rectangle 
+    (\tmpx+1,\tmpy+1);
+
+  }
+  
+  \foreach \a/\b/\ia/\ib[count=\i] in \ab {
+  \filldraw[draw=none,fill=blue!20!white](\ia,\ib) rectangle (\ia+1,\ib+1);
+  }
+
+  \draw[thin,gray,dotted](0,0) grid (\X,\Y);
+  \draw(0,0) rectangle (\X,\Y);
+  \draw[thick,red] (\x,\y) -- (\xx,\yy);
+
+  \foreach \a/\b/\ia/\ib[count=\i] in \ab {
+  \filldraw[fill=black](\a,\b) circle (3pt);
+  \draw[thin,blue,dotted] (\a,0) -- (\a,\b) (0,\b) -- (\a,\b);
+  \draw[blue,->, shorten >= 2] (\a,-2) node[anchor=north]{$x_\i$} -- (\a,0);
+  \draw[blue,->, shorten >= 2] (-2,\b) node[anchor=east]{$y_\i$} -- (0,\b);
+  }
+
+  \def\rst{rgb:green,5;yellow,4;blue,2;black,3}
+
+  \filldraw[draw=none,fill=\rst] (\x+4,\y+3*\s) circle (2pt)
+  (\x+5,\y+4*\s) circle (1pt);
+  \draw[->,draw=\rst, thick] (\x+4,\y+3*\s) -- (\x+5,\y+4*\s);
+
+  \foreach \i in {0,...,\n} {
+    \pgfmathsetmacro{\tmp}{\y+(\dx+\i)*\s}
+    \filldraw[draw=none,fill=blue] (\ix+0.5+\i,\tmp) circle (2pt);
+
+  }
+
+\end{tikzpicture}
+}
+
+\ods
+Na nakreslenie čiary stačí vyrátať $s$, pohnúť sa na priamke tak, aby 
+som bol v strede počiatočného pixela (prvá modrá bodka, súradnice\footnote{%
+  v matematike sa zvykne písať $\lfloor x\rfloor$ na označenie dolnej
+celej časti, t.j. \prg!(int)x!} $\lfloor x_1\rfloor+0.5$ a 
+ \hbox{$y_1+s(\lfloor x_1\rfloor+0.5-x_1)$}) a potom
+postupne sa vždy pohnúť o 1 v smere osi $x$ a o $s$ v smere osi $y$ a zafarbiť
+príslušný pixel (na obrázku žlté).
+
+\begin{uloha}
+  \label{uloha:editor}
+  Napíš program, ktorý prečíta postupnosť príkazov (na každom riadku jeden)
+  a podľa nich vyrobí obrázok.
+  Príkazy môžu byť
+\def\tmp{\item \textcolor{magenta}}  
+\begin{itemize}\itemsep=-1mm
+    \tmp{{\tt i} {\em sirka vyska}} 
+      (init) Toto je vždy prvý príkaz (a je v zozname iba
+      raz). Nastaví rozmery obrázka. 
+      \tmp{{\tt c} r g b} (color) Nastaví farbu na $\{r,g,b,255\}$.
+    \tmp{{\tt m} x y} (move) Presunie sa do bodu $[x,y]$ (bez kreslenia).
+    \tmp{{\tt l} x y} (line) Nakreslí čiaru (aktuálnou farbou) 
+    z aktuálneho bodu do bodu $[x,y]$.
+    \tmp{{\tt f} x y r g b} (fill) Vyplní aktuálnou farbou oblasť, ktorej okraje
+    sú ohraničené pixelmi buď aktuálnej farby alebo farby $\{r,g,b,255\}$ 
+    (spomeň si na úlohu~\ref{uloha:fill})
+    \tmp{{\tt s} meno} (save) Uloží obrázok a skončí.
+\end{itemize}
+
+Napríklad tento vstup vyrobí orbázok vpravo
+
+\ods
+  \bp\vspace{0pt}
+\begin{verbatim}
+i 800 600
+m 50 300
+l 220 100
+l 700 450
+l 700 150
+l 220 500
+l 50 300
+c 150 255 30
+f 220 220 0 0 0
+f 650 300 0 0 0
+c 255 0 0
+m 120 350
+l 150 380
+l 180 350
+l 150 320
+l 120 350
+c 255 255 255
+f 130 340 255 0 0
+s edit.png
+\end{verbatim}
+
+\ep
+  \bp\vspace{0pt}
+\fbox{\includegraphics[width=\textwidth]{out/edit.png}}
+
+\ep
+\end{uloha}
+
+\begin{uloha}
+  Uvažujme nasledovnú variáciu na tému Sierppińského koberca: máme parametre
+  \prg!int x!, \prg!int d!,
+  \prg!double i! a \prg!double f!. Chceme mať vzorku na obrázku rozmerov $x\times x$.
+  Vzorka stupňa $d$  je štvorec so stranou dĺžky $ix$ umiestnený v strede obrázka.
+  Navyše, ak $d>1$ tak v každom z rohov štvorca umiestnime vzorku stupňa $d-1$
+  zmenšenú o faktor $f$ (a môže mať upravenú farbu). Napríklad pre
+  hodnoty {\tt 1000 6 0.45 0.5} by vzorka mohla vyzerať takto:
+
+  \ods
+  \centerline{\fbox{\includegraphics[width=0.4\textwidth]{out/qq.png}}}
+  \ods
+
+  Napíš program, ktorý načíta zo vstupu parametre {\tt x d i f} a vypíše postupnosť príkazov,
+  na základe ktorej program z predchádzajúcej úlohy vykreslí 
+  vzorku.
+\end{uloha}
+
+\subsection*{Odbočka: goniometrické funkcie $\sin$ a $\cos$}
+
+Niekedy je dobré vedieť kresliť čiaru nie do konkrétneho bodu, ale pod istým uhlom.
+Povedzme, že máme uhol $\alpha$ okolo bodu $P$. Urobíme si hocikoľko
+kolmíc takto:
+
+\ods
+\centerline{
+  \begin{tikzpicture}[scale=0.7]
+  \def\an{30}
+  \def\len{8}
+  \def\ra{0.2}
+  \draw[blue](\len,0) -- (0,0) node[anchor=north east]{$P$} -- (\an:\len+1);
+  \draw[blue](1,0) arc (0:\an:1) node[midway,anchor=west]{$\alpha$};
+
+  \foreach \x[count=\i] in {3.5,4.8,7} {
+    \draw(\x,-1) -- (\x,5);
+    \node[anchor=north east] at (intersection of 0,0--10,0 and \x,-1--\x,5) {$A_{\i}$};
+    \node[anchor=south east] at (intersection of 0,0--\an:100 and \x,-1--\x,5) {$B_{\i}$};
+    \draw (\x,\ra) arc (90:180:\ra);
+    \filldraw (\x-\ra/3,\ra/3) circle (.3pt);
+  }
+\end{tikzpicture}}
+
+\ods
+\def\nrm#1{\Vert{#1}\Vert}
+Všetky trojuholníky $\triangle A_1PB_1$,  $\triangle A_2PB_2$, \ldots sú podobné: majú
+všetky uhly rovnako veľké. Preto sa zachovávajú aj pomery strán: napr. 
+$\nrm{A_3P} = 2\nrm{A_1P}$, preto aj $\nrm{B_3P}=2\nrm{B_1P}$. To znamená, že 
+$\frac{\nrm{A_3P}}{\nrm{B_3P}}=\frac{2\nrm{A_1P}}{2\nrm{B_1P}}=\frac{\nrm{A_1P}}{\nrm{B_1P}}$.
+Inými slovami, pomer $\frac{\nrm{A_iP}}{\nrm{B_iP}}$ je stále rovnaký, nezáleží, ktorú kolmicu
+$A_iB_i$ si zoberieme. Tento pomer závisí iba od uhla $\alpha$, a označuje sa $\cos(\alpha)$
+({\em kosínus}). Podobne pomer $\frac{\nrm{B_iA_i}}{\nrm{B_iP}}$ závisí iba od $\alpha$
+a označuje sa $\sin(\alpha)$ ({\em sínus}).
+
+\ods
+Na čo je dobré poznať hodnoty $\sin(\cdot)$ a $\cos(\cdot)$? Povedzme, že chceš zistiť,
+aké súradnice má bod $B$, ktorý je od $[0,0]$ vo vzdialenosti $r$ pod uhlom $\alpha$:
+
+\ods
+\centerline{
+  \begin{tikzpicture}[scale=4]
+  \def\an{40}
+  \def\ra{0.4ex}
+    \draw[thin,dotted,step=0.5](-0.5,-0.5) grid (1,1);
+    \draw(1.1,0) -- (0,0) node[anchor=north east]{$O=[0,0]$} -- (\an:1.1);
+
+    \draw[red](1ex,0) arc (0:\an:1ex) node[midway,anchor=west]{$\alpha$};
+    \draw[thin,gray](-35:1) arc (-35:125:1);
+
+    \draw[-{>[length=3ex,width=1ex]},thin,gray] (0,0) -- (110:1) node[midway,anchor=east]
+    {$r$};
+
+    \coordinate (B) at (\an:1);
+    \draw[red](0,0)--(B) node[midway,anchor=south east]{$r$};
+    \node[right=3mm of B]  {$B=[x,y]$};
+
+    \draw[blue] (B) -- (B|-0,0) coordinate (A) node[midway, anchor=west] {$y$};
+    \node[anchor=north west] at (A) {$A$};
+    
+    \draw (A)+(0,\ra) arc (90:180:\ra);
+    \filldraw (A)+(-\ra/3,\ra/3) circle (.1pt);
+
+    \def\g{rgb:green,5;yellow,4;blue,2;black,3}
+    \draw[thick,draw=\g](0,0)--(A) 
+    node[midway,anchor=north]{\textcolor{\g}{$x$}};
+\end{tikzpicture}}
+
+\ods
+Keď si z $B$ spravíš kolmicu, dostaneš pravouhlý $\triangle AOB$, pričom $\nrm{OA}=x$,
+$\nrm{AB}=y$ sú hľadané súradnice bodu $B$. Z predchádzajúceho vieš, že 
+$\cos{\alpha}=\frac{\nrm{OA}}{\nrm{OB}}=\frac{x}{r}$, preto $x=r\cos(\alpha)$.
+Rovnako dostaneš $y=r\sin(\alpha)$.
+
+\ods
+Funcie \prg!sin! a \prg!cos! sú prístupné v knižnici, ktorá sa volá \prg!cmath!. 
+Ich vstup ale nie je v stupňoch, ale v {\em radiánoch}. Ak obsah kruhu\footnote{%
+  Urob si takýto pokus: zober si riešenie úlohy~\ref{uloha:kruh}
+  a zrátaj v premennej {\tt S} počet čiernych pixelov. Na konci programu vypíš
+  pomer čiernych pixelov k obsahu štvorca so stranou $r$, t.j. 
+  \prg!(double)S / (double)(r * r)! Pre $r=10$ bol môj výsledok $3.05$, pre
+  $r=500$ to už bolo $3.14128$ a pre $r=2450$ to bolo $3.14157$.
+
+  \ods
+\begin{tikzpicture}
+\begin{axis}[
+  % title={{\tt pi}},  
+  width=\textwidth, 
+  height=4cm,
+  xlabel={$n$},
+  scaled x ticks=false,
+  scaled y ticks=false,
+  domain=0:800,
+  xmin=0,
+  xmax=800,
+  ymin=3.05,
+  ymax=3.15,
+  /pgf/number format/.cd,
+  1000 sep={}
+  %legend cell align={left},
+  %legend pos = south east
+]
+  \addplot+[no markers,magenta,thick,dotted] {3.1415926535};
+  \addplot+[no markers,blue!40!cyan] table 
+  [y expr=\thisrow{pi}, x expr=\thisrow{n} ]{out/pi.dat};
+\end{axis}
+\end{tikzpicture}
+
+Výsledok sa blíži k číslu $3.1415926535\cdots$, čo je hodnota $\pi$.
+}
+s polomerom 1 
+označíme $\pi$, tak jeho obvod je $2\pi$. Radiány merajú uhol dĺžkou príslušného
+oblúka na jednotkovej kružnici: celý kruh, čiže $360^\circ$ je $2\pi$ radiánov,
+pravý uhol je $\pi/4$ radiánov atď. Vo všeobecnosti $d$ stupňov je $d\frac{2\pi}{360}$
+radiánov. V knižnici {\tt cmath} je definovaná konštanta \prg!M_PI!, ktorá
+dosť presne reprezentuje číslo $\pi$. Nasledovný program:
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+#include <cmath>  
+#include <iostream>
+
+using namespace std;
+
+int main() {
+  cout << 3*cos(M_PI / 2.0) << " " << 3*sin(M_PI / 2.0) << endl;
+}
+\end{lstlisting}
+}
+
+
+má vypísať súradnice bodu, ktorý je vo vzdialenosti $3$ pod uhlom $\pi/2$ (t.j. kolmo
+hore), teda by sa malo vypísať {\tt 0 3}. V skutočnosti sa vypíše čosi ako 
+{\tt 1.83697e-16 3}. Zápis {\tt 1.83697e-16} znamená $1.83697\cdot10^{-16}$, t.j. číslo
+$0.000000000000000183697$. To je skoro nula, takže je to skoro správne. Nie je to presne nula,
+lebo sa pri výpočte {\tt cos} prejavili problémy s presnosťou, ktoré si videl v 
+predchádzajúcej časti.
+
+
+\begin{uloha}
+  Napíš program, ktorý na vstupe dostane čislo $n$ a vypíše postupnosť príkazov, na základe
+  ktorých program z úlohy~\ref{uloha:editor} vykreslí vyplnený zelený pravidelný $n$-uholník.
+\end{uloha}
+
+\begin{uloha}
+  Napíš program, ktorý na vstupe dostane číslo $n$ a $s$ a vyrobí príkazy pre program z 
+  úlohy~\ref{uloha:editor}, ktorá nakreslia nasledovný útvar: zober si vrcholy pravidelného
+  $n$-uholníka a spájaj ich čiarou s krokom $s$, t.j. spoj vrchol číslo $0$, 
+  vrchol číslo $s$, vrchol číslo $2s$ a tak ďalej.
+  Vnútro má byť vyfarbené žlto a vonkajšie cípy červeno. Napr. pre $n=7$, $s=3$ a pre
+  $n=23$, $s=9$ sú tieto dva vzory:
+
+  \bp\vspace{0pt}
+  \centerline{\fbox{\includegraphics[width=0.9\textwidth]{out/m.7.3.png}}}
+  \ep\hfill
+  \bp\vspace{0pt}
+  \centerline{\fbox{\includegraphics[width=0.9\textwidth]{out/m.23.9.png}}}
+  \ep
+\end{uloha}
+
+\begin{uloha}
+  Korytnačia grafika pozostáva z postupnosti príkazov, každý na samostatnom riadku. 
+  Príkazy sú takéto:
+\def\tmp{\item \textcolor{magenta}}  
+\begin{itemize}\itemsep=-1mm
+    \tmp{{\tt i} {\em sirka vyska}} 
+      (init) Toto je vždy prvý príkaz (a je v zozname iba
+      raz). Nastaví rozmery obrázka. 
+      \tmp{{\tt c} r g b} (color) Nastaví farbu na $\{r,g,b,255\}$.
+    \tmp{{\tt u}} (pen up) Zdvihne pero -- nasledujúce posuny nekreslia.
+    \tmp{{\tt d}} (pen down) Položí pero -- nasledujúce posuny kreslia.
+    \tmp{{\tt f} x} (forward) Posunie sa dopredu o $x$.
+    \tmp{{\tt l} a} (left) Otočí sa doľava o $a$ stupňov.
+    \tmp{{\tt r} a} (right) Otočí sa doprava o $a$ stupňov.
+    \tmp{{\tt s} meno} (save) Uloží obrázok a skončí.
+\end{itemize}
+Napíš program, ktorý načíta postupnosť príkazov korytnačej grafiky a vypíše
+  postupnosť príkazov pre program z úlohy~\ref{uloha:editor}.
+\end{uloha}
+
+\ods
+Na záver tejto časti skús rozšíriť korytnačiu grafiku o príkaz opakovania:
+
+{\em
+\def\tmp{\item \textcolor{magenta}}  
+\begin{itemize}\itemsep=-1mm
+      \tmp{{\tt R} cnt} (repeat) Blok príkazov po nasledujúci {\tt E} sa zopakuje
+      {\em cnt} krát.
+    \tmp{{\tt E}} (end) Koniec bloku opakovania.
+\end{itemize}
+}
+
+\ods
+Chceme, aby sa príkazy opakovania mohli vnárať, takže napr. program vľavo
+urobí obrázok vpravo.
+
+\begin{minipage}[t]{0.3\textwidth}\vspace{0pt}
+\begin{verbatim}
+i 700 700
+R 24
+R 4
+f 100
+r 90
+E
+l 15
+E
+c 0 50 200
+R 8
+u
+f 250
+d
+R 36
+f 50
+l 180
+f 50
+l 10
+E
+u
+l 180
+f 250
+l 225
+E
+s logo.png
+\end{verbatim}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.7\textwidth}\vspace{0pt}
+  \centerline{\fbox{\includegraphics[width=\textwidth]{out/logo.png}}}
+\end{minipage}
+
+\ods
+Na rozdiel od jednoduchšieho zadania bez cyklov, toto nemôžme riešiť tak, že 
+príkazy čítame zo vstupu a priamo
+vypisujeme príkazy pre kreslič, ale budeme si potrebovať všetky príkazy zapamätať.
+Spravme si typ {\tt Prikaz}, v ktorom si budeme pamätať typ príkazu aj všetky
+potrebné parametre (príkazy {\tt i} a {\tt s} ukladať nepotreujeme, {\tt i} je vždy
+na začiatku a {\tt s} je na konci: keď načítame zo vstupu {\tt s}, tak vygenerujeme
+všetky zapamätané príkazy a skončíme). Okrem parametrov si v príkaze
+{\tt R} budeme potrebovať pamätať terajší počet opakovaní pri vykonávaní 
+a v príkaze {\tt E} si budeme potrebovať zapamätať pozíciu, kde je príslušný
+príkaz {\tt R}. Celý typ by mohol vyzerať napr. takto:
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+struct Prikaz {
+  char t;       // typ prikazu
+  int r, g, b;  // pre prikaz 'c'
+  double x;     // genericky parameter pre prikazy 'l' 'r' 'f'
+  int i, cnt;   // pre prikaz 'R'
+  int addr;     // pre prikaz 'E'
+};
+\end{lstlisting}
+}
+
+\ods
+Pri načítavaní vstupu si ukladáme príkazy do pamäte, pričom na príkazy {\tt R}
+a {\tt E} použijeme zásobník ako v úlohe~\ref{uloha:zatvorky} na to, aby sme pre
+každý príkaz {\tt E} našli zodpovedajúci príkaz {\tt R}. Začiatok programu z príkladu
+by v poli vyzeral takto:
+
+\ods
+\centerline{
+\begin{tikzpicture}[xscale=1.5,yscale=0.4]
+    \def\cmd(#1)#2#3#4#5{
+      \begin{scope}[shift={(#1,0)}]
+        \draw (0,0) rectangle (1,5);
+        \foreach \l [count = \i] in {addr,i,cnt,\ldots,t}{
+          \node [anchor=south west] at (0,\i-1) {{\small\tt \l}};
+        }
+        \foreach \v [count = \i] in {#5,#4,#3,{},'#2'}{
+          \node [anchor=south west] at (0.5,\i-1) {{\small\tt \textcolor{magenta}{\v}}};
+        }
+        \node [anchor=south] at (0.5,5) {$#1$};
+      \end{scope}
+      }
+
+  \cmd(0)R{24}{0}{}
+  \cmd(1)R{4}{0}{}
+  \cmd(2)f{}{}{}
+  \cmd(3)r{}{}{}
+  \cmd(4)E{}{}{1}
+  \cmd(5)l{}{}{}
+  \cmd(6)E{}{}{0}
+  \cmd(7)c{}{}{}
+  \cmd(8)R{8}{0}{}
+  \cmd(9)u{}{}{}
+\end{tikzpicture}
+}
+
+\ods
+Pri vyhodnocovaní programu budeme mať jednu globálnu premennú {\tt pc} (program counter),
+v ktorej si budeme pamätať pozíciu práve vykonávaného príkazu. Štandardné príkazy vždy 
+spracujeme (tak, že vypíšeme na výstup príslušný príkaz pre kreslič) a zvýšime {\tt pc}.
+V príkaze {\tt R} len zvýšime hodnotu {\tt i}. V príkaze {\tt E} sa pozrieme na hodnotu
+{\tt i} v príslušnom {\tt addr}: ak sa rovná {\tt cnt}, vynulujeme ju a zvýšime {\tt pc},
+ak nie, skočíme na príkaz {\tt R}. Ak sa pole príkazov volá {\tt prog} a
+v premennej {\tt n} máme počet príkazov, vyhodnocovanie by vyzeralo zhruba takto:
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+void execute() {
+  int pc = 0;
+  while (pc < n) {
+    if (prog[pc].t == 'R') {
+      prog[pc].i++;
+      pc++;
+    } else if (prog[pc].t == 'E') {
+      int jmp = prog[pc].addr;
+      if (prog[jmp].i == prog[jmp].cnt) {
+        prog[jmp].i = 0;
+        pc++;
+      } else {
+        pc = jmp;
+      }
+    } else if .... 
+
+    // tu sa spracuju dalsie prikazy
+
+  }
+}
+
+
+\end{lstlisting}
+}
+
+
+\begin{uloha}
+  Naprogramuj korytnačiu grafiku s príkazmi cyklu.
+\end{uloha}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectxvii1
+\section{Adresy a smerníky (pointre)}
+
+Technicky je celá pamäť počítača jedno veľké pole núl a jednotiek. V skutočnosti má
+adresu iba každý ôsmy bit (celá pamäť teda vyzerá ako pole \prg!unsigned char!).
+Keby na adrese 1 bola premenná \prg!int c;!, na adrese 5
+premenná \prg!char a! a na adrese 6 premenná \prg!char b;!
+začiatok pamäte by mohol vyzerať takto:
+
+\ods
+\centerline{\begin{tikzpicture}[scale=0.2]
+  \def\var#1[#2]#3#4{%
+    \pgfmathsetmacro{\tmp}{#1+8*#2}
+    \draw[#4] decorate[
+       decoration={brace, amplitude=2ex}]{
+       (#1,1.8) -- (\tmp,1.8) node [align=center,midway,anchor=south,yshift=2ex] {{\tt #3}}
+        };
+   \draw[#4,thick] (#1,0) rectangle (\tmp,1.5);
+
+  }
+  \foreach \v [count=\i] in {
+    0,1,0,0,0,1,1,1,
+    0,1,1,0,0,0,0,1,
+    0,1,1,0,1,1,1,0,
+    0,1,1,0,0,1,0,0,
+    0,1,1,0,0,0,0,1,
+    0,1,1,0,1,1,0,0,
+    0,1,1,0,0,1,1,0,
+    0,0,0,0,0,0,0,0,
+    0,1
+  }{
+    \draw (\i,0) rectangle node [anchor=center] {{\scriptsize\ttfamily \v}} (\i+1,1.5);
+  }
+
+  \foreach \i in {0,...,8}{
+    \pgfmathsetmacro{\x}{\i*8+1.5}
+  \draw[dotted] (\x,-0.1) -- (\x,-3) 
+  node[draw, anchor = north west]{\scriptsize{\tt \i}};
+}
+
+  \var{9}[4]c{orange!60!black}
+  \var{41}[1]a{cyan!60!black}
+  \var{49}[1]b{green!60!black}
+\end{tikzpicture}}
+
+\ods
+To, že nejaká premenná je na nejakej adrese, nie je v pamäti nijak špeciálne označené, je 
+na programe, aby pristupoval na správne miesta v pamäti. V pamäti je vždy okrem tvojho 
+programu veľa ďalších vecí, takže keď sa proram spustí, operačný systém nájde v pamäti
+voľné miesto a tvoj program bude používať adresy odtiaľ. Presná adresa premennej ti preto
+sama osebe veľa nepovie, napriek tomu je užitočné ju vedieť. Až tak užitočné, že na to je
+špeciálny operátor, \prg!&!. Ak máš premennú {\tt x}, tak \prg!&x! je jej adresa.
+Skús si spustiť program:
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+int c;
+char a,b;
+
+int main() {
+  cout <<"adresa c: "<< (unsigned long)&c << endl;
+  cout <<"adresa a: "<< (unsigned long)&a << endl;
+  cout <<"adresa b: "<< (unsigned long)&b << endl;
+} 
+\end{lstlisting}
+}
+
+Vždy, keď ho spustíš, vypíšu sa iné čísla (tvoj program vždy dostane pridelenú
+inú časť pamäte), ale môže to vyzerať napr. takto:
+
+\begin{verbatim}
+adresa c: 94082916049300
+adresa a: 94082916049304
+adresa b: 94082916049305
+\end{verbatim}
+
+V tomto prípade sa premenná {\tt c} uložila na adresu $94082916049300$ a zaberá 4 byty
+(32 bitov). Za ňou, na adrese $94082916049304$ nasleduje premenná {\tt a}, ktorá zaberá
+jeden byte, takže na nasledujúcej adrese $94082916049305$ je premenná {\tt b}.
+
+\ods
+Napriek tomu, že adresa je vždy číslo, operátor \prg!&! vracia v skutočnosti rôzne
+typy. Pre každý typ {\tt T} (základný alebo vlastný
+napr. \prg!int!, \prg!float!, \prg!Farba!,\ldots) existuje ďalší typ 
+\cmd{adresa premennej typu {\tt T}} (hovorí sa aj {\em pointer na premennú typu {\tt T}}).
+Tento nový typ sa označuje hviezdičkou. Takže premenná typu \prg!int*! 
+obsahuje adresu premennej, ktorá
+je typu \prg!int!:
+
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+int main() {
+  int x = 258;       // premenna
+  int* ax = &x;      // ok, ax je adresa x
+  //float* err = &x;  --  error: cannot convert 'int*' to 'float*'
+  float* fx = (float*)(&x);  // ok
+}
+\end{lstlisting}
+}
+
+V poslednom riadku som použil pretypovanie; {\tt fx} je adresa miesta, kde by mala byť
+premenná typu \prg!float!, aj keď v skutočnosti je tam uložená premenná typu \prg!int! 
+(konkrétne {\tt x}). Ešte raz treba zdôrazniť: premenná {\tt ax} je krabička, v ktorej
+je uložené číslo adresy\footnote{%
+  V nasledujúcom obrázku ťa zámerne trochu klamem, v premennej typu {\tt int} sa väčšinou
+  jej 4 byty ukladajú v opačnom poradi (tzv. {\em little endian}), ale pre
+  naše účely to stačí takto.
+}, na ktorej je uložená krabička s menom {\tt x}:
+
+\centerline{\begin{tikzpicture}[scale=0.2]
+  \def\var#1[#2]#3#4{%
+    \pgfmathsetmacro{\tmp}{2+#1+8*#2}
+    \draw[#4] decorate[
+       decoration={brace, amplitude=2ex}]{
+       (2+#1,1.8) -- (\tmp,1.8) node [align=center,midway,anchor=south,yshift=2ex] {{\tt #3}}
+        };
+   \draw[#4,thick] (2+#1,0) rectangle (\tmp,1.5);
+
+  }
+  \foreach \v [count=\i] in {
+    1,0,
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,1,
+    0,0,0,0,0,0,1,0,
+    %
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,1,
+    0,0,1,1,1,0,1,1,
+    0,1
+  }{
+    \draw (\i,0) rectangle node [anchor=center] {{\scriptsize\ttfamily \v}} (\i+1,1.5);
+  }
+
+  \foreach \i in {0,...,8}{
+    \pgfmathsetmacro{\x}{\i*8+3.5}
+    \pgfmathtruncatemacro{\l}{\i+315}
+  \draw[dotted] (\x,-0.1) -- (\x,-3) 
+  node[draw, anchor = north west]{\scriptsize{\tt \l}};
+}
+
+  \var{1}[4]{x = 258}{orange!60!black}
+  \var{33}[4]{ax = 315}{cyan!60!black}
+\end{tikzpicture}}
+
+
+\ods Opačný operátor k \prg!&! je \prg!*!: ak \prg!ax! je premenná typu \prg!int*!, tak
+\prg!*ax! je premenná, ktorá je uložená na adrese, ktorá je uložená v  {\tt ax}
+(hovoríme, že premenná {\tt ax} {\em ukazuje na premennú} {\tt *ax}). 
+Teraz je vidno, prečo je
+dobré mať zvlášť typ adresy pre každý typ: keď sa vyhodnocuje výraz \prg!*ax!, procesor
+sa pozrie do premennej {\tt ax}, nájde tam číslo (napr. 315), pozrie sa na adresu $315$
+a predpokladá, že tam bude premenná typu \prg!pnt!. Pozrie sa preto na nasledujúce
+4 byty a vráti príslušné číslo. V predchádzajúcom príklade by \prg!cout << *ax << endl;! vypísalo $258$.
+\prg!*ax! je naozaj premenná, takže sa dá do nej aj priraďovať. Príkazy
+\prg!x = 47;! a \prg!(*ax) = 47;! urobia to isté. Takže program
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+int main() {
+  int x = 258;       
+  int* ax = &x;  // ax ukazuje na x   
+  (*ax) = 47;    // *ax je x
+  cout << x << endl;
+}
+\end{lstlisting}
+}
+vypíše 47.
+
+\ods
+Treba rozlišovať medzi hviezdičkou za menom typu (napr. \prg!int*!), ktorá znamená
+\cmd{pointer na typ int} a hviezdičkou pred menom premennej (typu pointer),
+ktorá znamená \cmd{hodnota na adrese}. Skús prečítať nasledovný program:
+
+\ods
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+int main() {
+  int a = 7, x = 6;  // a,x su premenne typu int
+  int* b = &a;       // b ukazuje na a
+  int** c = &b;      // c ukazuje na b
+  int* d = *c;       // *c je premenna b, preto tento prikaz
+                     // je rovnaky ako int* d = b;
+  **c = 18;
+  b = &x;            // teraz b ukazuje na x
+  **c = 42;          
+  cout << a << " " << x << endl;
+}
+\end{lstlisting}
+}
+
+Po prvých štyroch riadkoch by to v pamäti mohlo vyzerať ako na obrázku vľavo.
+V príkaze \prg!**c=18;! je \prg!*c! premenná \prg!b! a \prg!*b! je premenná \prg!a!,
+preto sa do premennej \prg!a! zapíše 18.
+Nasledujúci príkaz \prg!b=&x! spôsobí, že v {\tt b} bude uložená adresa {\tt x} ako na 
+obrázku vpravo. Preto v príkaze \prg!**c=42! je \prg!*c! premenná \prg!b!
+a \prg!*b! je premenná \prg!x!, takže program vypíše {\tt 18 42}.
+
+\ods
+\def\var(#1)#2#3#4{%
+  \draw (0,0.5-#1)  node[anchor=east]{{\tt #3}};
+  \draw (0.2,-#1) rectangle node[align=center]{{\tt #2}} (1.2,1-#1);
+  \draw (1.4,0.5-#1) node[anchor=west]{\textcolor{magenta}{\tt #4}};
+}
+
+\def\ptr(#1,#2)[#3] {
+  \draw[blue,-{>[length=4pt,width=2.5pt]}] (1.7,0.5-#1) to[out=#3,in=-#3] (1.7,0.5-#2);
+}
+
+\bp
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+  \node[anchor=east] at (0,0.8){{\em adresa}};
+  \foreach \val/\addr/\name[count=\i] in {7/42380/a,6/42384/x,42380/42388/b,
+     42388/42396/c,42380/42404/d}  {
+    \var(\i){\val}{\addr}{\name}
+  }
+  \draw(0,0.5-6) node[anchor=east]{{\tt 42412}};
+  \draw[draw=none] (0.2,-6) rectangle node[align=center]{{\tt \ldots}} (1.2,1-6);
+  \ptr(3,1)[75]
+  \ptr(4,3)[60]
+  \ptr(5,1)[65]
+\end{tikzpicture}
+\ep
+\hfill
+\bp
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+  \node[anchor=east] at (0,0.8){{\em adresa}};
+  \foreach \val/\addr/\name[count=\i] in {18/42380/a,6/42384/x,42384/42388/b,
+     42388/42396/c,42380/42404/d}  {
+    \var(\i){\val}{\addr}{\name}
+  }
+  \draw(0,0.5-6) node[anchor=east]{{\tt 42412}};
+  \draw[draw=none] (0.2,-6) rectangle node[align=center]{{\tt \ldots}} (1.2,1-6);
+  \ptr(3,2)[60]
+  \ptr(4,3)[60]
+  \ptr(5,1)[65]
+\end{tikzpicture}
+\ep
+
+\ods
+S pomocou pointrov môžeš mať funkciu, ktorá ako keby menila svoje parametre.
+Porovnaj tieto dva programy:
+
+\ods
+\bp
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+void pridaj(int a) { 
+  a = a + 1; 
+}
+
+int main() {
+  int x = 7;
+  pridaj(x);
+  cout << x << endl;
+} 
+\end{lstlisting}
+}
+\ep
+\hfill
+\bp
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+void pridaj(int* a) {
+  (*a) = (*a) + 1;
+}
+
+int main() {
+  int x = 7;
+  pridaj(&x);
+  cout << x << endl;
+}
+\end{lstlisting}
+}
+\ep
+
+V ľavom programe sa vyrobí svet funkcie {\tt main} a v ňom premenná {\tt x}. Pri
+volaní funkcie {\tt pridaj} sa vyrobí nový svet s premennou {\tt a} a nastaví sa jej
+hodnota na $7$. Potom sa vykoná funkcia {\tt pridaj}, takže v premennej {\tt a}
+bude $8$. Svet funkcie {\tt pridaj} potom zanikne a v {\tt main} sa vypíše hodnota 
+{\tt x}, t.j. 7. V pravom programe sa vyrobí svet funcie {\tt pridaj}, ale 
+premenná {\tt a} sa nastaví na adresu premennej {\tt x} (ktorá je vo svete 
+funkcie {\tt main}, svety ani premenné nehrajú pri prístupe do pamäte rolu).
+Preto kaď vo funkcii {\tt pridaj}  výraz {\tt *a} označuje premennú {\tt x}. 
+
+\ods
+\def\var(#1)#2#3#4{%
+  \draw (0,0.5-#1)  node[anchor=east]{{\tt #3}};
+  \draw (0.2,-#1) rectangle node[align=center]{{\tt #2}} (1.2,1-#1);
+  \draw (1.4,0.5-#1) node[anchor=west]{\textcolor{magenta}{\tt #4}};
+}
+
+\def\ptr(#1,#2)[#3] {
+  \draw[blue,-{>[length=4pt,width=2.5pt]}] (1.7,0.5-#1) to[out=#3,in=-#3] (1.7,0.5-#2);
+}
+
+\def\kon(#1)#2{ \draw(0,0.5-#1) node[anchor=east]{{\tt #2}};
+  \draw[draw=none] (0.2,-#1) rectangle node[align=center]{{\tt \ldots}} (1.2,1-#1);
+}
+
+\def\world(#1)#2#3{
+  \draw[thick,#3](-1,-#1) -- (2,-#1) node[anchor=west]{{\tt #2}};
+}
+\bp
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+  \node[anchor=east] at (0,0.8){{\em adresa}};
+  \world(0){main}{orange}
+  \world(1){pridaj}{blue!70!gray}
+
+  \foreach \val/\addr/\name[count=\i] in {7/873200/x,8/873204/a}  {
+    \var(\i){\val}{\addr}{\name}
+  }
+  
+  \kon(3){873208}
+\end{tikzpicture}
+\ep
+\hfill
+\bp
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+  \node[anchor=east] at (0,0.8){{\em adresa}};
+  \world(0){main}{orange}
+  \world(1){pridaj}{blue!70!gray}
+
+  \foreach \val/\addr/\name[count=\i] in {8/873200/x,837200/873204/a}  {
+    \var(\i){\val}{\addr}{\name}
+  }
+  \ptr(2,1)[70]
+  \kon(3){873208}
+\end{tikzpicture}
+\ep
+
+
+\ods
+S pointrami sa dajú robiť aj aritmetické operácie, ale trochu inak ako s normálnymi
+číslami. 
+
+\fi
+
+
+% typy + operacie - stack
+% operatory, komplexne cisla, projekt mandelbrot
+% stl-vektor
+
+% binarne vyhladavanie: median z dvoch poli, susenie pradla,
+% knihy - rozdelit na k suvislych casti, minimalizovat sucet 
+
+% nahodne cisla: generator terenu 
+
+% AI - hra, NN
+
+\end{document}
