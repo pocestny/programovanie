@@ -1,1 +1,1 @@
-/home/kralovic/veci_Tomi/text_cpp/obrazok.h
+../obrazok.h
