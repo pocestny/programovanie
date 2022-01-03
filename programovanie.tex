@@ -299,6 +299,10 @@ hodnota je \prg~false~. Niekoľko operácií, ktoré vieme vo výrazoch použív
       &&\prg~!~&{\em nie}: \prg~!(2==3)~ je \prg!true! \\\hline
     \end{tabular}
   }
+\ods
+Pri používaní logických spojok \prg!&&!, \prg!||! má prednosť \prg!&&! (podobne ako násobenie 
+pred sčítaním), t.j.
+\prg!a || b && c! znamená \prg!a || (b && c)!.
 
 \ods
 Príkaz \prg~if~ vyhodnotí podmienku (ktorá musí byť napísaná v zátvorkách)
@@ -2321,7 +2325,6 @@ Zatiaľ vieme ako parametre funkciám posielať premenné, ale nie polia.
 Polia sa tiež dajú ako parametre použiť, ale o tom až neskôr.
 } a vypočíta sa výstupná hodnota.
 
-
 \begin{uloha}
   Napíš funkciu {\tt max} s tromi parametrami, ktorá vráti najväčší z nich.
 \end{uloha}
@@ -2357,8 +2360,44 @@ Tu som použil ako návratový typ nový typ: \prg!void!. Je to prázdny typ, kt
 že funkciu chcem vždy použiť iba v situácii, keď výslednú hodnotu zahodím. Takéto funkcie
 nemusia končiť príkazom \prg!return!. Po spustení program vypíše $0+1+2+\cdots+9=45$.
 
+\ods Poznámka o viditeľnosti: rovnako ako pri funkciách sa samostatný svet
+vyrába aj pri zložených príkazoch. To znamená, že svety môžu zapadať jeden do druhého:
+svet globálnych premenných, v ňom svet funckie, v ňom svet zloženého príkazu,\ldots.
+Vždy, keď program pristupuje k nejakej premennej,
+vyberie sa premenná s požadovaným menom z najbližšieho sveta, v ktorom taká je. 
+Napr. program
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+int x = 5;
+
+void p() { cout << x; }
+
+int main() {
+  int x = 7;
+  int a = 9;
+  cout << x;
+  p();
+  {
+    int x = 6;
+    cout << x << a;
+    p();
+  }
+  cout << x << endl;
+}
+\end{lstlisting}
+}
+
+vypíše {\tt 756957}: funkcia {\tt p} vo svojom svete nemá premennú {\tt x}, preto sa použije
+globálna {\tt x}. Funkcia {\tt main} má svoju vlastnú {\tt x}, preto sa použije tá.
+Zložený príkaz má svoj vlastný svet, v ktorom má svoju vlastnú {\tt x}, ale {\tt a}
+sa použije zo sveta {\tt main}.
+
 \ods
-Rovnako dobre sa dajú vyrobiť aj globálne polia. Tu je ale problém, akú veľkosť má
+Globálne premenné môžu byť rovnako dobre aj  polia. Tu je ale problém, akú veľkosť má
 pole mať. Pretože ho vyrábam skôr, ako sa spustí hlavný program, nemôžem čakať, kým
 zo vstupu dostanem veľkosť poľa. Najjednoduchší spôsob je povedať si dopredu ohraničenie
 na veľkosť poľa, vyrobiť dostatočne veľké pole a potom z neho použiť len potrebný kus.
@@ -2518,15 +2557,21 @@ Keďže súčet nemôže klesať donekonečna, vidíme, že funkcia sa nikdy nez
   \label{uloha:vyrazy}
   Zjednodušený výraz je buď jednociferné číslo, alebo má tvar 
   {\tt ($\clubsuit$+$\heartsuit$)}, kde $\clubsuit$ a $\heartsuit$ sú zjednodušené
-  výrazy. Napíš program, ktorý prečíta zo vstupu zjednodušený výraz a vyráta jeho
+  výrazy. Zjednodušený výraz končí znakom {\tt\$}. 
+  Napíš program, ktorý prečíta zo vstupu zjednodušený výraz a vyráta jeho
   hodnotu.
 \end{uloha}
 
-Zo zadania vidíme, že zjednodušené výrazy sú napr. {\tt 4}, alebo {\tt (5*3)},
-alebo {\tt (2+((3*2)+(1+(6*3))))}, ale nie {\tt 12} (nie je jednociferné), ani 
-{\tt 5+1} (nie je v zátvorkách), ani {\tt (3+8+1)}. 
+Zo zadania vidíme, že zjednodušené výrazy sú napr. {\tt 4\$} alebo
+alebo {\tt (2+((3*2)+(1+(6*3))))\$}, ale nie {\tt 12\$} (nie je jednociferné), ani 
+{\tt 5+1\$} (nie je v zátvorkách), ani {\tt (3+8+1)\$}. 
 Na čítanie vstupu použijeme premennú typu \prg!char c;! (pozri kapitolu \ref{sect:cisla}).
-Príkaz \prg!cin>>c;! prečíta jeden znak zo vstupu. Ak je tento znak číslica, t.j.
+Príkaz \prg!cin >> c;! prečíta jeden znak zo vstupu\footnote{%
+Ako sme v kapitole \ref{sect:cisla} hovorili, pri načítavaní sa preskakujú whitespace
+znaky.  Toto správanie sa dá prepnúť,
+ak z \prg!cin! načítaš špeciálnu hodnotu \prg!noskipws!, t.j. \prg!cin >> noskipws;!
+spôsobí, že sa budú načítavať všetky znaky vrátane medzier.
+}. Ak je tento znak číslica, t.j.
 \prg!c>='0' && c<='9'!, tak hodnota výrazu je číslo, ktoré táto číslica reprezentuje,
 t.j. \prg!c-'0';! (tu využívame, že v ASCII tabuľke idú znaky číslic za sebou).
 Ak prvý znak nebola číslica, musela to byť otváracia zátvorka. Hodnotu výrazu potom
@@ -2560,9 +2605,6 @@ desaťkrát hodnota čísla \prg!'456'! plus hodnota cifry \prg!'7'!.
 
 \begin{uloha}
   Uprav predchádzajúce riešenie tak, aby pracovalo s viaccifernými číslami.
-  Pre načítavanie znakov použi na začiatku programu príkaz \prg!cin >> noskipws!,
-  aby nasledujúce príkazy \prg!cin >> c! nepreskakovali whitespace znaky (inak 
-  by program nevedel povedaž, že napr. po stlačení '4' a 'enter' má skončiť).
 \end{uloha}
 
 
@@ -3196,7 +3238,7 @@ Tu je zopár úloh, ktoré sa dajú naprogramovať rôzne rýchlo. Skús nájsť
 \begin{uloha}
   Na vstupe je číslo $n$, utriedené pole $n$ čísel a číslo $k$. Úlohou je napísať
   program, ktorý nájde počet dvojíc čísel, ktorých rozdiel je $k$.
-  Napr. pre pole {\tt 3 4 7 8 11 12 16} a $k=5$ je odpoveď $3$, lebo v poli
+  Napr. pre pole {\tt 3 4 7 7 8 11 12 16} a $k=5$ je odpoveď $3$, lebo v poli
   sú dvojice $(3,8)$, $(7,12)$, $(11,16)$.
 \end{uloha}
 
@@ -3545,14 +3587,16 @@ Keď si ale pozrieme utriedený vstup, situácia sa zmení:
   Na vstupe je pole $n$ čísel. Napíš program, ktorý pre každé 
   číslo vypíše pozíciu najbližšieho menšieho čísla vľavo, 
   alebo {\tt -1} ak také neexistuje.
-  Napr. pre vstup {\tt 5 2 3 4} treba vypísať {\tt -1 -1 1 2}.
+  Napr. pre vstup {\tt 5 2 3 4 3} treba vypísať {\tt -1 -1 1 2 1}.
 \end{uloha}
 
 \begin{uloha}
   Na vstupe je výraz zložený z rôznych druhov zátvoriek: \prg!'(',')','[',']','{','}'!.
+  Vstup je ukončený znakom {\tt \$}.
   Napíš program, ktorý zistí, či sú zátvorky vyvážené a či každá otvorená zátvorka
-  je uzavretá správnou zatváracou zátvorkou. Napr. výraz \prg!"({[](){}}())"!
-  je správny, ale výraz \prg!"({])"! ani \prg!")("! nie je.
+  je uzavretá správnou zatváracou zátvorkou. Napr. výraz \prg!"({[](){}}())$"!
+  aj \prg!"()$"!
+  je správny, ale výraz \prg!"({])$"! ani \prg!")($"! nie je.
 \end{uloha}
 
 \begin{uloha}
@@ -4912,17 +4956,17 @@ int main() {
   int a[2][3];
   int i, j, k = 1;
 
-  for (i = 0; i < 2; i++)
+  for (i = 0; i < 2; i++)      // naplnime pole po riadkoch 
     for (j = 0; j < 3; j++) {
       a[i][j] = k;
       k++;
     }
 
-  int *q = *(a + 1);
+  int *q = *(a + 1);           // q ukazuje na druhy riadok
   for (int i = 0; i < 3; i++) 
     cout << q[i] << endl;
 
-  int *p = (int *)a;
+  int *p = (int *)a;          // pohlad na a ako na 1D pole 
   for (i = 0; i < 6; i++) 
     cout << p[i] << " ";
   cout << endl;
@@ -4965,13 +5009,14 @@ Do funkcie {\tt zelena} sa poslalo číslo, preto sa menila hodnota lokálnej pr
 vo svete funkcie {\tt zelena} (ktorá spolu s jej svetom zanikla), do funkcie {\tt modra}
 sa poslal pointer na zoznam {\tt b}. Tento spôsob volania dáva zmysel, lebo väčšinou je to
 presne to, čo chceš, ale pre začínajúcich programátorov to niekedy môže byť mätúce.
+Koniec malej odbočky.
 
 \ods Vyriešili sme, ako posielať polia ako parametre, ale stále nám ostáva problém 
 s globálnymi poľami. Pamätáš sa, že keď sme pri kreslen9 obr8ykov chceli mať globálne
 pole, museli sme ho vyrobiť tak, aby už v čase kompilácie bola známa jeho veľkosť. 
 Riešili sme to tak, že sme pole spravili dostatočne veľké a používali z neho iba 
 tak veľký kus, ako sme potrebovali. Toto evidentne nie je najlepší prístup. 
-
+Lepšie riešenie je tzv. {\em dynamická alokácia}.
 
 \fi
 

@@ -28,6 +28,6 @@ int vyraz() {
 }
 
 int main() {
-  cin >> noskipws >> c;
+  cin >> c;
   cout << vyraz() << endl;
 }
