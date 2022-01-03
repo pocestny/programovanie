@@ -113,20 +113,20 @@
                 literate={ĺ}{{\'l}}1{ľ}{{\'l}}1{ý}{{\'y}}1{ž}{{\v{z}}}1{á}{{\'a}}1{č}{{\v{c}}}1{í}{{\'\i}}1{ú}{{\'u}}1{š}{{\v{s}}}1{ň}{{\v{n}}}1{é}{{\'e}}1
 }
 \parindent=0pt
-\title{\bfseries\sffamily Tutoriál o programovaní (v C/C++)}
-\author{
-  \url{https://beda.dcs.fmph.uniba.sk/programovanie/programovanie.pdf}\and
-  \url{https://github.com/pocestny/programovanie.git}
-}
+\title{\bfseries\sffamily Tutoriál o programovaní v C/C++}
+\author{}
+%  \url{https://beda.dcs.fmph.uniba.sk/programovanie/programovanie.pdf}\and
+%  \url{https://github.com/pocestny/programovanie.git}
 \date{\sffamily\today}
 \maketitle
-\renewcommand{\abstractname}{}
+\renewcommand{\abstractname}{Čo je toto?}
 \begin{abstract}
   \noindent
   Tento tutoriál som napísal pre moje deti, ktoré sa ma spýtali, ako sa programuje. 
   Ale poteším sa, ak si ho prečíta ktokoľvek. Text aj riešenia úloh je voľne prístupný
-  na Githube. Ak máš otázky alebo chceš nechať feedback, použi {\sf Discussions}
-  na Githube.
+  na \link{https://github.com/pocestny/programovanie.git}{Githube}. 
+  Tam je aj časť {\sf Discussions}, kde môžeš napísať, ak máš k niečomu
+  otázky alebo chceš nechať feedback.
 \end{abstract}
 
 
@@ -1718,7 +1718,7 @@ sa dá pozrieť v prehliadači obrázkov.
   mriežkou $n\times n$ a rozostupmi $d$. Napr. pre $n=301$ a $d=15$ bude obrázok:
 
   \ods
-\centerline{\includegraphics[width=4cm]{out/grid.png}}
+\centerline{\includegraphics[width=4cm]{data/grid.png}}
 
 \end{uloha}
 
@@ -1831,7 +1831,7 @@ rozmerov $a\times a$, ktorý bude mať v strede kruh s polomerom $r$.
 Napr. pre $a=300$, $r=100$ bude obrázok vyzerať takto:
 
 \ods
-\centerline{\fbox{\includegraphics[width=4cm]{out/kruh.png}}}
+\centerline{\fbox{\includegraphics[width=4cm]{data/kruh.png}}}
 
 \end{uloha}
 
@@ -2024,18 +2024,18 @@ obrazce. Niekoľko pravidiel je tu:
 
 \ods
 \vbox{
-\includegraphics[width=7cm]{out/r86.png}
+\includegraphics[width=7cm]{data/r86.png}
 \hfill
-\includegraphics[width=7cm]{out/r150.png}\\
+\includegraphics[width=7cm]{data/r150.png}\\
 \hbox to 7cm{\hss pravidlo 86\hss}
 \hfill
 \hbox to 7cm{\hss pravidlo 150\hss}
 }
 \ods
 \vbox{
-\includegraphics[width=7cm]{out/r89.png}
+\includegraphics[width=7cm]{data/r89.png}
 \hfill
-\includegraphics[width=7cm]{out/r107.png}\\
+\includegraphics[width=7cm]{data/r107.png}\\
 \hbox to 7cm{\hss pravidlo 89\hss}
 \hfill
 \hbox to 7cm{\hss pravidlo 107\hss}
@@ -2432,7 +2432,7 @@ hovorí, že {\tt N} sa v programe nebude meniť (môžeš si vyskúšať, že t
   v strede obrázka. Napr. pre vstup $40, 30, 20$ bude obrázok vyzerať takto:
 
 \ods
-\centerline{\fbox{\includegraphics[width=4cm]{out/tristvorce.png}}}
+\centerline{\fbox{\includegraphics[width=4cm]{data/tristvorce.png}}}
 \end{uloha}
 \fi
 
@@ -2726,7 +2726,7 @@ $n$. Čísla {\tt Fib2(90)} by som sa nedočkal ani do konca vesmíru.
   legend pos = north west
 ]
   \addplot+[blue!80!white, 
-  line join=round, mark size=0.5pt] table [y=f, x=n]{out/fibcas.dat};
+  line join=round, mark size=0.5pt] table [y=f, x=n]{data/fibcas.dat};
   \addlegendentry{koľko sekúnd trvá vyrátať {\tt Fib2(n)}}
 \end{axis}
 \end{tikzpicture}
@@ -2920,7 +2920,7 @@ bol na dlhých poliach výrazne rýchlejší.}
     fill=red!80!orange
   }
   ] 
-  table [y expr=\thisrow{t}/1000000, x=n, ]{out/is.dat};
+  table [y expr=\thisrow{t}/1000000, x=n, ]{data/is.dat};
   \addplot[no markers,red!50!white]{0.0000000027*x*x+0.01};
 \end{axis}
 \end{tikzpicture}
@@ -2944,7 +2944,7 @@ bol na dlhých poliach výrazne rýchlejší.}
     fill=blue!80!cyan
   }
   ] 
-  table [y=t, x=n ]{out/cs.dat};
+  table [y=t, x=n ]{data/cs.dat};
   \addplot[no markers,blue!50!white]{0.015*x+25};
 \end{axis}
 \end{tikzpicture}
@@ -3154,16 +3154,16 @@ obrázku bolo vôbec niečo vidno. Okrem toho som skúšal aj náhodné postupno
         1000 sep={}
 ]
   \addplot+[no markers,orange!80!white] table 
-  [y expr=\thisrow{max1}/1000000, x=n ]{out/usek.dat};
+  [y expr=\thisrow{max1}/1000000, x=n ]{data/usek.dat};
   \addlegendentry{funkcia {\tt usek1}, utriedený vstup}
   \addplot+[no markers,orange!20!white] table 
-  [y expr=\thisrow{avg1}/10000, x=n ]{out/usek.dat};
+  [y expr=\thisrow{avg1}/10000, x=n ]{data/usek.dat};
   \addlegendentry{funkcia {\tt usek1}, náhodný vstup, stokrát spomalená}
   \addplot+[no markers,blue!80!cyan] table 
-  [y expr=\thisrow{max2}/10000, x=n ]{out/usek.dat};
+  [y expr=\thisrow{max2}/10000, x=n ]{data/usek.dat};
   \addlegendentry{funkcia {\tt usek2}, utriedený vstup, stokrát spomalená}
   \addplot+[no markers,blue!20!cyan] table 
-  [y expr=\thisrow{avg2}/10000, x=n ]{out/usek.dat};
+  [y expr=\thisrow{avg2}/10000, x=n ]{data/usek.dat};
   \addlegendentry{funkcia {\tt usek2}, utriedený vstup, stokrát spomalená}
 \end{axis}
 \end{tikzpicture}
@@ -3496,7 +3496,7 @@ vstupov a vyrátal priemerný čas (v mikrosekundách).
   %legend pos = south east
 ]
   \addplot+[no markers,orange!80!red] table 
-  [y expr=\thisrow{v#1}, x expr=\thisrow{n}/1000 ]{out/klauni.dat};
+  [y expr=\thisrow{v#1}, x expr=\thisrow{n}/1000 ]{data/klauni.dat};
 \end{axis}
 \end{tikzpicture}
 \hfill
@@ -3531,7 +3531,7 @@ Keď si ale pozrieme utriedený vstup, situácia sa zmení:
   %legend pos = south east
 ]
   \addplot+[no markers,blue!20!cyan] table 
-  [y expr=\thisrow{v#1}, x expr=\thisrow{n}/1000 ]{out/klauni2.dat};
+  [y expr=\thisrow{v#1}, x expr=\thisrow{n}/1000 ]{data/klauni2.dat};
 \end{axis}
 \end{tikzpicture}
 \hfill
@@ -4004,7 +4004,7 @@ s edit.png
 
 \ep
   \bp\vspace{0pt}
-\fbox{\includegraphics[width=\textwidth]{out/edit.png}}
+\fbox{\includegraphics[width=\textwidth]{data/edit.png}}
 
 \ep
 \end{uloha}
@@ -4019,7 +4019,7 @@ s edit.png
   hodnoty {\tt 1000 6 0.45 0.5} by vzorka mohla vyzerať takto:
 
   \ods
-  \centerline{\fbox{\includegraphics[width=0.4\textwidth]{out/qq.png}}}
+  \centerline{\fbox{\includegraphics[width=0.4\textwidth]{data/qq.png}}}
   \ods
 
   Napíš program, ktorý načíta zo vstupu parametre {\tt x d i f} a vypíše postupnosť príkazov,
@@ -4131,7 +4131,7 @@ Ich vstup ale nie je v stupňoch, ale v {\em radiánoch}. Ak obsah kruhu\footnot
 ]
   \addplot+[no markers,magenta,thick,dotted] {3.1415926535};
   \addplot+[no markers,blue!40!cyan] table 
-  [y expr=\thisrow{pi}, x expr=\thisrow{n} ]{out/pi.dat};
+  [y expr=\thisrow{pi}, x expr=\thisrow{n} ]{data/pi.dat};
 \end{axis}
 \end{tikzpicture}
 
@@ -4181,10 +4181,10 @@ predchádzajúcej časti.
   $n=23$, $s=9$ sú tieto dva vzory:
 
   \bp\vspace{0pt}
-  \centerline{\fbox{\includegraphics[width=0.9\textwidth]{out/m.7.3.png}}}
+  \centerline{\fbox{\includegraphics[width=0.9\textwidth]{data/m.7.3.png}}}
   \ep\hfill
   \bp\vspace{0pt}
-  \centerline{\fbox{\includegraphics[width=0.9\textwidth]{out/m.23.9.png}}}
+  \centerline{\fbox{\includegraphics[width=0.9\textwidth]{data/m.23.9.png}}}
   \ep
 \end{uloha}
 
@@ -4255,7 +4255,7 @@ s logo.png
 \end{minipage}
 \hfill
 \begin{minipage}[t]{0.7\textwidth}\vspace{0pt}
-  \centerline{\fbox{\includegraphics[width=\textwidth]{out/logo.png}}}
+  \centerline{\fbox{\includegraphics[width=\textwidth]{data/logo.png}}}
 \end{minipage}
 
 \ods
