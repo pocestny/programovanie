@@ -13,6 +13,8 @@
 \usepackage{pgfplotstable}
 \usepackage{pgfplots}
 \usepackage{scrextend}
+\usepackage{booktabs}
+
 \deffootnote[0em]{0em}{0em}{\textsuperscript{\thefootnotemark}\;\enskip}
 
 
@@ -74,6 +76,8 @@
 \def\sectxvii{1} % adresy a smerniky
 \def\sectxviii{1} % polia 2
 \def\sectxix{1} % zasobnik ako typ
+\def\sectxx{1} % STL <vector>
+\def\sectxxi{1} % binarne vyhladavanie
 \fi
 
 %% ALL OFF
@@ -99,6 +103,8 @@
 \def\sectxvii{0} % adresy a smerniky
 \def\sectxviii{0} % polia 2
 \def\sectxix{0} % zasobnik ako typ
+\def\sectxx{0} % STL <vector>
+\def\sectxxi{0} % binarne vyhladavanie
 \fi
 
 
@@ -5191,6 +5197,7 @@ lebo si dvakrát odalokovával tú istú pamäť (aj keď si sa k nej dostal z i
 \end{uloha}
 
 \begin{uloha}
+  \label{uloha:arraycopy}
   Napíš funkciu, ktorá ako parametre dostane číslo $n$ a pointer na pole $n$
   čísel a toto pole skopíruje (t.j. vráti pointer na iné pole, v ktorom budú
   tie isté prvky).
@@ -5518,15 +5525,113 @@ Keď preprocesor načítava súbor {\tt stack.h} prvýkrát, symbol
 
 \fi
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectxx1
+\section{STL: typ {\tt vector}}
+
+V predchádzajúcej kapitole sme si navrhli typ {\tt Stack}, ktorý spravoval
+zásobník čísel typu \prg!int!. Čo keby si chcel zásobník typu \prg!float!, alebo
+{\tt Farba}? Jedna možnosť by bola vyrobiť zakaťdým nový typ, napr. {\tt StackInt},
+{\tt StackFloat} a pod. Dalo by sa to tak, že skopíruješ {\tt Stack} a na vhodných miestach
+prepíšeš \prg!int! na nový typ. Ale to nie je dobrý prístup, lebo keď niekedy v budúcnosti
+budeš chcieť niečo zmeniť, musíš to meniť rovnako na veľa miestach\ldots oštara.
+V C++ je na to pohodlný mechanizmus, ktorý sa volá {\em šablóny} (templates).
+Sú podobné preprocesoru v tom, že sa spracovávajú predtým, ako sa vôbec program
+začne kompilovať a nahradzujú nejaký symbol iným textom. Ale zároveň ich spracováva 
+už kompilátor, takže vie, kde sa v programe očakáva meno typu, kde premenná a pod.
+Najjednoduchšie je to vidno na príklade:
+
+\begin{lstlisting}[] 
+template<typename T>
+struct Stack {
+  T *a;
+  int n, max;
+
+  Stack() {...}
+  ~Stack() {...}
+  void resize(int _max){...}
+  bool push(T x) {...}
+  void discard() {...}
+};
+\end{lstlisting}
+
+Týmto hovoríš predpis (šablónu), ako vyrobiť typ zásobník, v ktorom sa budú ukladať prvky 
+hocijakého typu {\tt T} (ľahko doplníš, čo treba do vybodkovaných častí; na vhodných
+miestach treba nahradiť \prg!int! za {\tt T}). Keď potom v programe napíšeš
+\prg!Stack<int> s;! kompilátor zoberie šablónu, dosadí za {\tt T} typ \prg!int!
+čím dostane definíciu typu \prg!Stack<int>! a vyrobí premennú príslušného typu. 
+Ak neskôr napíšeš \prg!Stack<Farba> sf;!, kompilátor zoberie šablónu, vyrobí príslušný typ
+a premennú. 
+
+\ods 
+Súčasťou definície jazyka C++ je {\em Standard Template Library} (STL) -- knižnica, ktorá
+obsahuje šablóny na veľa užitočných dátových štruktúr a algoritmov. Jedným z nich je typ
+\prg!vector!, ktorý sa veľmi podobá nášmu typu {\tt Stack}: obsahuje v sebe pole prvkov,
+vie mu rezervovať veľkosť, vie pridať prvok na koniec a pod. 
+
+\ods Pre hocijaký typ \prg!T!, premenná typu \prg!vector<T>! obsahuje pointer \prg!T*!,
+ktorý ukazuje na dynamicky alokovanú pamäť. Vektor obsahuje {\tt size} prvkov a
+má alokovanú pamät na {\tt capacity} prvkov. Tu je niekoľko užitočných funkcií:
+
+\ods
+
+\def\xx#1{\textcolor{magenta}{\prg!#1!}}
+\begin{tabularx}{\textwidth}{lX}\toprule
+  \xx{vector<T> a;} & vyrobí vektor {\tt a}\\
+  \xx{vector<T> a(n);} & vyrobí vektor{\tt a} a alokuje $n$ prvkov\\
+  \xx{vector<T> a(n,v);}& vyrobí vektor {\tt a}, alokuje $n$ prvkov a 
+              nastaví ich na $v$ (napr. \prg!vector<int> a(5,42);!\\\midrule
+  \xx{a[i]} & $i$-ty prvok\footnote{Podobne ako pri prístupe do poľa, je to tzv. {\em referencia}, takže sa dá priraďovať \prg!a[i]=16;!. Ako také niečo urobiť ti poviem neskôr.}\\\midrule 
+  \xx{b = a} & 
+  kopíruje celý vektor\footnote{Opäť, neskôr sa dozvieš, ako také niečo urobiť}, t.j.
+   podobné ako riešenie úlohy~\ref{uloha:arraycopy}\\\midrule
+  \xx{a.data()} & pointer (\prg!T*!) na dynamicky alokované pole\\\midrule
+  \xx{a.size()} & počet prvkov v poli\\
+  \xx{a.capacity()} & počet prvkov, na ktoré je rezervovaná pamäť\\\midrule
+  \xx{a.reserve(n)} & realokuje pole (podobne ako náš {\tt Stack}), aby malo 
+        kapacitu $n$\\\midrule
+  \xx{a.shrink_to_fit()} & realokuje pole, aby kapacita
+  presne zodpovedala počtu prvkov \\\midrule
+  \xx{a.clear()} & vymaže všetky prvky, kapacita sa nezmení \\\midrule
+  \xx{a.resize(n)} & zmení počet alokovaných prvkov na $n$; ak sa veľkosť zmenší,
+   prvky, ktoré sa do poľa nezmestia, sa vymažú \\ 
+   \xx{a.resize(n,v)} & to isté, ale ak sa dopĺňajú prvky, ich hodnota je {\tt v}\\\midrule
+  \xx{a.push_back(x)} & pridá {\tt x} na koniec; ak by nestačila kapacita, realokuje 
+  pole na väčšie\\
+  \xx{a.pop_back()} & vráti posledný prvok a skráti pole\\\bottomrule
+\end{tabularx}
+
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectxxi1
+\section{Binárne vyhľadávanie a logaritmy}
+
+Hrajme takúto hru: myslím si číslo od 1 po $N$ a tvojou úlohou je ho uhádnuť. Môžeš
+sa opýtať na nejaké číslo a ja ti odpoviem \cmd{viac}, \cmd{menej} alebo \cmd{uhádol si}.
+Ako budeš hádať, aby si čo najskôr uhádol? Koľko otázok na to budeš potrebovať?
+
+\ods 
+Povedzme, že $N=1000$. Ak sa na začiatku optýtaš na $5$ a máš šťastie, dostaneš odpoveď
+\cmd{menej} a vieš, že to môže byť iba 1, 2, 3, alebo 4. Ale ak šťastie nemáš,
+príliš si si nepomohol: môže to byť čokoľvek medzi 6 a 1000. Povedzme, že nehrám férovo, ale
+podvádzam: v skutočnosti si nemyslím číslo, ale čakám, čo sa ma opýtaš. Ak sa spýtaš na $5$,
+odpoviem ti \cmd{viac} a budem sa tváriť, že som si myslel číslo medzi 6 a 1000 (potom 
+to už musím dodržať, lebo inak by si zistil, že som podvádzal). Ak sa opýtaš na číslo
 
 
-% typy + operacie - stack
-% (??) mozno nie? operatory, komplexne cisla, projekt mandelbrot
-% stl-vektor
-% projekt piskvory
+\fi
 
 % binarne vyhladavanie: median z dvoch poli, susenie pradla,
 % knihy - rozdelit na k suvislych casti, minimalizovat sucet 
+
+% projekt piskvory
+% operatory, komplexne cisla, projekt mandelbrot
+
+% set a stromy
+
+% grafy?
+
 % urobit ulohy s lepsou zlozitostou
 
 % nahodne cisla: generator terenu 
