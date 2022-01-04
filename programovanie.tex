@@ -12,6 +12,9 @@
 \usepackage{graphicx}
 \usepackage{pgfplotstable}
 \usepackage{pgfplots}
+\usepackage{scrextend}
+\deffootnote[0em]{0em}{0em}{\textsuperscript{\thefootnotemark}\;\enskip}
+
 
 % invoke with: pdflatex -shell-escape -output-dir=/tmp <thisfile>
 \if11
@@ -70,6 +73,7 @@
 \def\sectxvi{1} % graficky editor
 \def\sectxvii{1} % adresy a smerniky
 \def\sectxviii{1} % polia 2
+\def\sectxix{1} % zasobnik ako typ
 \fi
 
 %% ALL OFF
@@ -94,6 +98,7 @@
 \def\sectxvi{0} % graficky editor
 \def\sectxvii{0} % adresy a smerniky
 \def\sectxviii{0} % polia 2
+\def\sectxix{0} % zasobnik ako typ
 \fi
 
 
@@ -123,7 +128,7 @@
 \begin{abstract}
   \noindent
   Tento tutoriál som napísal pre moje deti, ktoré sa ma spýtali, ako sa programuje. 
-  Ale poteším sa, ak si ho prečíta ktokoľvek. Text aj riešenia úloh je voľne prístupný
+  Ale poteším sa, ak si ho prečíta ktokoľvek. Text aj riešenia úloh sú voľne prístupné
   na \link{https://github.com/pocestny/programovanie.git}{Githube}. 
   Tam je aj časť {\sf Discussions}, kde môžeš napísať, ak máš k niečomu
   otázky alebo chceš nechať feedback.
@@ -1802,7 +1807,11 @@ farebné trojuholníky, takže plocha bielej časti v oboch častiach musí byť
 \end{tikzpicture}
 }
 
-Pytagorova veta zároveň hovorí, že ak mám v rovine dva body, bod $A$ so súradnicami
+Pytagorova veta zároveň hovorí\footnote{%
+  keďže $c^2=a^2+b^2$, tak $c=\sqrt{a^2+b^2}$. Znak $\sqrt{x}$ sa číta \cmd{odmocnina
+  z $x$} a znamená \cmd{číslo, ktoré keď umocním na druhú (t.j. vynásobím samé so sebou)
+  dostanem $x$}, t.j $(\sqrt{x})^2=\sqrt{x}\cdot\sqrt{x}=x$. Napríklad $\sqrt{36}=6$.
+  }, že ak mám v rovine dva body, bod $A$ so súradnicami
 $[x_1,y_1]$ a bod $B$ so súradnicami $[x_2,y_2]$, tak ich vzdialenosť je 
 $\sqrt{(x_2-x_1)^2+(y_2-y_1)^2}$:
 
@@ -2717,6 +2726,7 @@ Napíš program, ktorý prečíta číslo $n$ a vypíše všetky možné usporia
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \if\sectxii1
 \section{Zložitosť}
+\label{sect:zlozitost}
 
 Keď máme niečo naprogramovať, väčšinou je viac možností, ako to urobiť. A nie všetky sú 
 rovnako dobré. Fibonacciho čísla z úlohy~\ref{uloha:Fibonacci} môžem naprogramovať
@@ -2885,7 +2895,10 @@ nedostaneme prvok {\tt a[i]} na správne miesto:
 \end{tikzpicture}
 
 \ods
-Celá funkcia bude vyzerať takto:
+Celá funkcia bude vyzerať takto\footnote{%
+  premysli si, čo by sa stalo, keby som vo funkcii {\tt vymen} napísal iba
+  \prg!a[i]=a[j]; a[j]=a[i];!
+}:
 
 \ods
 \vbox{
@@ -3399,6 +3412,7 @@ veľa.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \if\sectxiii1
 \section{Dátové štruktúry: zásobník}
+\label{sect:stack}
 
 Pokračujme v úlohe o klaunoch. Verzia {\tt klauni2} má kvadratickú zložitosť. 
 Dá sa to ešte zlepšiť? Stále sa ešte robí dosť zbytočnej roboty: ak je medzi klaunom
@@ -3663,7 +3677,14 @@ sa dá pristupovať pomocou operátora {\tt .} (bodka): \prg!f.r! je premenná t
 Celú premennú môžeš nastaviť zápisom v kučeravých zátvorkách, napr. 
 \prg!f = {255, 255, 0, 255};!
 urobí žltú farbu. Jednu premennú môžeš skopírovať do druhej pomocou priradenia. 
-Keďže to ale nie sú čísla, nemôžeš použiť iné operácie, napr. sčítanie. Program
+Priradenie skopíruje celú pamäť, t.j. ak máš premenné \prg!Farba f1,f2;! tak
+\prg!f1 = f2;! je to isté ako 
+\prg!f1.r = f2.r;! 
+\prg!f1.g = f2.g;! 
+\prg!f1.b = f2.b;! 
+\prg!f1.a = f2.a;! 
+Keďže to ale nie sú čísla, nemôžeš použiť iné operácie, napr. sčítanie, \prg!f1 + f2! 
+je chyba. Program
 
 \vbox{
 \begin{lstlisting}[] 
@@ -5012,16 +5033,495 @@ presne to, čo chceš, ale pre začínajúcich programátorov to niekedy môže 
 Koniec malej odbočky.
 
 \ods Vyriešili sme, ako posielať polia ako parametre, ale stále nám ostáva problém 
-s globálnymi poľami. Pamätáš sa, že keď sme pri kreslen9 obr8ykov chceli mať globálne
+s globálnymi poľami. Pamätáš sa, že keď sme pri kreslení obrázkov chceli mať globálne
 pole, museli sme ho vyrobiť tak, aby už v čase kompilácie bola známa jeho veľkosť. 
 Riešili sme to tak, že sme pole spravili dostatočne veľké a používali z neho iba 
 tak veľký kus, ako sme potrebovali. Toto evidentne nie je najlepší prístup. 
-Lepšie riešenie je tzv. {\em dynamická alokácia}.
+Lepšie riešenie je tzv. {\em dynamická alokácia}: príkaz \prg!new int[100];! 
+vyhradí v odľahlom kúte pamäte miesto na 100 premenných typu \prg!int! a vráti pointer
+naň. Toto miesto je vyhradené pre tvoj program, ale vrátený pointer je jediný spôsob,
+ako sa k tej pamäti dostať: ak si ho neuložíš do premennej (alebo ju neskôr zabudneš),
+pamäť stále ostane vyhradená pre tvoj program, ale ten sa k nej už nikdy nebude môcť dostať.
+Ak už alokovanú pamäť nepotrebuješ, treba ju vrátiť systému príkazom \prg!delete[]!. Treba
+byť opatrný, lebo to, či je pamäť vyhradená, alebo nie, nijak nevidno. Dobrý zvyk 
+je hneď po volaní \prg!delete[]! priradiť do odalokovanej premennej \prg!nullptr!.
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+int *a = (int *)12345;
+
+void rob_nieco() {
+  int i;
+  for (i = 0; i < 100; i++) a[i] = 42;
+}   
+
+void vypis(int x) { cout << x << ": " << (unsigned long)a << endl; }
+  
+int main() {
+  vypis(1);
+  a = new int[100];
+  vypis(2);     // a ukazuje na pridelenu pamat
+  rob_nieco();  // v poriadku, pisem do svojej pamate
+  delete[] a;   // pridelena pamat sa oznacila ako volna
+  vypis(3);     // hodnota a sa nezmenila, stale ukazuje na to iste miesto,
+                // ale ta pamat ti uz nepatri
+  // rob_nieco();  -- !! toto by bol problem - system medzitym mohol 
+                // tu pamat dat niekomu inemu
+}
+\end{lstlisting}
+}
+
+Tento program vypíše napr.
+\begin{verbatim}
+1: 12345
+2: 94751025169088
+3: 94751025169088
+\end{verbatim}
+
+ Pri priraďovaní si treba dávať pozor, 
+hlavne ak je pointer na dynamicky alokovanú pamäť súčasť zloženého typu, napr.
+
+\vbox{
+\begin{lstlisting}[] 
+struct Kvak {
+  int *a, b, c[2];
+};
+\end{lstlisting}
+}
+
+Ak mapíšeš
+
+\begin{lstlisting}[] 
+Kvak x, y;
+x.a = new int[100];
+y.a = new int[100];
+\end{lstlisting}
+
+a ešte ponastavuješ ďalšie hodnoty, môže to v pamäti vyzerať takto:
+
+\ods
+\def\var(#1)#2#3{%
+  \draw (0.2,-#1) rectangle node[align=center](v#1) {{\tt #3}} (1.2,1-#1);
+  \draw (0,0.5-#1) node[anchor=east]{\textcolor{magenta}{\tt #2}};
+}
+
+\def\ptr(#1,#2)[#3] {
+  \draw[blue,-{>[length=4pt,width=2.5pt]}] (1.7,0.5-#1) to[out=#3,in=-#3] (1.7,0.5-#2);
+}
+
+\def\world(#1)#2#3{
+  \draw[thick,#3](-1,-#1) -- (2,-#1) node[anchor=west]{{\tt #2}};
+}
+
+\def\kon(#1){ 
+  \draw[draw=none] (0.2,-#1) rectangle node[align=center]{{\tt \ldots}} (1.2,1-#1);
+}
+  
+\def\godot#1{\filldraw[blue,scale=0.6](#1) circle (0.4ex and 1.4ex);}
+
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){x.a}{}
+  \var(1){x.b}{1}
+  \var(2){x.c[0]}{2}
+  \var(3){x.c[1]}{3}
+  \var(4){y.a}{}
+  \var(5){y.b}{4}
+  \var(6){y.c[0]}{5}
+  \var(7){y.c[1]}{6}
+  \world(-1){x}{orange}
+  \world(3){y}{olive}
+  \kon(8)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-4.5);
+
+  \foreach \f/\t/\l in {v0/a1/{},v4/a2/{inde\ }}{
+  \godot{\f}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (\f) to [out=0,in=180] (\t);
+  \draw (\t)++(0,-0.5) rectangle node[align=center]{400 bytov niekde \l v pamäti} ++(5,1);
+  }
+\end{tikzpicture}
+
+keď potom napíšeš \prg!y=x!, stane sa toto:
+
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){x.a}{}
+  \var(1){x.b}{1}
+  \var(2){x.c[0]}{2}
+  \var(3){x.c[1]}{3}
+  \var(4){y.a}{}
+  \var(5){y.b}{1}
+  \var(6){y.c[0]}{2}
+  \var(7){y.c[1]}{3}
+  \world(-1){x}{orange}
+  \world(3){y}{olive}
+  \kon(8)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-4.5);
+
+  \foreach \f/\t/\l in {v0/a1/{},v4/a2/{inde\ }}{
+  \godot{\f}
+  \draw (\t)++(0,-0.5) rectangle node[align=center]{400 bytov niekde \l v pamäti} ++(5,1);
+  }
+
+  \draw[blue,-{>[length=8pt,width=5pt]}] (v0) to [out=0,in=180] (3,-0.35);
+  \draw[blue,-{>[length=8pt,width=5pt]}] (v4) to [out=0,in=180] (3,-0.65);
+\end{tikzpicture}
+
+Navždy si stratil 400 bytov pamäte a navyše ak napíšeš \prg!delete[] x.a; delete[] y.a;!
+program zhavaruje s chybou
+
+\begin{verbatim}
+free(): double free detected in tcache 2
+Aborted
+\end{verbatim}
+
+lebo si dvakrát odalokovával tú istú pamäť (aj keď si sa k nej dostal z iných pointrov).
+
+\begin{uloha}
+  Npaíš funkciu, kotrá ako parametre dostane číslo $n$ a pointer na  pole $n$
+  čísel a toto pole v pamäti otočí. Napr. ak pred volaním bolo $n=5$
+  a v poli boli čísla {\tt 1 2 3 4 5} po volaní tam bude {\tt 5 4 3 2 1}.
+\end{uloha}
+
+\begin{uloha}
+  Napíš funkciu, ktorá ako parametre dostane číslo $n$ a pointer na pole $n$
+  čísel a toto pole skopíruje (t.j. vráti pointer na iné pole, v ktorom budú
+  tie isté prvky).
+\end{uloha}
+
+\begin{uloha}
+  Napíš funkciu, kotrá ako parametre dostane číslo $n$, pointer na  pole $n$
+  čísel a číslo $k$ a pole v pamäti cyklicky posunie o $k$ miest.
+  Napr. ak $n=5$, $k=2$ a pole bolo {\tt 1 2 3 4 5}, tak po volaní funkcie
+  pole bude {\tt 3 4 5 1 2}.
+\end{uloha}
+
+\begin{uloha}
+  Napíš funkciu, ktorá dostane parameter $n$ a vráti pointer na dynamicky alokované
+  pole, v ktrorm bude prvých $n$ prvočísel\footnote{%
+    Prvočíslo je číslo $p$, ktoré nemá iných deliteľov ako 1 a $p$. Inými slovami
+    \prg~p\%i != 0~ pre všetky $i<p$. Ak to chceš jemne vylepšiť, premysli si,
+    že ak má číslo $a$ nejakého deliteľa, tak má aj deliteľa veľkosti 
+    nanajvýš $\sqrt{a}$. Ak na začiatku napíšeš \prg!#include<cmath>!, môžeš
+    použiť funckiu \prg!sqrt(x)! na výpočet $\sqrt{x}$ (vracia typ double).
+    }.
+\end{uloha}
+
+\begin{uloha}
+  Napíš funkciu, ktorá dostane ako parametre dve utriedené polia veľkostí $n$ a $m$
+  (t.j. dostane $n$, $m$ a dva pointre) a vyrobí utriedené pole dĺžky $n+m$, 
+  ktoré obsahuje prvky z oboch vstupných polí.
+\end{uloha}
+
+\begin{uloha}
+  Majme typ \prg!struct Bod{float x,y;};! Napíš funkciu, ktorá ako parameter
+  dostane pole bodov a utriedi ho\footnote{napr. pomocou algoritmu {\em Insertion Sort}
+  z kapitoly~\ref{sect:zlozitost}} podľa $x$-ovej súradnice.
+\end{uloha}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectxix1
+\section{Zásobník ako vlastný typ}
+
+V kapitole~\ref{sect:stack} sme používali zásobník tak, že sme mali pole fixnej
+veľkosti a jednu premennú, ktorá udávala aktuálny počet prvkov v zásobníku. Keby sme chceli
+mať viac zásobníkov, mali by sme viac polí a viac premenných. Aby sme v tom udržali
+poriadok, je dobré spraviť si vlastný typ, kde budú obe veci pokope, napr.
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+const int N = 100000;
+
+struct Stack {
+  int a[N], n;
+};
+  
+int main() {
+  Stack s1, s2;
+
+  s1.n = 0;
+  s2.n = 0;
+
+  // pridaj prvok
+  s1.a[n]=1;
+  s1.n++;
+}
+\end{lstlisting}
+}
+
+\ods
+Takáto definícia má dva problémy: vždy, keď vyrobíme zásobník, vyhradí sa v pamäti
+veľké pole, aj keby sme dopredu vedeli, že budeme potrebovať menej. Druhý problém je,
+že na pridanie prvku treba dva príkazy, čo pri častom používaní môže byť neprehľadné.
+Prvý problém vyriešime dynamickou alokáciou: zásobník si bude pamätať, aké veľké pole
+má alokované a na začiatku ho inicializujeme. Inicializáciu aj pridanie prvku zariadime 
+funkciami. Tieto musia ako parameter dostávať pointer na zásobník, aby mohli meniť jeho 
+premenné\footnote{%
+Keby dostali ako parameter namiesto \prg!Stack *s! iba \prg!Stack s!, pri volaní
+funkcie sa zásobník (t.j. premenné \prg!a, n, max!)  
+skopíruje do lokálneho sveta funkcie, tam sa zmení
+a po skončení volania spolu so svetom zanikne. Dynamicky alokované pamäť by ostala,
+ale pointer na ňu bu sa stratil. To nie je to, čo chceme.
+}.
+
+
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+struct Stack {
+  int *a, n, max;
+};
+  
+void resize(Stack *s, int max) {
+  (*s).a = new int[max];
+  (*s).max = max;
+  (*s).n = 0;
+} 
+
+bool push(Stack *s, int x) {
+  if ((*s).n == (*s).max) return false;
+  (*s).a[(*s).n] = x;
+  (*s).n++;
+  return true;
+} 
+
+void discard(Stack *s) {
+  delete[] (*s).a;
+  (*s).a = nullptr;
+}
+
+int main() {
+  Stack s1, s2;
+
+  resize(&s1, 10);
+  resize(&s2, 1000);
+  push(&s1, 4);
+  discard(&s1);
+  discard(&s2);
+
+}
+\end{lstlisting}
+
+\ods Funkcia {\tt push} nám teraz kontroluje, aby zásobník nepretiekol: ak je plný, 
+prvok nevloží a vráti \prg!false!.
+Volanie {\tt(*$p$).$x$}, kd $p$ je pointer na typ, ktorý má zložku $x$ je natoľko
+časté, že má skratku {\tt $p$->$x$}. Teda namiesto \prg!(*s).a! môžeš písať \prg!s->a!.
+Týmto sme dosiahli, že všetky oprácie so zásobníkom sú schované v jednom type a príslušných
+funkciách. Keby sme sa rozhodli naprogramovať zásobník nejak inak\footnote{%
+  Zásobník je tak jednoduchá dátová štruktúra, že iný spôsob ťažko vymyslieť, ale 
+  stretneme aj oveľa zložitejšie veci, kde to bude dávať dobrý zmysel.}
+nemusíme meniť zvyšok programu. 
+
+\ods
+Všetky tri funkcie {\tt resize}, {\tt push}, {\tt discard} sú podobné v tom, že prvý
+parameter je pointer na premennú typu {\tt Stack} a funkcia nejakým spôsobom túto premennú 
+mení. Pretože logicky patria k typu {\tt Stack}, je možné ich definovať priamo v type.
+Typ, ktorý má definované funkcie, sa volá {\em trieda}, jemu priradené funkcie sa volajú
+{\em metódy}. Premennej typu trieda sa zvykne hovoriť {\em objekt} a jeho zložkám 
+(jednotlivým premenným vovútri typu) sa občas hovorí {\em atribúty}. Ale to všetko sú
+len mená, na ktorých príliš nezáleží\footnote{{\em ''A rose by any other name would 
+smell as sweet'' --- W. Shakespeare}}. Dôležité je, že funkcie {\tt resize}, {\tt push}
+a {\tt discard} môžeš definovať priamo v type {\tt Stack}. Takéto funkcie
+dostávajú prvý ''neviditeľný'' parameter \prg!Stack *this!, ktorý obsahuje pointer
+na objekt (premennú), na ktorom pracujú. Jednotlivé atribúty (premenné) sa potom
+dajú písať bez zmienky o premennej (t.j. môžeš písať {\tt zzz} namiesto \prg!this->zzz!, 
+aj keď to druhé je rovnako správne). Pretože metóda má neviditeľný parameter \prg!this!,
+dá sa zavolať iba v spojení s nejakým objektom (premennou).  Na to sa používa rovnaký zápis
+pomocou bodky, ako keď sa pristupuje k atribútom (zložkám) objektu (premennej). 
+Takže môžme mať niečo takéto:
+
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+struct Stack {
+  int *a, n, max;
+
+  void resize(int _max) {
+    max = _max;
+    a = new int[max];
+    n = 0;
+  }
+
+  bool push(int x) {
+    if (n == max) return false;
+    a[n] = x;
+    n++;
+    return true;
+  }
+
+  void discard() {
+    if (a != nullptr) // aby sme nahodou nevolali delete[] viackrat
+      delete[] a;
+    a = nullptr;
+  }
+};
+
+int main() {
+  Stack s1, s2;
+
+  s1.resize(10);
+  s2.resize(1000);
+  s1.push(4);
+  s1.discard();
+  s2.discard();
+}
+\end{lstlisting}
+
+Príkaz \prg!s1.resize(10);! zavolá metódu {\tt resize} s parametrom 10 na objekte {\tt s1},
+t.j. vyrobí sa nový svet pre funkciu {\tt resize}, 
+premenná {\tt \_max} sa v ňom nastaví na $10$ a 
+neviditeľná premenná \prg!Stack *this! sa nastaví na \prg!&s1!. Pri vykonávaní funkcie
+premenné \prg!max, a, n! nie sú v jej svete definované.  Ale skôr, ako by sa 
+začali hľadať medzi globálnymi premennými, skúsi sa
+\prg!this->max!, \prg!this->a!, \prg!this->n!. 
+
+\ods
+Skoro dokonalé, ale ešte tomu zopár vecí chýba. Ak na začiatku zabudneme zavolať {\tt resize}
+premenné {\tt a, n, max} budú v nedefinovanom stave, takže potom ďalšie volania budú
+robiť paseku. Potobne sa nám môže stať, že zabudneme zavolať {\tt discard} a stratí sa nám
+pamäť. Na to, aby sme tieto problémy vuriešili, slúžia dve špeciálne metódy: {\em konštruktor}
+a {\em deštruktor}. Ak v rámci typu (triedy) definuješ funkciu, ktorá sa volá rovnako ako
+typ a nemá návratovú hodnotu\footnote{Konštruktor a deštruktor je jediná výnimka z pravidla,
+že funkcia musí mať návratovú hodnotu, keď už nič iné tak aspoň typ {\tt void}}, táto metóda
+sa zavolá vždy, keď sa vyrobí nová premenná (či už osamote alebo v poli) hneď potom, ako
+sa jej vyhradí v pamäti miesto\footnote{Môžeš skúsiť pridať do konštruktora nejaký výpis
+a potom v hlavnom programe zavolať napr. \prg!Stack *a = new Stack[5];!.}. Konštruktorom
+vieme zabezpečiť, že náš zásobník nikdy nebude neinicializovaný. Podobne, ak napíšeš
+funkciu, ktorej meno je meno typu s prefixom {\tt\textasciitilde}, táto metóda
+sa zavolá vždy tesne predtým, ako premenná zanikne (či už preto, že zanikne svet funkcie,
+v ktorom vznikla, alebo sa volá \prg!delete[]! na dynamicky alokovanú pamäť, v ktorej 
+bola\footnote{%
+  Skús si opäť pridať výpis do deštuktora a pozrieť sa, ako sa správa.}.
+
+
+\begin{lstlisting}[] 
+struct Stack {
+  int *a, n, max;
+  
+  Stack() {                 // konstruktor
+    a = nullptr;
+    n = 0;
+    max = 0;
+  }
+
+  ~Stack() { discard(); }   // destruktor
+  
+  // zmena velkosti
+  void resize(int _max) {  
+    if (a != nullptr) { // ak tam uz nieco bolo, skopirujeme
+      int *b = new int[_max];
+      if (n > _max) n = _max;
+      for (int i = 0; i < n; i++) b[i] = a[i];
+      discard();        // zahodime, co tam bolo doteraz
+      a = b; 
+    } else { // nemali sme nic naalokovane, vyrobime nove
+      a = new int[_max];
+      n = 0;
+    }
+    max = _max;
+  } 
+  
+  // pridanie prvku, iba ak mame miesto
+  bool push(int x) {
+    if (n == max) return false;
+    a[n] = x;
+    n++;
+    return true;
+  } 
+  
+  void discard() {          // odalokujeme pamat
+    delete[] a;
+    a = nullptr;
+  } 
+};
+\end{lstlisting}
+
+Teraz je už náš zásobník presne, ako sme ho chceli mať\footnote{%
+  v programe som použil novú skratku: ak v cykle \prg!for! chceš použiť
+  premennú, ktorá bude viditeľná iba vo svete zloženého príkazu v cykle,
+  môžeš je vyrobiť priamo v príkaze \prg!for(int i=0;...!}.
+Vždy, keď budeš potrebovať zásobník, stačí urobiť copy\&paste definície
+typu {\tt Stack} a dá sa pohodlne používať. Lenže robiť zakaždým copy\&paste
+je otrava a navyše keď buedš mať 5--6 podobnýchh tried, tvoj program sa stane
+neprehľadný. Tento problém elegantne rieši {\em preprocesor}: prv než
+sa súbor s programom dá kompilátoru, text súboru prejde jednoduchý prekladač.
+Ten netuší nič o premenných, typoch, príkazoch atď, len spracováva text. 
+Príkazy pre preprocesor sa spravidla začínajú znakom \prg!#! a jeden z nich je
+\prg!#include!. Keď v programe napíšeš \prg!#include "velryba"! tak preprocesor
+nájde súbor {\tt velryba} v aktuálnom adresári\footnote{Ak namiesto úvodzoviek použiješ
+''zobáčiky'', bude sa hľadať nie v aktuálnom adresári, ale v jednom z default, ktoré
+sú nastavené pri inštalácii. To je presne to, čo sa deje, keď napíšeš 
+\prg!#include <iostream>!} a spraví copy\&paste jeho obsah na mieste \prg!#include!.
+Preto ak si celú definíciu typu {\tt Stack} uložíš do suboru {\tt stack.h}, tak
+kedykoľvek napíšeš \prg!#include "stack.h"!, na tom mieste sa nakopíruje 
+definícia typu {\tt Stack}.
+
+\ods
+A na záver tejto kapitoly ešte drobnosť. Predstav si, že budeš mať súbor {\tt stack.h}
+a spravíš inú triedu, \prg!struct Opica{Stack a,b;};!, ktorú si uložíš do súboru
+{\tt opica.h}. Pretože si nechceš pamätať, že vždy pred použitím \prg!#include "opica.h"!
+treba napísať \prg!#include "stack.h"!, napíšeš \prg!#include "stack.h"! ako prvý riadok v 
+súbore {\tt opica.h}. Teraz keď napíšeš \prg!#include "opica.h"! tak preprocesor nájde súbor
+{\tt opica.h} vloží ho do textu a pokračuje v spracovávní už aktualizovaného súboru. V ňom
+nájde \prg!#include "stack.h"!, tak nájde súbor {\tt stack.h}, vloží ho tam a pokračuje
+a celé to funguje. Problém ale môže nastať, ak neskôr chceš písať proram, v ktorom chceš
+použiť zásobník aj opicu. Napíšeš
+
+\begin{lstlisting}[] 
+#include "opica.h"
+#include "stack.h"
+
+int main() {
+  // moj program s opicou a zasobnikom
+}
+\end{lstlisting}
+
+Teraz sa ale stane to, že súbor {\tt stack.h} sa vloží do programu dvakrát (raz v 
+hlavnom súbore, raz pri spracovaní súboru {\tt opica.h}) a komiplátor vyhlási chybu. Tento
+problém sa spravidla rieši pomocou symbolov, ktoré vie preprocesor spracovávať.
+Riadok \prg!#define pumpa 118! definuje v preprocesore symbol {\tt pumpa}: 
+kdekoľvek sa v texte programu vyskytne reťazec  {\tt pumpa}, preprocesor ho nahradí 
+číslom 118. Preprocesor má aj podmienky, ktoré testujú. či je alebo nie je
+nejaký symbol definovaný. 
+Zvyčajný spôsob, ako napísať súbor {\tt stack.h} je
+
+\begin{lstlisting}[] 
+#ifndef _subor_stack_h_uz_je_v_programe_
+#define _subor_stack_h_uz_je_v_programe_
+
+struct Stack{
+  // vsetko co treba
+};
+
+#endif
+\end{lstlisting}
+
+Keď preprocesor načítava súbor {\tt stack.h} prvýkrát, symbol 
+\prg!_subor_stack_h_uz_je_v_programe_! nie je definovaný, preto sa pokračuje\footnote{%
+  všimni si, že podmienka je {\tt ifndef} ako {\tt if not defined}}, preto sa definuje
+  a vloží sa definícia {\tt Stack}. 
+  Pri každom ďalšom raze už symbol bude definovaný a definícia {\tt Stack} sa preskočí.
+
 
 \fi
 
+
+
 % typy + operacie - stack
-% operatory, komplexne cisla, projekt mandelbrot
+% (??) mozno nie? operatory, komplexne cisla, projekt mandelbrot
 % stl-vektor
 % projekt piskvory
 
