@@ -14,6 +14,7 @@
 \usepackage{pgfplots}
 \usepackage{scrextend}
 \usepackage{booktabs}
+\usepackage{amsmath}
 
 \deffootnote[0em]{0em}{0em}{\textsuperscript{\thefootnotemark}\;\enskip}
 
@@ -77,7 +78,8 @@
 \def\sectxviii{1} % polia 2
 \def\sectxix{1} % zasobnik ako typ
 \def\sectxx{1} % STL <vector>
-\def\sectxxi{1} % binarne vyhladavanie
+\def\sectxxi{1} % syntakticky cukor
+\def\sectxxii{1} % binarne vyhladavanie
 \fi
 
 %% ALL OFF
@@ -104,7 +106,8 @@
 \def\sectxviii{0} % polia 2
 \def\sectxix{0} % zasobnik ako typ
 \def\sectxx{0} % STL <vector>
-\def\sectxxi{0} % binarne vyhladavanie
+\def\sectxxi{0} % syntakticky cukor
+\def\sectxxii{0} % binarne vyhladavanie
 \fi
 
 
@@ -5222,9 +5225,20 @@ lebo si dvakrát odalokovával tú istú pamäť (aj keď si sa k nej dostal z i
 \end{uloha}
 
 \begin{uloha}
+  \label{uloha:merge}
   Napíš funkciu, ktorá dostane ako parametre dve utriedené polia veľkostí $n$ a $m$
   (t.j. dostane $n$, $m$ a dva pointre) a vyrobí utriedené pole dĺžky $n+m$, 
   ktoré obsahuje prvky z oboch vstupných polí.
+\end{uloha}
+
+\begin{uloha}
+  Napíš funkciu, ktorá dostane ako parameter $n$ a dynamicky alokované pole
+  dľžky $n$ a utriedi ho pomocou algoritmu {\em Merge Sort}. Algoritmus {\em Merge
+  Sort} je rekurzívny algoritmus, ktorý funguje takto: pole dĺžky $1$ je utriedené,
+  netreba nič robiť. Ak má pole dĺžku aspoň 2, rozdeľ ho na dve polovice (t.j.
+  vyrob si nové polia správnej dĺžky, prekopíruj do nich prvky z pôvodného poľa)
+  a rekurzívne obe utrieď. Potom použi algoritmus z úlohy~\ref{uloha:merge} na to,
+  aby si vyrobil výsedné pole (nezabudni vrátiť pamäť z pomocných polí).
 \end{uloha}
 
 \begin{uloha}
@@ -5534,7 +5548,7 @@ zásobník čísel typu \prg!int!. Čo keby si chcel zásobník typu \prg!float!
 {\tt Farba}? Jedna možnosť by bola vyrobiť zakaťdým nový typ, napr. {\tt StackInt},
 {\tt StackFloat} a pod. Dalo by sa to tak, že skopíruješ {\tt Stack} a na vhodných miestach
 prepíšeš \prg!int! na nový typ. Ale to nie je dobrý prístup, lebo keď niekedy v budúcnosti
-budeš chcieť niečo zmeniť, musíš to meniť rovnako na veľa miestach\ldots oštara.
+budeš chcieť niečo zmeniť, musíš to meniť rovnako na veľa miestach \ldots oštara.
 V C++ je na to pohodlný mechanizmus, ktorý sa volá {\em šablóny} (templates).
 Sú podobné preprocesoru v tom, že sa spracovávajú predtým, ako sa vôbec program
 začne kompilovať a nahradzujú nejaký symbol iným textom. Ale zároveň ich spracováva 
@@ -5571,7 +5585,66 @@ vie mu rezervovať veľkosť, vie pridať prvok na koniec a pod.
 
 \ods Pre hocijaký typ \prg!T!, premenná typu \prg!vector<T>! obsahuje pointer \prg!T*!,
 ktorý ukazuje na dynamicky alokovanú pamäť. Vektor obsahuje {\tt size} prvkov a
-má alokovanú pamät na {\tt capacity} prvkov. Tu je niekoľko užitočných funkcií:
+má alokovanú pamät na {\tt capacity} prvkov:
+
+\ods
+\def\var(#1)#2#3{%
+  \draw (0.2,-#1) rectangle node[align=center](v#1) {{\tt #3}} (1.2,1-#1);
+  \draw (0,0.5-#1) node[anchor=east]{\textcolor{magenta}{\tt #2}};
+}
+
+\def\ptr(#1,#2)[#3] {
+  \draw[blue,-{>[length=4pt,width=2.5pt]}] (1.7,0.5-#1) to[out=#3,in=-#3] (1.7,0.5-#2);
+}
+
+\def\world(#1)#2#3{
+  \draw[thick,#3](-1,-#1) -- (1.5,-#1) node[anchor=west]{{\tt #2}};
+}
+
+\def\kon(#1){ 
+  \draw[draw=none] (0.2,-#1) rectangle node[align=center]{{\tt \ldots}} (1.2,1-#1);
+}
+  
+\def\godot#1{\filldraw[blue,scale=0.6](#1) circle (0.4ex and 1.4ex);}
+
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){a.data}{}
+  \var(1){a.size}{10}
+  \var(2){a.capacity}{15}
+  \world(-1){{\tt vector<T> a;}}{orange}
+  \kon(3)
+
+  \godot{v0}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (v0) to [out=0,in=180] (3,-2);
+
+  \begin{scope}[shift={(3,-2.5)},xscale=0.285]
+    \foreach \i in {10,...,14} {
+      \draw[thin,gray](\i,0) rectangle (\i+1,1);
+    \node[thin,gray,anchor=south] at (\i+0.5,1){{\scriptsize$\i$}};
+    }
+    \foreach \i in {0,...,9} {
+      \draw[magenta](\i,0) rectangle (\i+1,1);
+    \node[magenta,anchor=south] at (\i+0.5,1){$\i$};
+    }
+  \end{scope}
+
+
+  \IGNORE{
+  \foreach \f/\t/\l in {v0/a1/{},v4/a2/{inde\ }}{
+  \godot{\f}
+  \draw (\t)++(0,-0.5) rectangle node[align=center]{400 bytov niekde \l v pamäti} ++(5,1);
+  }
+}
+\end{tikzpicture}
+
+
+
+Tu je niekoľko\footnote{%
+  Na stránkach ako je napr. 
+  \href{https://www.cppreference.com}{\nolinkurl{www.cppreference.com}}
+  sa dá nájsť kompletná referencia na všetky funkcie tried z STL.
+}užitočných funkcií:
 
 \ods
 
@@ -5586,7 +5659,7 @@ má alokovanú pamät na {\tt capacity} prvkov. Tu je niekoľko užitočných fu
   kopíruje celý vektor\footnote{Opäť, neskôr sa dozvieš, ako také niečo urobiť}, t.j.
    podobné ako riešenie úlohy~\ref{uloha:arraycopy}\\\midrule
   \xx{a.data()} & pointer (\prg!T*!) na dynamicky alokované pole\\\midrule
-  \xx{a.size()} & počet prvkov v poli\\
+  \xx{a.size()} & počet prvkov aktuálne uložených v poli\\
   \xx{a.capacity()} & počet prvkov, na ktoré je rezervovaná pamäť\\\midrule
   \xx{a.reserve(n)} & realokuje pole (podobne ako náš {\tt Stack}), aby malo 
         kapacitu $n$\\\midrule
@@ -5605,6 +5678,656 @@ má alokovanú pamät na {\tt capacity} prvkov. Tu je niekoľko užitočných fu
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \if\sectxxi1
+\section{Konštruktory, referencie, operátory a iný cukor}
+
+V predchádzajúcej kapitole si videl, že typ {\tt vector} mal niektoré
+divné vlastnosti (napr. že \prg!a[x]! vráti {\tt x}-tú premennú podobne ako 
+pole). Teraz ti chcem ukázať, že to nie je žiadna mágia. Poďme poporiadku.
+Povedzme, že chceme urobiť typ na prácu s tauľkami. Tabuľka má mať $m$ riadkov
+a $n$ stĺpcov a majú v nej byť celé čísla. Aby sme zabránili možnosti, že
+pole {\tt data} nebude inicializované, spravíme aj konštruktor:
+
+\begin{lstlisting}[] 
+struct Tabulka {
+  int *data;
+  int m,n;
+
+  Tabulka() {
+    m = 0;
+    n = 0;
+    data = nullptr;
+  }
+
+};
+\end{lstlisting}
+
+Konštruktor je funkcia takmer ako každá iná, a preto môže mať aj parametre:
+
+\begin{lstlisting}[] 
+  Tabulka(int _m, int _n) {a
+    m = _m;
+    n = _n;
+    data = new int[m * n];
+    for (int i = 0; i < m; i++)
+      for (int j = 0; j < n; j++) 
+        data[i * n + j] = 0;
+  }
+\end{lstlisting}
+
+A pridáme aj deštruktor:
+
+\begin{lstlisting}[] 
+  ~Tabulka() {
+    delete[] data;
+  }
+\end{lstlisting}
+
+Teraz sa premenná typu {\tt Tabulka} dá vyrobiť, iba ak dostane dva parametre:
+
+\begin{lstlisting}[] 
+int main() {
+  Tabulka t(3,3);  // v poriadku
+  Tabulka q;       // kompilator vyhlasi chybu
+}
+\end{lstlisting}
+
+Kým si nemal vlastný konštruktor, kompilátor používal na vytváranie premenných 
+{\em implicitný} (default) konštruktor. Keď si si ale zadefinoval svoj, default
+sa už nepoužíva. Stav, keď sa premenná bez potrebných parametrov nedá vyrobiť, je
+niekedy žiadúci. Len si treba uvedomiť, že teraz nevieš alokovať dynamické pole
+\prg!Tabulka *x = new Tabulka[10];!, lebo nemáš ako dodať parametre. Môžeš ale
+dynamicky alokovať jednu premennú, a to pomocou verzie príkazov \prg!new!, 
+\prg!delete! bez hranaých zátvoriek:
+
+\begin{lstlisting}[] 
+int main() {
+  Tabulka *t = new Tabulka(3,3);
+  // nieco urob
+  delete t;
+}
+\end{lstlisting}
+
+\prg!new T! bez hranatých zátvoriek urobí veľmi podobnú vec ako \prg!new T[1]!, t.j.
+alokuje jednu premennú, ale máš možnosť dodať parametre. Len si treba dať pozor na to,
+že premenné alokované cez \prg!new! treba odalokovať cez \prg!delete! a premenné alokované 
+cez \prg!new[]! treba odalokovať cez \prg!delete[]!. 
+
+\ods Nielen pri konštruktoroch je niekedy
+užitočný mechanizmus {\em default} parametrov. Ak pri definovaní funkcie
+za posledných niekoľko parametrov dopíšeš {\tt =}, nastavíš im implicitné hodnoty.
+Ak sa potom pri volaní príslušný parameter vynechá, doplní sa
+implicitnou hdontou. Napr.
+
+\begin{lstlisting}[] 
+void chlp(int x = 4, int y = 5) { cout << x << " " << y << endl; }
+
+int main() {
+  chlp();     // vypise 4 5
+  chlp(3);    // vypise 3 5
+  chlp(1,2);  // vypise 1 3
+}
+\end{lstlisting}
+
+Preto keď konštruktor zmeníš na \prg!Tabulka(int _m = 3, int _n = 3)!, tak
+zápis \prg!Tabulka q;! vyrobí tabuľku $3\times 3$. Takže 
+\prg!Tabulka *a = new Tabulka[10];! vyrobí pole $10$ tabuliek, každú rozmerov
+$3\times 3$.
+
+\ods Ďalej si môžme napísať funkciu, ktorá ku každému prvku tabuľky priráta číslo.
+Naša trieda bude vyzerať takto:
+
+\begin{lstlisting}[] 
+struct Tabulka {
+  int* data;
+  int m, n;
+
+  Tabulka(int _m = 3, int _n = 3) {
+    m = _m;
+    n = _n;
+    data = new int[m * n];
+    for (int i = 0; i < m; i++)
+      for (int j = 0; j < n; j++)
+        data[i * n + j] = 0;
+  }
+
+  void pridaj(int x) {
+    for (int i = 0; i < m; i++)
+      for (int j = 0; j < n; j++)
+        data[i * n + j] += x;
+  }
+
+  ~Tabulka() { delete[] data; }
+};
+\end{lstlisting}
+
+Toto nijak neprekvapí, môžeš napísať napr.
+\begin{lstlisting}[] 
+ Tabulka t, r;
+ t.pridaj(5);
+\end{lstlisting}
+
+\ods Teraz chcem napísať funkciu, ktorá priráta nie jedno číslo, ale tabuľku. Možno 
+je trochu prekvapivé, že ju môžem nazvať rovnako: ak majú dve funckie rôzne parametre,
+môžu sa volať rovnako, lebo kompilátor aj tak vie, ktorú má použiť. Preto môžem do
+definície triedy {\tt Tabulka} pridať funkciu \prg!void pridaj(Tabulka x)!. Musím
+si rozmyslieť, čo robiť, ak majú tabuľky rôznu veľkosť. Rozhodol som sa, že budem 
+prirátavať len v rozsahu, ktorý je dosť malý na to, aby sa zmestil do oboch:
+
+\begin{lstlisting}[] 
+  void pridaj(Tabulka x) {
+    int nn = n, mm = m;
+    if (x.n < n) nn = x.n;
+    if (x.m < m) mm = x.m;
+    for (int i = 0; i < mm; i++)
+      for (int j = 0; j < nn; j++)
+        data[i * n + j] += x.data[i * x.n + j];
+  }
+\end{lstlisting}
+
+Teraz sa program skompiluje\footnote{%
+  zápis \prg!x += y;! je skratka za \prg!x = x + y;!
+}(kompilátor sa nesťažuje na dve funkcie s rovnakým menom),
+ale keď spustím
+
+\begin{lstlisting}[] 
+int main() {
+  Tabulka t, r(4,4);
+  t.pridaj(5);
+  r.pridaj(t);
+}
+\end{lstlisting}
+
+vypíše sa mi 
+
+\begin{verbatim}
+free(): double free detected in tcache 2
+Aborted
+\end{verbatim}
+
+Skús zistiť, kde je problém. Prišiel si na to?
+Pred volaním \prg!r.pridaj(t);! to vyzeralo takto:
+
+\ods
+\def\var(#1)#2#3{%
+  \draw (0.2,-#1) rectangle node[align=center](v#1) {{\tt #3}} (1.2,1-#1);
+  \draw (0,0.5-#1) node[anchor=east]{\textcolor{magenta}{\tt #2}};
+}
+
+\def\ptr(#1,#2)[#3] {
+  \draw[blue,-{>[length=4pt,width=2.5pt]}] (1.7,0.5-#1) to[out=#3,in=-#3] (1.7,0.5-#2);
+}
+
+\def\world(#1)#2#3{
+  \draw[thick,#3](-1,-#1) -- (2,-#1) node[anchor=west]{{\tt #2}};
+}
+
+\def\kon(#1){ 
+  \draw[draw=none] (0.2,-#1) rectangle node[align=center]{{\tt \ldots}} (1.2,1-#1);
+}
+  
+\def\godot#1{\filldraw[blue,scale=0.6](#1) circle (0.4ex and 1.4ex);}
+
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){t.data}{}
+  \var(1){t.m}{3}
+  \var(2){t.n}{3}
+  \var(3){r.data}{}
+  \var(4){r.m}{4}
+  \var(5){r.n}{4}
+  \world(-1){t}{orange}
+  \world(2){r}{olive}
+  \kon(6)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-4.5);
+
+  \foreach \f/\t in {v0/a1,v3/a2}{
+  \godot{\f}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (\f) to [out=0,in=180] (\t);
+  \draw (\t)++(0,-0.5) rectangle node[align=center]{alokovaná pamäť} ++(5,1);
+  }
+\end{tikzpicture}
+
+\ods Pri volaní sa vyrobil nový svet pre funkciu {\tt r.pridaj}. V ňom je premenná
+{\tt x} typu {\tt Tabulka}, do ktorej sa nakopíruje premenná {\tt t}.
+
+\ods
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){t.data}{}
+  \var(1){t.m}{3}
+  \var(2){t.n}{3}
+  \var(3){r.data}{}
+  \var(4){r.m}{4}
+  \var(5){r.n}{4}
+  \var(6){x.data}{}
+  \var(7){x.m}{3}
+  \var(8){x.n}{3}
+  \var(9){nn}{}
+  \var(10){mm}{}
+  \world(-1){t}{orange}
+  \world(2){r}{olive}
+  \world(5){x}{cyan!50!gray}
+  \world(8){}{brown}
+  \kon(11)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-4.5);
+
+  \foreach \f/\t in {v0/a1,v3/a2,v6/a1}{
+  \godot{\f}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (\f) to [out=0,in=180] (\t);
+  }
+  \foreach \t in {a1,a2}{
+  \draw (\t)++(0,-0.5) rectangle node[align=center]{alokovaná pamäť} ++(5,1);
+  }
+  \draw[red,thick,->](-0.5,-4.9)-- (-1,-4.9)--node[midway,anchor=south,rotate=90]{{\tt r.pridaj}}(-1,-11);
+\end{tikzpicture}
+
+Keď sa funkcia {\tt r.pridaj} skončí, jej svet zanikne a s ním aj premenné v ňom.
+Keď ide zaniknúť premenná {\tt x}, zavolá sa jej deštruktor, ktorý odalokuje 
+pamäť.
+
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){t.data}{}
+  \var(1){t.m}{3}
+  \var(2){t.n}{3}
+  \var(3){r.data}{}
+  \var(4){r.m}{4}
+  \var(5){r.n}{4}
+  \world(-1){t}{orange}
+  \world(2){r}{olive}
+  \kon(6)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-4.5);
+
+  \foreach \f/\t in {v0/a1,v3/a2}{
+  \godot{\f}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (\f) to [out=0,in=180] (\t);
+  }
+  \draw[dotted] (a1)++(0,-0.5) rectangle node[align=center]{odalokovaná pamäť} ++(5,1);
+  \draw (a2)++(0,-0.5) rectangle node[align=center]{alokovaná pamäť} ++(5,1);
+\end{tikzpicture}
+
+Pointer {\tt t.data} sa nemenil a ukazuje na to isté miesto v pamäti, ale tá
+už bola odalokovaná. Keď sa potom končí hlavný program, volá sa deštruktor
+{\tt t}, ktorý sa pokúša druhýkrát odalokovať tú istú pamäť, a preto program skončí s chybou.
+
+\ods
+Aby sme sa týmto efektom vyhli, je lepšie ako parameter funkcie pridaj neposielať
+hodnotu {\tt Tabulka}, ale iba pointer {\tt Tabulka *} takto:
+
+\begin{lstlisting}[] 
+  void pridaj(Tabulka *x) {
+    int nn = n, mm = m;
+    if (x->n < n) nn = x->n;
+    if (x->m < m) mm = x->m;
+    for (int i = 0; i < mm; i++)
+      for (int j = 0; j < nn; j++)
+        data[i * n + j] += x->data[i * x->n + j];
+  }
+\end{lstlisting}
+
+Keď potom zavoláme \prg!r.pridaj(&t);! do sveta funkcie sa pridá iba pointer
+na {\tt t}.
+
+\ods
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){t.data}{}
+  \var(1){t.m}{3}
+  \var(2){t.n}{3}
+  \var(3){r.data}{}
+  \var(4){r.m}{4}
+  \var(5){r.n}{4}
+  \var(6){x}{}
+  \var(7){nn}{}
+  \var(8){mm}{}
+  \world(-1){t}{orange}
+  \world(2){r}{olive}
+  \world(5){}{cyan!50!gray}
+  \kon(9)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-4.5);
+
+  \foreach \f/\t in {v0/a1,v3/a2}{
+  \godot{\f}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (\f) to [out=10,in=180] (\t);
+  }
+  \godot{v6}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (v6) to [out=20,in=-20] (1.2,0.3);
+
+  \foreach \t in {a1,a2}{
+  \draw (\t)++(0,-0.5) rectangle node[align=center]{alokovaná pamäť} ++(5,1);
+  }
+  \draw[red,thick,->](-0.5,-4.9)-- 
+  (-1,-4.9)--node[midway,anchor=south,rotate=90]{{\tt r.pridaj}}(-1,-11);
+\end{tikzpicture}
+
+Preto keď zaniká svet {\tt r.pridaj}, zanikne pointer a nie je dôvod volať
+deštruktor {\tt t}.
+
+\ods Posielať ako parameter pointer je veľmi užitočné, ale niekedy, ako uvidíme
+o cvhíľu, to môže byť nepraktické. V C++ je možnosť ''zamaskovať'' pointer 
+pomocou tzv. {\em referencie}. Referencia sa v programe tvári ako premenná,
+ale v skutočnosti je to pointer na jej adresu\footnote{Už z tohto vidno, že je to tak trochu
+ako cirkulárka: užitočná vec, ale chceš si pri nej dávať pozor, inak sa neprestaneš čudovať,
+čo sa to deje.}. Zapisuje podobne ako pointer, ale namiesto hviezdičky sa použije
+ampersand (\prg!&!). Napríklad obidva programy
+
+\bp
+\begin{lstlisting}[] 
+void zblnk(int &x) { x++; }
+
+int main() {
+  int x = 3;
+  zblnk(x);
+  cout << x << endl;
+}
+\end{lstlisting}
+\ep
+\hfill
+\bp
+\begin{lstlisting}[] 
+void zblnk(int *x) { (*x)++; }
+
+int main() {
+  int x = 3;
+  zblnk(&x);
+  cout << x << endl;
+}
+\end{lstlisting}
+\ep
+
+vypíšu $4$, lebo parameter \prg!int &x! hovorí \cmd{zober adresu premennej {\tt x}}. Takže
+v skutočnosti sa v obidvoch programoch do funkcie {\tt zblnk} posiela 
+pointer na premennú {\tt x}.
+Pri volaní \prg!zblnk(x)! nevieš rozlíšiť, či je funkcia {\tt zblnk} definovaná
+s parametrom \prg!int! alebo \prg!int &!, ale kým {\tt zblnk(x)} zavolať môžeš,
+{\tt zblnk(3)} vyhlási chybu v tom zmysle, že sa nedá urobiť pointer na trojku.
+
+\ods Referencie sa hodia napríklad keď chceme upraviť, akým spôsobom sa majú tabuľky 
+kopírovať. Podobne ako pri vyrábaní premenných sa volá konštruktor, pri priradení
+sa volá {\em operátor} priradenia ({\tt =}). Default operátor sa správa tak, 
+že skopíruje premenné, ale môžme si to upraviť: je to funkcia triedy ako každá iná, len
+má trochu divný zápis. V našom prípade môžme triedu {\tt Tabulka} definovať
+napr. takto:
+
+\begin{lstlisting}[] 
+struct Tabulka {
+  int* data;
+  int m, n;
+  
+  Tabulka(int _m = 3, int _n = 3) { alokuj(_m, _n); }
+  
+  void alokuj(int _m, int _n) {
+    m = _m; 
+    n = _n;
+    data = new int[m * n];
+    for (int i = 0; i < m; i++)
+      for (int j = 0; j < n; j++) 
+        data[i * n + j] = 0;
+  }
+
+  void pridaj(int x) {
+    for (int i = 0; i < m; i++)
+      for (int j = 0; j < n; j++) 
+        data[i * n + j] += x;
+  }
+
+  void pridaj(Tabulka& x) {
+    int nn = n, mm = m;
+    if (x.n < n) nn = x.n;
+    if (x.m < m) mm = x.m;
+    for (int i = 0; i < mm; i++)
+      for (int j = 0; j < nn; j++) 
+        data[i * n + j] += x.data[i * x.n + j];
+  }
+
+  Tabulka& operator=(Tabulka& x) {
+    pridaj(x);
+    return *this;
+  }
+
+  ~Tabulka() { delete[] data; }
+};
+\end{lstlisting}
+
+Pridal som funkciu \prg!operator=!, čo je špeciálne meno vyhradené na úpravu operátora 
+priradenia.  Ako parameter sa zoberie referencia na tabuľku. Vracia sa tiež referencia,
+a to referencia na seba (\prg!return *this;!, lebo \prg!this! je pointer na seba
+a \prg!*this! je jeho hodnota). To ti umožňuje písať skrátene
+\prg!t = r = q;! V tomto prípade sa najprv zavolá funkcia \prg!r.operator=(q)!, ako 
+parameter sa zoberie referencia na {\tt q}, na základe nej sa upravia hodnoty v {\tt r}
+a vráti sa referencia na {\tt r}. Tá sa hneď zoberia ako parameter pri volaní
+\prg!t.operator=()!, takže hodnoty {\tt t} sa upravia podľa čerstvo upravených hodnôt {\tt r}.
+
+\ods Podobný ako operátor priradenia je tzv. {\em copy constructor}, ktorý sa volá
+vtedy, ak sa má vyrobiť nová premenná z inej. Konkrétne pri posielaní parametrov do funkcie.
+V našom príklade máme operátor priradenia, ale ak by si mal napr. v rámci {\tt Tabulka}
+metódu (bez referencie)
+\prg!void quak(Tabulka x) { pridaj(x); }!, tak volanie \prg!t.quak(r)! bude 
+mať rovnaký problém ako predtým: pri volaní sa do lokálnej premennej {\tt x}
+skopírujú hodnoty
+z {\tt r} a pri skončení fukcie sa zavolá deštruktor, ktorý odalokuje pointer.
+Keby si okrem konštruktora \prg!Tabulka(int _m, int _n)! pridal ešte
+konštruktor, ktorý má ako parameter referenciu na už existujúcu premennú typu
+{\tt Tabulka}:
+
+\begin{lstlisting}
+  Tabulka(Tabulka& x) {
+    alokuj(x.m, x.n);
+    pridaj(x);
+  }
+\end{lstlisting}
+
+tak pri volaní {\tt r.quak(t)} sa použije tento konštruktor, ktorý namiesto toho,
+aby kopíroval pointer, v lokálnej premennej
+{\tt x} naalokuje pamäť, takže volanie bude namiesto:
+
+\ods
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){t.data}{}
+  \var(1){t.m}{3}
+  \var(2){t.n}{3}
+  \var(3){r.data}{}
+  \var(4){r.m}{4}
+  \var(5){r.n}{4}
+  \var(6){x.data}{}
+  \var(7){x.m}{3}
+  \var(8){x.n}{3}
+  \world(-1){t}{orange}
+  \world(2){r}{olive}
+  \world(5){x}{cyan!50!gray}
+  \kon(9)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-4.5);
+
+  \foreach \f/\t in {v0/a1,v3/a2,v6/a1}{
+  \godot{\f}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (\f) to [out=0,in=180] (\t);
+  }
+  \foreach \t in {a1,a2}{
+  \draw (\t)++(0,-0.5) rectangle node[align=center]{alokovaná pamäť} ++(5,1);
+  }
+  \draw[red,thick,->](-0.5,-4.9)-- 
+  (-1,-4.9)--node[midway,anchor=south,rotate=90]{{\tt r.quak(t)}}(-1,-11);
+\end{tikzpicture}
+
+vyzerať takto:
+
+\ods
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){t.data}{}
+  \var(1){t.m}{3}
+  \var(2){t.n}{3}
+  \var(3){r.data}{}
+  \var(4){r.m}{4}
+  \var(5){r.n}{4}
+  \var(6){x.data}{}
+  \var(7){x.m}{3}
+  \var(8){x.n}{3}
+  \world(-1){t}{orange}
+  \world(2){r}{olive}
+  \world(5){x}{cyan!50!gray}
+  \kon(9)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-3.5);
+  \coordinate (a3) at (3,-6.5);
+
+  \foreach \f/\t in {v0/a1,v3/a2,v6/a3}{
+  \godot{\f}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (\f) to [out=0,in=180] (\t);
+  }
+  \foreach \t in {a1,a2,a3}{
+  \draw (\t)++(0,-0.5) rectangle node[align=center]{alokovaná pamäť} ++(5,1);
+  }
+  \draw[red,thick,->](-0.5,-4.9)-- 
+  (-1,-4.9)--node[midway,anchor=south,rotate=90]{{\tt r.quak(t)}}(-1,-11);
+\end{tikzpicture}
+
+Preto deštruktor na konci volania správne odalokuje pamäť v lokálnej premennej {\tt x}.
+Tento spôsob funguje, ale pri väčších tabuľkách je neefektívny: dáta sa najprv kopírujú
+z {\tt t} do lokálnej {\tt x}, potom z lokálnej {\tt x} do {\tt r}, a nakoniec
+sa lokálna {\tt x} zahodí. Je lepšie posielať pointer alebo referenciu.
+
+
+\ods Operátor priradenia nie je jediný operátor, ktorý sa dá predefinovať, dajú sa takmer
+všetky\footnote{%
+  detaily sú napr. na 
+  \href{https://en.cppreference.com/w/cpp/language/operators}{\nolinkurl{%
+en.cppreference.com/w/cpp/language/operators}}}.
+Ak chceme napríklad vedieť sčitovať tabuľky, môžme spraviť niečo takéto:
+
+\begin{lstlisting}
+struct Tabulka {
+  // cela definicia
+};
+
+Tabulka operator+(Tabulka &x, Tabulka &y) {
+  Tabulka res = x;
+  res.pridaj(y);
+  return res;
+}
+
+int main() {
+  Tabulka r, s, t;
+  t = r + s;
+}
+\end{lstlisting}
+
+Definoval som (mimo triedy {\tt Tabulka}) operátor {\tt +}, ktorý zoberie 
+referencie na dve tabuľky a vyrobí výslednú, ktorá bude ich súčtom. Všimni si,
+že keby sa vracala hodnota referenciou ako
+\prg!Tabulka& operator+(Tabulka &x, Tabulka &y)! tak by to celé nefungovalo:
+pri volaní funkcie \prg!operator+! sa v jej svete vyrobí lokálna premenná {\tt res},
+nejak sa upraví a vráti sa referencia (teda pointer) na ňu. Lenže pri skončení
+volania sa celý svet funkcie zruší, zavoá sa deštruktor na {\tt res}, a preto
+vrátená referencia (teda pointer) je nanič.
+
+\ods
+Ale keď tento program skúsiš skompilovať, zistíš, že to nejde. Prečo? Z rovnakého
+dôvodu, ako nešlo spustiť {\tt zblnk(3)} o pár odstavcov vyššie: \prg!operator+!
+vráti {\em hodnotu} typu {\tt Tabulka}, ale \prg!operator=! má ako parameter
+{\em referenciu}, teda pointer na premennú. A ten sa nedá zobrať, ak premenná nie je.
+Na druhej strane, ona tá premenná v skutočnosti kdesi musí byť: pri vyhodnocovaní výrazu
+je uložená na nejakom bezmennom mieste v pamäti. Ak komiplátoru sľúbiš, že ju nebudeš
+meniť, bude ochotný z nej pointer (referenciu) zobrať. Takže zmeníme definíciu 
+\prg!operator=! na 
+\prg!Tabulka& operator=( const Tabulka& x)!. Teraz ti ale komiplátor bude vyčítať, že si 
+nedodržal sľub: v rámci volania \prg!operator=! voláš {\tt pridaj(x)}. Keďže {\tt x}
+sa tam posiela referenciou, ktohovie, či sa tam nezmení. Musíš ho upokojiť a sľúbiť, že
+ani tam sa {\tt x} nebude meniť: \prg!void pridaj(const Tabulka& x)!. Teraz už všetko
+bude fungovať správne.
+
+
+\ods Ak si v rámci definície triedy {\tt Tabulka} predefinuješ operátor {\tt ()}
+takto:
+
+\begin{lstlisting}
+  int& operator()(int r, int s) { return data[r * n + s]; }
+\end{lstlisting}
+
+môžeš pristupovať k políčkam tabuľky napr. \prg!t(i,j) = r(i,j);!. 
+To, že k 
+položkám triedy {\tt vector} môžeš pristupovať ako k poľu je preto, že {\tt vector}
+si predefinoval operátor {\tt []}.
+
+\ods
+Teraz aj vidíš, že som ťa klamal, keď som hovoril, že \prg!cout <<! je {\em príkaz}
+na vypísanie. V skutočnosti \prg!cout! je premenná typu \prg!ostream! 
+definovaná v súbore \prg!iostream!. Trieda \prg!ostream! má predefinovaný operátor
+{\tt <<} (ktorý pri celých číslach robí bitový posun). Ak by si chcel napr. vypisovať
+tabuľky, môžeš si definovať\footnote{%
+všimni si, že vraciam referenciu na prvý parameter, takže volanie \prg!cout << x << y!
+robí to, čo sa očakáva
+}(mimo definície triedy {\tt Tabulka})
+
+\begin{lstlisting}
+ostream& operator<<(ostream& str, Tabulka& o) {
+  for (int i = 0; i < o.m; i++) {
+    for (int j = 0; j < o.n; j++) str << o(i, j) << " ";
+    str << endl;
+  }
+  return str;
+}
+\end{lstlisting}
+
+tak môžeš zavolať napr \prg!Tabulka t; cout << t;! Nemôžeš ale urobiť \prg!cout << s + t!
+opäť z rovnakých dôvodov: \prg!operator<<! potrebuje referenciu. Opäť to môžeš
+vyriešiť tak, že sľúbiš, že parameter {\tt o} bude konštantný. Tým ale vyrobíš iný probém:
+funkcia \prg!operator()! je metóda objektu {\tt o}, a teda ktovie, či ho nemení. To
+vieš sľúbiť tak, že \prg!const! napíšeš za definíciu metódy. Takže celý
+výsledný program by vyzeral nejakt takto:
+
+\begin{lstlisting}
+#include <iostream>
+using namespace std;
+
+struct Tabulka {
+  int* data;
+  int m, n;
+
+  Tabulka(int _m = 3, int _n = 3) { alokuj(_m, _n); }
+  Tabulka(const Tabulka& x) {alokuj(x.m, x.n); pridaj(x); }
+  ~Tabulka() { delete[] data; }
+
+  void alokuj(int _m, int _n) { ... }
+  void pridaj(int x) {...}
+  void pridaj(const Tabulka& x) { ... }
+
+  Tabulka& operator=(const Tabulka& x) { pridaj(x); return *this; }
+  int& operator()(int r, int s) const { return data[r * n + s]; }
+  Tabulka& operator+=(int x) { pridaj(x); return *this;}
+
+};
+
+ostream& operator<<(ostream& str, const Tabulka& o) { ... }
+Tabulka operator+(const Tabulka& x, const Tabulka& y) { ... }
+
+int main() {
+  Tabulka t;
+  t += 5;
+  Tabulka r = t;
+  r += 2;
+  r(1,1) = 42;
+  cout << t + r;
+}
+\end{lstlisting}
+
+
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectxxii1
 \section{Binárne vyhľadávanie a logaritmy}
 
 Hrajme takúto hru: myslím si číslo od 1 po $N$ a tvojou úlohou je ho uhádnuť. Môžeš
@@ -5614,10 +6337,118 @@ Ako budeš hádať, aby si čo najskôr uhádol? Koľko otázok na to budeš pot
 \ods 
 Povedzme, že $N=1000$. Ak sa na začiatku optýtaš na $5$ a máš šťastie, dostaneš odpoveď
 \cmd{menej} a vieš, že to môže byť iba 1, 2, 3, alebo 4. Ale ak šťastie nemáš,
-príliš si si nepomohol: môže to byť čokoľvek medzi 6 a 1000. Povedzme, že nehrám férovo, ale
+príliš si si nepomohol: môže to byť čokoľvek medzi 6 a 1000. Ale možnože nehrám férovo a
 podvádzam: v skutočnosti si nemyslím číslo, ale čakám, čo sa ma opýtaš. Ak sa spýtaš na $5$,
 odpoviem ti \cmd{viac} a budem sa tváriť, že som si myslel číslo medzi 6 a 1000 (potom 
-to už musím dodržať, lebo inak by si zistil, že som podvádzal). Ak sa opýtaš na číslo
+to už musím dodržať, lebo inak by si zistil, že som podvádzal). Najlepšie, čo môžeš 
+v tejto situácii urobiť,
+je opýtať sa na číslo v strede. Koľko otázok potrebuješ, aby si touto stratégiou 
+uhádol číslo? Jendoduchšie je pýtať sa opačnú otázku: pre aký najväčší rozsah $N$
+ti stačí $n$ otázkok? Poďme postupne. Ak môžeš položiť 1 otázku, tak $N$ môže byť najviac 
+$3$: ak si myslím číslo od 1 po 3, tak sa najprv spýtaš na 2, a keď si neuhádol a dostal
+si odpoveď \cmd{menej}, vieš, že som si mysel 1, a ak si dostal odpoveď \cmd{viac} tak vieš,
+že som si myslel 3. Keď si ale myslím číslo od 1 po 4, jedna otázka ti nestačí: spýtaš sa
+na 2, je odpoviem \cmd{viac} a teraz nevieš, či som si myslel tri alebo štyri.
+
+\ods
+Čo ak máš dve otázky? Ak si myslím číslo od 1 po 7, vieš ho zistiť: opýtaš sa na 4. Ak ti
+poviem \cmd{menej} máš jednu otázku na to, aby si uhádol číslo od 1 do 3 (tri čísla jednou
+otázkou, to vieš), ak ti
+odpoviem \cmd{viac} máš jednu otázku na to, aby si uhádol číslo od 5 do 7 (zase tri čísla
+jednou otázkou). Ak máš tri otázky, môžem si myslieť číslo od 1 po 15: prvou otázkou
+za opýtaš na 8 a ostanú ti dve otázky na uhádnutie čísla spomedzi siedmich.
+
+\ods
+Keď si označím $m_n$ najväčšie číslo, ktoré vieš $n$ otázkami uhádnuť, tak sme videli,
+že $m_1=3$, $m_2=7$, $m_3=15$. Vždy, keď máš o jednu otázku viac, vieš robiť to isté,
+preto $m_{n+1}=2m_n+1$ (ak máš $n+1$ otázok, opýtaš sa na to 1 číslo v strede a 
+v každom prípade ti ostane $n$ otázok na uhádnutie čísla z rozsanu  $m_n$). Ľahko si overíme,
+že $m_n=2^{n+1}-1$. Pre malé hodnoty to vieme priamo:
+\begin{align*}
+  m_1&=2^2-1=4-1=3 \\
+  m_2&=2^3-1=8-1=7 \\
+  m_3&=2^4-1=16-1=15
+\end{align*}
+
+potom ak už vieme, že $m_n=2^{n+1}-1$, tak vieme aj, že $m_{n+1}=2m_n+1=2(2^{n+1}-1)+1=
+2\cdot2^{n+1}-2+1=2^{n+2}-1$. Z toho potom vieme dokázať, že $m_{n+2}=2^{n+3}-1$ a tak ďalej.
+Teda $2^{n+1}$ je prvé číslo, na ktoré potrebuješ viac ako $n$ pokusov. 
+
+\ods
+Naspäť k prvej otázke: ak hádam čísla z rozsahu 1 až $N$, koľko otázok potrebuješ? Nech
+je to číslo $n$, potom $2^{n+1}-1\ge N$, t.j. $2^n\ge(N+1)/2$. Takéto číslo má svoje meno:
+volá sa {\em logaritmus}. Presne povedané: \cmd{logaritmus z čísla $n$ je také číslo $x$,
+že $2^x=n$}. V našom prípade umocňujeme dvojku, preto hovoríme, že pužívame 
+{\em logaritmus pri základe 2}. Napr. $\log16=4$, lebo $2^4=2\cdot2\cdot2\cdot2=16$. 
+Umocňovanie aj logaritmy sa dajú prirodzene rozšíriť aj na desatinné čísla\footnote{%
+  Ak $b$ je celé číslo, umocňovanie je jednoduché: 
+  $a^b=\overbrace{a\cdot a\cdots a}^b$. Preto platí 
+  $a^{b+c}=\overbrace{a\cdots a}^b\cdot\overbrace{a\cdots a}^c=a^b\cdot a^c$.
+  Podobne $a^{bc}=
+  \overbrace{a\cdots a}^b\cdot
+  \overbrace{a\cdots a}^b
+  \cdots\overbrace{a\cdots a}^b=(a^b)^c$. Ak chceme,
+  aby tieto pravidlá stále platili, koľko by bolo $a^{-1}$? Musí platiť
+  $a^{-1}\cdot a^1=a^{-1+1}=a^0=1$. Preto $a^{-1}=\frac{1}{a}$.
+  Koľko by bolo $a^\frac{1}{2}$? Musí platiť
+  $a=a^1=a^{\frac{1}{2}+\frac{1}{2}}=a^\frac{1}{2}\cdot a^\frac{1}{2}$. Preto 
+  $a^\frac{1}{2}=\sqrt{a}$. Podobne $a^\frac{1}{p}$ je také číslo $x$, že $x^p=a$.
+  Také číslo voláme $p$-ta odmocnina z $x$ a značíme $\sqrt[p]{x}$.
+  Teraz vieme, že $a^\frac{p}{q}=a^{\frac{1}{q}p}=(\sqrt[q]{a})^p$ a 
+  $a^{-\frac{p}{q}}=a^{\frac{p}{q}\cdot(-1)}=((\sqrt[q]{a})^p)^{-1}=\frac{1}{(\sqrt[q]{a})^p}$.
+
+  Ak povieme, že $\log a$ je také číslo $b$, že $2^b=a$, máme logaritmus pre všetky čísla,
+  nielen pre mocniny dvojky. Z pravidiel pre umocňovanie vyplýva, že 
+  $\log(ab)=\log a+\log b$, pretože $\log(ab)$ je také číslo, že $2^{\log(ab)}=ab$.
+  Lenže $a=2^{\log a}$ a $b=2^{\log b}$, preto $ab=2^{\log a}2^{\log b}=2^{\log a+\log b}$,
+  takže $2^{\log(ab)}=2^{\log a+\log b}$ a preto aj $\log(ab)=\log a+\log b$.
+  Rovnako vieš zdôvodniť, že $\log(a/b)=\log a-\log b$, $\log(a^b)=b\log a$ a pod.
+}, preto si môžeme nakresliť graf funkcie $\log(x)$:
+
+\ods
+\begin{tikzpicture}
+\begin{axis}[
+  %title={},
+  width=\textwidth, 
+  height=7cm,
+  xlabel=$x$,
+  ylabel=$ $,
+  scaled x ticks=false,
+  scaled y ticks=false,
+  domain=0:2000,
+  samples=200,
+  xmin=0,
+  xmax=2000,
+  /pgf/number format/.cd,
+        1000 sep={}
+]
+  \addplot[no markers,red!50!white]{log2(x)};
+\end{axis}
+\end{tikzpicture}
+
+Všimni si, že stále rastie, ale čím ďalej, tým pomalšie.
+Napr. $\log(4398046511104)$ je $42$.
+
+\ods
+Zoberme si teraz programátorskú úlohu, ktorá sa podobá našej hre. Predpokladajme,
+že máme pole \prg!int a[n];! v ktorom sú utriedené čísla. Našou úlohou je napísať funkciu,
+ktorá pre nejaké zadané číslo {\tt x} zistí, či sa v poli {\tt a} nachádza alebo nie.
+Môťme to spraviť priamočiaro:
+
+\begin{lstlisting}[] 
+bool find(int n, int *a, int x) {
+  for (int i = 0; i < n; i++)
+    if (a[i] == x) return true;
+  return false;
+}
+\end{lstlisting}
+
+Táto funkcia má evidentne lineárnu zložitosť. Vieme to spraviť lepšie? Môžme zvoliť
+rovnakú stratégiu ako pri hádacej hre: pozrieme sa do stredu poľa, zistíme, či je
+tam väčšie alebo menšie číslo a podľa toho hľadáma buď v ľavej alebo v pravej časti.
+Budeme mať teda cyklus, v ktorom budeme kontrolovať menšie a menšie intervaly.
+Okraje intervalu si budeme pamätať v premenných {\tt l} a {\tt r}. Stred intervalu
+{\tt m} vyrátame ako priemer {\tt l} a {\tt r}, t.j {\tt m=(l+r)/2}.
 
 
 \fi
@@ -5625,8 +6456,11 @@ to už musím dodržať, lebo inak by si zistil, že som podvádzal). Ak sa opý
 % binarne vyhladavanie: median z dvoch poli, susenie pradla,
 % knihy - rozdelit na k suvislych casti, minimalizovat sucet 
 
-% projekt piskvory
-% operatory, komplexne cisla, projekt mandelbrot
+% algoritmy v stl: triedenie, vyhladavanie, iteratory
+
+% komplexne cisla, projekt mandelbrot
+
+% projekt piskvory (dedenie, pripomenut iteratory)
 
 % set a stromy
 
