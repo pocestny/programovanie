@@ -15,6 +15,7 @@
 \usepackage{scrextend}
 \usepackage{booktabs}
 \usepackage{amsmath}
+\usepackage{etoolbox}
 
 \deffootnote[0em]{0em}{0em}{\textsuperscript{\thefootnotemark}\;\enskip}
 
@@ -46,6 +47,7 @@
 
 \newtheorem{uloha}{Úloha}
 \setlength{\fboxsep}{0pt}
+
 
 \def\bp{\begin{minipage}[t]{0.45\textwidth}}\vspace{0pt}
 \def\ep{\end{minipage}}
@@ -127,7 +129,7 @@
                 literate={ĺ}{{\'l}}1{ľ}{{\'l}}1{ý}{{\'y}}1{ž}{{\v{z}}}1{á}{{\'a}}1{č}{{\v{c}}}1{í}{{\'\i}}1{ú}{{\'u}}1{š}{{\v{s}}}1{ň}{{\v{n}}}1{é}{{\'e}}1
 }
 \parindent=0pt
-\title{\bfseries\sffamily Tutoriál o programovaní v C/C++}
+\title{\bfseries\sffamily Tutoriál o programovaní v C++}
 \author{}
 %  \url{https://beda.dcs.fmph.uniba.sk/programovanie/programovanie.pdf}\and
 %  \url{https://github.com/pocestny/programovanie.git}
@@ -4190,7 +4192,7 @@ Ich vstup ale nie je v stupňoch, ale v {\em radiánoch}. Ak obsah kruhu\footnot
   % title={{\tt pi}},  
   width=\textwidth, 
   height=4cm,
-  xlabel={$n$},
+  xlabel={$r$},
   scaled x ticks=false,
   scaled y ticks=false,
   domain=0:800,
@@ -5214,6 +5216,7 @@ lebo si dvakrát odalokovával tú istú pamäť (aj keď si sa k nej dostal z i
 \end{uloha}
 
 \begin{uloha}
+  \label{uloha:primetest}
   Napíš funkciu, ktorá dostane parameter $n$ a vráti pointer na dynamicky alokované
   pole, v ktrorm bude prvých $n$ prvočísel\footnote{%
     Prvočíslo je číslo $p$, ktoré nemá iných deliteľov ako 1 a $p$. Inými slovami
@@ -5673,6 +5676,19 @@ Tu je niekoľko\footnote{%
   pole na väčšie\\
   \xx{a.pop_back()} & vráti posledný prvok a skráti pole\\\bottomrule
 \end{tabularx}
+
+\begin{uloha}
+  \label{uloha:faktorial}
+  Faktoriál z čísla $n$ (zapisuje sa $n!$) je číslo $2\cdot3\cdot4\cdots n$. Napr.
+$4!=2\cdot3\cdot4=24$, $6!=4!\cdot5\cdot6=720$. Napíš program, ktorý
+na vstupe dostane číslo $n$ a vypíše $n!$. Pozor, $n$ môže byť tak veľké,
+že výsledok sa nezmestí ani do premennej typu \prg!unsigned long long int!.
+  Napríklad pre vstup {\tt 123} má program vypísať {\tt
+  12146304367025329675766243241881295855454217088483382315328918161
+  829235892362167668831156960612640202170735835221294047782591091570411651472186029
+  519906261646730733907419814952960000000000000000000000000000} (do jedného riadku).
+\end{uloha}
+
 
 \fi
 
@@ -6234,7 +6250,7 @@ volania sa celý svet funkcie zruší, zavoá sa deštruktor na {\tt res}, a pre
 vrátená referencia (teda pointer) je nanič.
 
 \ods
-Ale keď tento program skúsiš skompilovať, zistíš, že to nejde. Prečo? Z rovnakého
+Ale keď tento program skúsiš skompilovať, zistíš, že to stále nejde. Prečo? Z rovnakého
 dôvodu, ako nešlo spustiť {\tt zblnk(3)} o pár odstavcov vyššie: \prg!operator+!
 vráti {\em hodnotu} typu {\tt Tabulka}, ale \prg!operator=! má ako parameter
 {\em referenciu}, teda pointer na premennú. A ten sa nedá zobrať, ak premenná nie je.
@@ -6431,7 +6447,8 @@ Napr. $\log(4398046511104)$ je $42$.
 
 \ods
 Zoberme si teraz programátorskú úlohu, ktorá sa podobá našej hre. Predpokladajme,
-že máme pole \prg!int a[n];! v ktorom sú utriedené čísla. Našou úlohou je napísať funkciu,
+že máme pole \prg!int a[n];! v ktorom sú utriedené rôzne čísla. 
+Našou úlohou je napísať funkciu,
 ktorá pre nejaké zadané číslo {\tt x} zistí, či sa v poli {\tt a} nachádza alebo nie.
 Môťme to spraviť priamočiaro:
 
@@ -6448,26 +6465,419 @@ rovnakú stratégiu ako pri hádacej hre: pozrieme sa do stredu poľa, zistíme,
 tam väčšie alebo menšie číslo a podľa toho hľadáma buď v ľavej alebo v pravej časti.
 Budeme mať teda cyklus, v ktorom budeme kontrolovať menšie a menšie intervaly.
 Okraje intervalu si budeme pamätať v premenných {\tt l} a {\tt r}. Stred intervalu
-{\tt m} vyrátame ako priemer {\tt l} a {\tt r}, t.j {\tt m=(l+r)/2}.
+{\tt m} vyrátame ako priemer {\tt l} a {\tt r}, t.j {\tt m=(l+r)/2}. Treba si dať trochu
+pozor na to, kedy skončiť, ale celá
+funkcia bude vyzerať nejak takto:
 
+\ods
+\vbox{
+\begin{lstlisting}[] 
+bool najdi(int n, int *a, int x) {
+  int l = 0, r = n - 1, m;
+  if (a[l] > x || a[r] < x) return false;
+  if (a[l] == x || a[r] == x) return true;
+  while (l < r - 1) {
+    m = (l + r) / 2;
+    if (a[m] == x) return true;
+    if (a[m] > x)
+      r = m;
+    else
+      l = m;
+  }
+  return false;
+}
+\end{lstlisting}
+}
+
+Počas celého cyklu vieme, že hľadané číslo nie je aj {\tt a[l]} ani {\tt a[r]},
+preto môžme skončiť, keď {\tt l} a {\tt r} sú susedné. Predpokladajme, že v nasledovnom poli
+hľadáme číslo $42$. Výpočet by potom mohol vyzerať takto:
+
+
+\ods
+\centerline{
+\begin{tikzpicture}[scale=0.5]
+  \def\pal#1{\ifnumequal{#1}1{yellow!20!white}{\ifnumequal{#1}2{green!20!white}{red!10!white}}}
+  \def\krb(#1)#2#3{
+    \filldraw[fill=\pal#2](#1,0) rectangle node[align=center]{{\tt #3}} (#1+1,1);
+    \pgfmathtruncatemacro{\tmp}{#1-1}
+    \node[anchor=north] at(#1+0.5,-0.1){{\small\tt \tmp}};
+  }
+  \def\mark(#1)#2{
+    \draw[blue, ->, shorten <= 2, shorten >=2] 
+    (#1+0.5,1.8) node[anchor=south]{{\small\tt #2}}  -- (#1+0.5,1);
+  }
+  \def\strip(#1,#2){
+    \pgfmathtruncatemacro{\tmp}{(#1+#2)/2}
+    \foreach \v [count=\i] in {12,13,15,26,27,28,30,33,35,40,42,47,63,64,67,80} {
+      \def\clr{2}
+      \ifnumless{\i}{#1}{\def\clr{3}}{}
+      \ifnumgreater{\i}{#2}{\def\clr{3}}{}
+      \ifnumequal{\i}{#1}{\def\clr{1}}{}
+      \ifnumequal{\i}{#2}{\def\clr{1}}{}
+      \ifnumequal{\i}{\tmp}{\def\clr{1}}{}
+      \krb(\i){\clr}{\v}
+    }
+    \mark(#1){l}
+    \mark(#2){r}
+    \mark(\tmp){m}
+  }
+
+  \foreach \l/\r [count=\i] in {1/16,8/16,8/12,10/12} {
+    \begin{scope}[shift={(0,-4*\i)}]
+      \strip(\l,\r)
+    \end{scope}
+  }
+\end{tikzpicture}}
+
+\ods Funkcia {\tt najdi} má logaritmickú zložitosť. 
+Môžeš sa pýtať, načo je logaritmická zložitosť
+dobrá, keď už na samotné prečítanie vstupného poľa potrebujeme lineárnu zložitosť. 
+Častokrát potrebuješ počas tvojho programu veľakrát riešiť podobný problém. Napríklad
+keď hľadáš cestu v bludisku, na každej križovatke sa musíš rozhodnúť, kam odbočiť. Vtedy
+má zmysel, aby rozhodovacia funkcia mala zložitsoť menšiu ako lineárnu, lebo 
+vstup je už raz načítaný v pamäti. Iné použitie binárneho vyhľadávania, ktoré uvidíš,
+je podobné ako v hre na začiatku kapitoly: v pamäti nie je uložené celé pole, ale 
+máš len funkciu, ktorá ti hovorí \cmd{viac} alebo \cmd{menej}.
+
+\ods Malá odbočka: ak máš zložitejší cyklus, ako napríklad v tomto prípade a chceš 
+sa uistiť, že program funguje správne, je dobré vymyslieť si tzv. {\em invariant}.
+Invariant je podmienka, ktorá platí vždy na začiatku cyklu. V tomto prípade 
+invariant hovorí, že ak je hľadané číslo v poli, je napravo od {\tt l} a naľavo od {\tt r}.
+Ak invariant platí na začiatku jednej iterácie cyklu, určite platí aj na začiatku ďalšej:
+ak sa začala ďalšia iterácia, tak hľadané číslo nie je \prg!a[m]! a určite 
+sa nachádza medzi novým {\tt l} a novým {\tt r}. Zároveň vidno, že vzdialenosť {\tt l}
+a {\tt r} sa v každej iterácii cyklu zhruba spoloviční. Takto by sa dalo dokázať,
+že program vždy skončí po logaritmickom počte iterácií a dá správnu odpoveď.
+Podobný spôsob rozmýšľania sme použili pri algoritme {\em Insertion Sort} v 
+kapitole~\ref{sect:zlozitost} aj pri úlohe o klaunoch v kapitole~\ref{sect:stack}.
+
+\begin{uloha}
+  V pamäti je pole \prg!a!, ktoré obsahuje $n$ prirodzených čísel
+  utriedených od najmenšieho. Napíš funkciu, ktorá dostane ako parameter 
+  číslo $k$ a povie, koľkokrát sa $k$ nachádza v poli. Funkcia by mala
+  mať logaritmickú zložitosť.
+\end{uloha}
+
+\begin{uloha}
+  V pamäti sú dve usporiadané polia {\tt a} a {\tt b}, pričom každé obsahuje $n$ čísel.
+  Napíš funkciu, ktorá zistí, ktorý prvok by bol na $n$-tej pozícii, keby sa obe
+  polia spoločne utriedili. Napr. pre $n=6$ a polia {\tt 3 6 9 12 15 18} a 
+  {\tt 2 4 6 8 10 12} je výsledok $8$, lebo spoločné utriedené pole
+  je {\tt 2 3 4 6 6 8 9 10 12 12 15 18} a v ňon na šiestom mieste je osmička.
+  Funckia by mala mať logaritmickú zložitosť.
+\end{uloha}
+
+Častokrát je pri riešení úloh užitočný prístup 
+''{\em binárne vyhľadávanie nad výsledkami}''. Ukážem ti to na príklade. 
+Začnime s úplne nesúvisiacou úlohou:
+
+\begin{uloha}
+  \label{uloha:nulyfaktorialu}
+  Na vstupe je číslo $n$. Napíš program, ktorý zistí, koľko núl je na konci čísla
+  $n!$ ($n!$ znamená faktoriáal ako v úlohe~\ref{uloha:faktorial}). 
+  Napr. pre vstup $6$ je výstup $1$, pre vstup $11$ je výstup $2$ (lebo
+  $11!=39916800$), pre $123$ je výstup $28$.
+\end{uloha}
+
+S touto úlohou je ten problém, že $n!$ veľmi rýchlo rastie a veľmi skoro sa nezmestí ani
+do premennej typu \prg!unsigned long long int!. Môžeš zobrať riešenie 
+úlohy~\ref{uloha:faktorial} a jednoducho počet núl na konci zrátať, ale
+dá sa to urobiť lepšie. 
+Každé prirodzené číslo $n$ sa dá rozložiť na súčin prvočísel\footnote{o prvočíslach bola 
+úloha~\ref{uloha:primetest}} takto: začnem s číslom $n$; ak je prvočíslo, tak super,
+inak má deliteľa a platí $n=a\cdot b$. No a v rozklade pokračujem pre $a$ aj $b$ dokola,
+až sa dopracujem k prvočíslam. Napríklad $120=20\cdot6=4\cdot5\cdot2\cdot3=
+2\cdot2\cdot5\cdot2\cdot3$. Je užitočné si uvedomiť, že síce môžem pri rozklade postupovať
+rôzne, vždy sa dostanem k rovnakým prvočíslam (možno
+v inom poradí)\footnote{%
+  Prečo to platí? Euklides by uvažoval takto: zoberiem si najmenšie číslo $s$,
+  pre ktoré môžem mať dva rôzne rozklady, t.j. 
+  $s=p_1\cdotp_2\cdots p_m=q_1\cdot q_2\cdots q_n$, kde $p$-čka aj $q$-čka sú prvočísla.
+  Keby nejaké $p_i=q_j$, tak ním $s$ vydelím a dostanem menšie číslo s dvoma rôznymi
+  rozkladmi, takže $p$-čka a $q$-čka sú rôzne. Dajme tomu, že $p_1<q_1$ (keby to tak nebolo,
+  tak premenujem $p$-čka a $q$-čka). Ak si označím $P=p_2\cdot p_3\cdots p_m$
+  a $Q=q_2\cdot q_3\cdots q_n$, tak vidím, že
+  $$s=p_1\cdot P = q_1\cdot Q$$
+  Z obidvoch strán môžem odrátať $p_1Q$ a stále dostanem nezáporné číslo, lebo $p_1<q_1$.
+  Budem teda mať
+  $$p_1P-p_1Q=q_1Q-p_1Q$$
+  Teraz využijem, že $ab-ac=a(b-c)$, čo ľahko vidno z plochy obdĺžnikov
+
+  \centerline{\tikz[xscale=0.45,yscale=0.6]{
+    \def\lup(#1,#2)#3{\draw decorate[
+       decoration={brace, amplitude=2ex}]{
+       (#1,1) -- (#2,1) node [align=center,midway,anchor=south,yshift=2ex] {#3}
+        };
+        }
+
+    \filldraw[fill=green!10!white](0,0) rectangle (3,1);
+    \filldraw[fill=yellow!10!white](3,0) rectangle (5,1);
+    \lup(0,3){$b-c$}
+    \lup(3,5){$c$}
+    \node[rotate=90,anchor=south] at(0,0.5){$a$};
+    \draw decorate[
+       decoration={brace, amplitude=2ex}]{
+       (5,0) -- (0,0) node [align=center,midway,anchor=north, inner sep=3ex] {$b$}
+        };
+    
+      }}
+  a dostanem
+  $$p_1(P-Q)=(q_1-p_1)Q<s$$
+  Číslo $(q_1-p_1)Q$ má jednoznačný rozklad na prvočísla (lebo je menšie ako $s$), a keďže
+  $p_1$ je prvočíslo, ktoré ho delí, 
+  tak niekde v tom rozklade je. Ale nemôže byť v rozklade $Q$, lebo
+  ten sa skladá so zamých $q$-čok a vieme, že $p$-čka a $q$-čka sú rôzne. Preto $p_1$ sa
+  nachádza v rozklade $q_1-p_1$. Lenže ak $p_1$ delí $q_1-p_1$, tak určite delí aj
+  $q_1$. Ale to nemôže, lebo $q_1$ je iné prvočíslo. To celé znamená, že nemôže existovať
+  najmenšie (a teda žiadne) číslo $s$, ktoré by nemalo jednoznačný rozklad na prvočísla.
+}. Napr. $120=5\cdot24=5\cdot6\cdot4=5\cdot2\cdot3\cdot2\cdot2$.
+
+Každá nula na konci čísla znamená, že číslo sa dá vydeliť desiatimi, a teda v prvočíselnom
+rozklade je jedna päťka a jedna dvojka. Napríklad 
+$$11! = 11\cdot10\cdot9\cdot8\cdot7\cdot6\cdot5\cdot4\cdot3\cdot2$$
+čo keď rozpíšeme, budeme mať
+$$11! = 11\cdot7\cdot5^2\cdot3^4\cdot2^8$$
+Na konci teda budú dve nuly. V prvočíselnom rozklade $n!$ bude vždy viac dvojek ako pätiek,
+preto stačí rátať päťky. Napr. pre $26!$ ich narátaš $6$: po jednej v číslach $5$, $10$, $15$,
+$20$ a dve v čísle $25$. Teraz sa už úloha~\ref{uloha:nulyfaktorialu} dá vyriešiť ľahko, napr.
+
+\ods
+\begin{lstlisting}[] 
+int nuly(int n) {
+  int z = 0;
+  while (n > 1) {
+    for (int i = 5; i <= n; i = i * 5)
+      if (n % i == 0) z++;
+    n--;
+  }
+  return z;
+}
+\end{lstlisting}
+
+
+Ako to ale súvisí s našim rozprávaním o binárnom vyhľadávaní? Pozrime sa na ''opačnú''
+úlohu:
+
+\begin{uloha}
+  Na vstupe je číslo $x>0$. Napíš program, ktorý vypíše najmenšie $n$ také, že na konci
+  $n!$ je $x$ núl.
+\end{uloha}
+
+Mohol by som ísť v cykle postupne od 1, vždy zavolať funkciu {\tt nuly} a zastaviť sa
+pri prvom čísle, ktoré má aspoň $x$ núl. 
+
+\ods 
+Čísla, ktorých faktoriál
+má na konci aspoň $x$ núl budem volať {\em dobré}, ostatné sú {\em zlé}.
+Pretože $(n+1)!=(n+1)\cdot n!$, tak všetky delitele $n!$ sú aj delitelia $(n+1)!$. To znamená,
+že pre rastúce $n$, núl na konci $n!$ iba pribúda, nikdy neubúda. Preto v postupnosti
+$1,2,3,4,\ldots$ sú najprv zlé čísla a potom od istého čísla už sú všetky dobré.
+Keby som vedel aspoň jedno dobré číslo $n_0$, môžem použiť binárne vyhľadávanie:
+pozriem sa, či je $+n_0/2$ dobré. Ak áno, najmenšie dobré číslo bude medzi $1$ a $n_0/2$,
+ak nie, bude medzi $n_0/2$ a $n_0$. Potom budem pokračovať rovnako ako pri binárnom
+vyhľadávaní. Ako ale nájdem $n_0$? Začnem od jednotky a budem vždy skúšať dvojnásobok:
+$2,4,8,16,\ldots,2^i,\ldots$. Časom sa dostanem až k nejakému dobrému číslu $n_0=2^i$, 
+ktoré určite
+nebude väčšie ako dvojnásobok najmenšieho dobrého čísla (lebo $n_0/2$ ešte dobré nebolo).
+Dostanem sa k nemu na $i$ pokusov. Keďže $i$ je také číslo, že $2^i=n_0$, platí
+$i=\log(n_0)$. Binárne vyhľadávanie tiež urobí najviac $\log(n_0)$ pokusov, dokopy
+teda môj program zavolá funkciu {\tt nuly} najviac $2\log(n)+3$ krát (čiže počet
+pokusov je logaritmický). 
+Program by mohol vyzerať takto:
+
+\ods
+\begin{lstlisting}[] 
+int main() {
+  int x;
+  cin >> x;
+  int l = 1, r = 1, m;
+  while (nuly(r) < x) r = 2 * r;
+  while (l < r - 1) {
+    m = (l + r) / 2;
+    if (nuly(m) < x) l = m;
+    else r = m;
+  }
+  if (nuly(l) >= x) cout << l << endl;
+  else cout << r << endl;
+}
+\end{lstlisting}
+
+Pre $x=5$ by sa postupne skúšali tieto hodnoty (červené sú zlé čísla a zelené dobré):
+
+\ods
+\centerline{
+\begin{tikzpicture}[scale=0.4]
+  \def\pal#1{\ifnumequal{#1}1{yellow!20!white}{\ifnumequal{#1}2{green!20!white}{red!10!white}}}
+  \def\krb(#1)#2{
+    \filldraw[fill=\pal#2](#1,0) rectangle (#1+1,1);
+    \node[anchor=north] at(#1+0.5,-0.1){{\scriptsize\tt #1}};
+  }
+  \def\mark(#1)#2{
+    \draw[blue,thick](#1,0)rectangle(#1+1,1);
+    \draw[blue, ->, shorten <= 2, shorten >=2] 
+    (#1+0.5,1.8) node[anchor=south]{{\small\tt #2}}  -- (#1+0.5,1);
+  }
+  \def\strip{
+    \foreach \i in {1,...,34} {
+      \def\clr{2}
+      \ifnumless{\i}{25}{\def\clr{3}}{}
+      \krb(\i){\clr}
+    }
+  }
+
+ \strip
+  \foreach \i in {1,2,4,8,16} {
+    \draw[blue] (\i+0.5,1) to [out=45,in=135]  (2*\i+0.5,1);
+     \draw[blue,thick](\i,0)rectangle(\i+1,1);
+  }
+     \draw[blue,thick](32,0)rectangle(32+1,1);
+
+  \foreach \l/\r [count=\i] in {1/32,16/32,24/32,24/28,24/26} {
+    \begin{scope}[shift={(0,-4*\i)}]
+      \pgfmathtruncatemacro{\tmp}{(\l+\r)/2}
+      \strip
+      \mark(\l){l}
+      \mark(\r){r}
+      \mark(\tmp){m}
+    \end{scope}
+  }
+\end{tikzpicture}}
+
+
+
+\ods Aký je rozdiel v rýchlosti medzi týmto programom a pôvodnou verziou, ktorá
+volala funkciu {\tt nuly} zaradom? Pre $n=20000$ mi pôvodná verzia bežala minútu
+a 17 sekúnd, kým tento program zbehol za 48 ms. 
+
+\ods
+Skúsme spoločne spraviť ešte jeden príklad:
+
+\begin{uloha}
+  Máme {\tt n} displejov, ktoré ukazujú hodnoty 
+  \hbox{{\tt p[0]}, {\tt p[1]}, \ldots, {\tt p[n-1]}.}
+  Zároveň pre $i$-ty displej môžme zaplatiť  {\tt m[i]} peňazí, aby sa
+  hodnota na ňom zvýšila o $1$.
+  Máme k dispozícii {\tt b} peňazí. Našim cieľom je, aby  displeje
+  ukazovali čo najväčšie čísla, teda aby najmenšie číslo, ktoré ukazuje nejaký
+  displej, bolo čo najväčšie. Napíš program, ktorý pre zadané polia {\tt p} a
+  {\tt m} a rozpočet {\tt b} zistí, aké najväčšie čísla môžu displeje ukazovať.
+  Napr. ak {\tt p} je {\tt 1 2 3}, {\tt m} je {\tt 2 3 1} a {\tt b} je $7$, tak
+  výsledok je $3$: dvakrát zaplatíme po $2$, aby sa prvý displej dostal na $3$
+  a raz zaplatíme $3$, aby sa aj druhý displej dostal na $3$. Spotrebovali sme akurát $7$
+  peňazí a dosiahli sme, že na všetkých displejoch je aspoň trojka.
+\end{uloha}
+
+Opäť použijeme binárne vyhľadávanie nad výsledkami. Máme nájsť maximálne číslo, ktoré
+vieme s našim rozpočtom {\tt b} dosiahnuť. Ako by sa dalo zistiť, či vieme dosiahnuť
+nejaké číslo {\tt k}? To je jednoduché: ak je na nejakom displeji číslo {\tt p[i]} menšie,
+ako {\tt k}, musíme doplatiť {\tt m[i]*(k-p[i])}, aby sme ho dostali na hodnotu {\tt k}.
+Toto skontrolujeme pre všetky displeje a overíme, či nám na to vystačia peniaze:
+
+\begin{lstlisting}
+bool test(int k) {
+  int sum = 0;
+  for (int i = 0; i < n; i++)
+    if (p[i] < k) sum += m[i] * (k - p[i]);
+  return sum <= b;
+}
+\end{lstlisting}
+
+V hlavnom programe použijeme binárne vyhľadávanie:
+
+\begin{lstlisting}
+ while (l < r - 1) { 
+    x = (l + r) / 2;
+    if (test(x))
+      l = x;
+    else
+      r = x;
+  } 
+\end{lstlisting}
+
+Keď cyklus skončí, budú iba dvaja možní kandidáti na správnu hodnotu: {\tt l} a {\tt r}.
+Preto stačí overiť
+
+\begin{lstlisting}
+  if (test(r))
+    cout << r << endl;
+  else
+    cout << l << endl;
+\end{lstlisting}
+
+Posledná otázka je, ako na začiatku nastaviť {\tt l} a {\tt r}. Aj keby sme nezaplatili nič,
+vieme získať hodnotu najmenšieho displeja, preto začneme s \prg!l=min(p)!, kde funkcia
+{\tt min} vyráta najmenšiu hodnotu z poľa. 
+
+\begin{lstlisting}
+int min(vector<int> &a) {
+  int res = a[0];
+  for (int i = 1; i < a.size(); i++)
+    if (a[i] < res) res = a[i];
+  return res;
+} 
+\end{lstlisting}
+
+Podobne môžme na začiatku nastaviť \prg!r=max(p)+b!.
+
+\ods Tu je niekoľko úloh podobného typu:
+
+\begin{uloha}
+  Máme $n$ obdĺžnikov s výškami {\tt a[0]},\ldots,{\tt a[n-1]}, ktoré môžme {\em odpíliť}
+  takto: nastavíme výšku {\tt h} a z každého obdľžnika zoberieme časť, ktorá prečnieva
+  cez {\tt h}. Napíš program, ktorý pre zadané pole {\tt a} a číslo {\tt m} nájde
+  najväčšie číslo {\tt h}, pri ktorom z odpílených obdĺžnikov  zozbierame aspoň {\tt m}.
+  Napr. pre obdĺžniky {\tt 14 42 40 26 46} a {\tt m}$=20$ je odpoveď $36$, lebo s
+  výškou {\tt h}$=36$ pozbierame
+$0+6+4+0+10=20\ge20$.
+
+\ods
+\begin{tikzpicture}[xscale=0.7,yscale=0.06]
+  \def\bar(#1,#2){
+    \node[anchor=north] at (#1+0.5,0) {$#2$};
+    \ifnumless{#2}{36}{
+    \filldraw[draw=black,fill=\prf](#1,0) rectangle (#1+1,#2);
+  }{
+    \filldraw[draw=black,fill=\prf](#1,0) rectangle (#1+1,36);
+    \filldraw[draw=black,fill=\act](#1,36) rectangle (#1+1,#2);
+  }
+  }
+  \def\prf{orange!60!white}
+  \def\rst{rgb:green,5;yellow,4;blue,2;black,3}
+  \def\act{rgb:blue,8;green,4;white,17}
+
+    \foreach \x[count=\i] in {14,42,40,26,46} {
+      \bar(\i,\x)
+    }
+    \draw[dashed](0.5,36)--(8,36) node[anchor=west]{$36$};
+\end{tikzpicture}
+
+\end{uloha}
+
+
+% zlozitost mergesort
 
 \fi
 
-% binarne vyhladavanie: median z dvoch poli, susenie pradla,
-% knihy - rozdelit na k suvislych casti, minimalizovat sucet 
+% binarne vyhladavanie:  pocet rovnakych riadkov? susenie pradla,
+% knihy - rozdelit na k suvislych casti, minimalizovat sucet  (43)
+% kravy - pozicie (297)
+% eko (11814)
 
-% algoritmy v stl: triedenie, vyhladavanie, iteratory
+% algoritmy v stl: triedenie, lambda (ryby a vtaci), vyhladavanie, iteratory
 
 % komplexne cisla, projekt mandelbrot
 
-% projekt piskvory (dedenie, pripomenut iteratory)
-
 % set a stromy
+
+% projekt piskvory (dedenie, pripomenut iteratory) + grafika SDL?
+
 
 % grafy?
 
 % urobit ulohy s lepsou zlozitostou
 
+%retazce, nasobenie cisel
 % nahodne cisla: generator terenu 
 
 % AI - hra, NN
