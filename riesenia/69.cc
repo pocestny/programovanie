@@ -1,50 +1,31 @@
 #include <iostream>
-#include <vector>
 using namespace std;
 
-int n, b;
-vector<int> p, m;
-
-bool test(int k) {
-  int sum = 0;
-  for (int i = 0; i < n; i++)
-    if (p[i] < k) sum += m[i] * (k - p[i]);
-  return sum <= b;
-}
-
-int min(vector<int> &a) {
-  int res = a[0];
-  for (int i = 1; i < a.size(); i++)
-    if (a[i] < res) res = a[i];
-  return res;
-}
-
-int max(vector<int> &a) {
-  int res = a[0];
-  for (int i = 1; i < a.size(); i++)
-    if (a[i] > res) res = a[i];
-  return res;
+int nuly(int n) {
+  int z = 0;
+  while (n > 1) {
+    for (int i = 5; i <= n; i = i * 5)
+      if (n % i == 0) z++;
+    n--;
+  }
+  return z;
 }
 
 int main() {
-  int t;
-  cin >> t;
-  while (t-- > 0) {
-    cin >> n >> b;
-    p.resize(n);
-    m.resize(n);
-    for (int i = 0; i < n; i++) cin >> p[i] >> m[i];
-    int l = min(p), x, r = max(p) + b;
-    while (l < r - 1) {
-      x = (l + r) / 2;
-      if (test(x))
-        l = x;
-      else
-        r = x;
-    }
-    if (test(r))
-      cout << r << endl;
+  int x;
+  cin >> x;
+  int l = 1, r = 1, m;
+  while (nuly(r) < x) r = 2 * r;
+  while (l < r - 1) {
+    cout<<l<<" "<<r<<endl;
+    m = (l + r) / 2;
+    if (nuly(m) < x)
+      l = m;
     else
-      cout << l << endl;
+      r = m;
   }
+  if (nuly(l) >= x)
+    cout << l << endl;
+  else
+    cout << r << endl;
 }

@@ -1,33 +1,26 @@
 #include <iostream>
+#include <vector>
 using namespace std;
-
-int najdi(int n, int *a, int x) {
-  int l = 0, r = n - 1, m;
-  if (a[l] > x) return -1;
-  if (a[l] == x) return l;
-  if (a[r] < x) return n;
-  while (l < r - 1) {
-    m = (l + r) / 2;
-    if (a[m] >= x)
-      r = m;
-    else
-      l = m;
-  }
-  if (a[r] >= x) return r;
-  return r + 1;
-}
-
-int pocet(int n, int *a, int k) { 
-  return najdi(n, a, k + 1) - najdi(n, a, k); 
-}
+const int base = 10;
 
 int main() {
-  int n, *a;
+  int n;
+  vector<int> a;
   cin >> n;
-  a = new int[n];
-  for (int i = 0; i < n; i++) cin >> a[i];
-  int k;
-  cin >> k;
-  cout << pocet(n, a, k) << endl;
-  delete[] a;
+  a.push_back(1);
+  while (n > 1) {
+    int prenos = 0;
+    for (int i = 0; i < a.size(); i++) {
+      int s = n * a[i] + prenos;
+      a[i] = s % base;
+      prenos = s / base;
+    }
+    while (prenos > 0) {
+      a.push_back(prenos % base);
+      prenos = prenos / base;
+    }
+    n--;
+  }
+  for (int i = a.size() - 1; i >= 0; i--) cout << a[i];
+  cout << endl;
 }
