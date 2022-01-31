@@ -1,33 +1,30 @@
 #include <iostream>
+#include <sstream>
+#include <string>
 using namespace std;
 
-int najdi(int n, int *a, int x) {
-  int l = 0, r = n - 1, m;
-  if (a[l] > x) return -1;
-  if (a[l] == x) return l;
-  if (a[r] < x) return n;
-  while (l < r - 1) {
-    m = (l + r) / 2;
-    if (a[m] >= x)
-      r = m;
-    else
-      l = m;
-  }
-  if (a[r] >= x) return r;
-  return r + 1;
-}
-
-int pocet(int n, int *a, int k) { 
-  return najdi(n, a, k + 1) - najdi(n, a, k); 
-}
-
 int main() {
-  int n, *a;
-  cin >> n;
-  a = new int[n];
-  for (int i = 0; i < n; i++) cin >> a[i];
-  int k;
-  cin >> k;
-  cout << pocet(n, a, k) << endl;
-  delete[] a;
+  string s;
+  stringstream in, out;
+  double pi;
+
+  out << "0.";
+  while (cin.good()) {
+    getline(cin, s);
+    int i = 0, j;
+    while ((i = s.find("#", i)) != string::npos) {
+      j = s.find("#", i + 1);
+      in.clear();
+      in.str(s.substr(i + 1, j - i - 1));
+      int n;
+      for (in >> n; !in.fail(); in >> n) {
+        out << n;
+      }
+      i = j + 1;
+    }
+  }
+  out >> pi;
+  pi = 10 * pi;
+  cout << out.str() << endl;
+  cout << pi << endl;
 }

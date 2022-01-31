@@ -60,6 +60,11 @@ struct Puch {
 
   int a, b, c;
 
+  Puch(int _a, int _b, int _c) {
+    a = _a;
+    b = _b;
+    c = _c;
+  }
   iterator begin() { return iterator(this, &a); }
   iterator end() { return iterator(this, nullptr); }
 };

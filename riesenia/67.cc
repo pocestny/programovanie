@@ -1,41 +1,33 @@
 #include <iostream>
-#include <vector>
 using namespace std;
 
-const int vela = 1 << 30;
-
-int max(int a, int b) {
-  if (a > b) return a;
-  return b;
-}
-int min(int a, int b) {
-  if (a < b) return a;
-  return b;
-}
-
-int stredny(int n, vector<int> &a, vector<int> &b) {
-  int i = n / 2;
-  while (true) {
-    if (max(a[i], b[n - i]) <= min(a[i + 1], b[n - i + 1]))
-      return max(a[i], b[n - i]);
-    if (a[i] > b[n - i])
-      i = i / 2;
+int najdi(int n, int *a, int x) {
+  int l = 0, r = n - 1, m;
+  if (a[l] > x) return -1;
+  if (a[l] == x) return l;
+  if (a[r] < x) return n;
+  while (l < r - 1) {
+    m = (l + r) / 2;
+    if (a[m] >= x)
+      r = m;
     else
-      i = (n + i + 1) / 2;
+      l = m;
   }
+  if (a[r] >= x) return r;
+  return r + 1;
+}
+
+int pocet(int n, int *a, int k) { 
+  return najdi(n, a, k + 1) - najdi(n, a, k); 
 }
 
 int main() {
-  vector<int> a, b;
-  int n;
+  int n, *a;
   cin >> n;
-  a.resize(n + 1);
-  b.resize(n + 1);
-  a[0] = -vela;
-  b[0] = -vela;
-  for (int i = 1; i <= n; i++) cin >> a[i];
-  for (int i = 1; i <= n; i++) cin >> b[i];
-  a.push_back(vela);
-  b.push_back(vela);
-  cout << stredny(n, a, b) << endl;
+  a = new int[n];
+  for (int i = 0; i < n; i++) cin >> a[i];
+  int k;
+  cin >> k;
+  cout << pocet(n, a, k) << endl;
+  delete[] a;
 }
