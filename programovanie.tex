@@ -89,6 +89,7 @@
 \def\sectxxii{1} % binarne vyhladavanie
 \def\sectxxiii{1} % algoritmy v STL
 \def\sectxxiv{1} % komplexne cisla
+\def\sectxxv{1} % set a map, stromy
 \fi
 
 %% ALL OFF
@@ -119,6 +120,7 @@
 \def\sectxxii{0} % binarne vyhladavanie
 \def\sectxxiii{0} % algoritmy v STL
 \def\sectxxiv{0} % komplexne cisla
+\def\sectxxv{0} % set a map, stromy
 \fi
 
 
@@ -1786,8 +1788,14 @@ rovná súčtu obsahov štvorcov nad odvesnami. Alebo kratšie, $c^2=a^2+b^2$:
   \end{tikzpicture}
 }
 
-\ods Prečo to platí ľahko vidno z tohto obrázka. Vo veľkom štvorci sa iba premiestnili
-farebné trojuholníky, takže plocha bielej časti v oboch častiach musí byť rovnaká:
+\ods Prečo to platí ľahko vidno z nasledujúceho obrázka. 
+Vľavo sú štyri rovnaké trojuholníky naukladané do štvorca. 
+Pri každom bode v strede strany sú dva rôzne uhly z trojuholníkov,
+ktoré dokopy dajú $90^\circ$ (súčet uhlov v trojuholníku je $180^\circ$).
+Preto biela vec vovnútri je štvorec.
+Vo veľkom štvorci sa iba premiestnili
+farebné trojuholníky a vznikol obrázok vpravo, takže plocha bielej časti v oboch 
+obrázkoch musí byť rovnaká:
 
 \ods
 \centerline{\begin{tikzpicture}[scale=0.55]
@@ -6467,7 +6475,8 @@ adresu premennej {\tt res} ako výsledok? Zatiaľ si v programoch videl tzv. {\t
 (meno premennej, referencia, t.j. niečo, čo môže stáť na ľavej strane priradenia)
 a {\tt rvalue} (konštanta, volanie funkcie, tiež meno premennej, t.j. čokoľvek,
 čo môže stáť na pravej strane priradenia). C++ má navyše aj tzv. {\tt xvalue}
-(napr. premenná pri volaní \prg!return!, čo je {\tt lvalue}, ktorá zároveň
+({\em expiring value}, napr. lokálna premenná pri volaní \prg!return!, 
+čo je {\tt lvalue}, ktorá zároveň
 kompilátoru hovorí \cmd{s mojimi datami si môžeš robiť, čo chceš, aj tak 
 budem za chvíľu volať deštruktor}) a {\tt prvalue} (napr. dočasná premenná,
 v ktorej je uložený výsledok výrazu pri volaní; ak volám \prg!pridaj(4+7)!,
@@ -6477,12 +6486,13 @@ optimalizovať veci tak, aby sa vyhol kopírovaniu. Na to treba, aby tvoja
 trieda mala tzv. {\em move constructor} a {\em move assignment} 
 (všetky STL triedy ako \prg!vector!, 
 \prg!string! a pod. ich majú). Takže keby si okrem copy konštruktora 
-\prg!Tabulka(Tabulka& x)! mal aj konštruktor \prg!Tabulka(Tabulka&& x)! (s dvoma
-ampersandami) a operátor  \prg!Tabulka& operator=(const Tabulka&& x)!
-kompilátor by pri volaní \prg!return res;! vedel, že nemusí kopírovať, ale môže použiť
-presun. Samozrejme, je dôležité, aby sa move konštruktor/operátor postaral o to, že následné
-volania deštruktora {\tt x} bude v poriadku, napr. 
-\prg!data = x.data; x.data = nullptr; return *this;!.
+\prg!Tabulka(Tabulka& x)! mal aj move konštruktor \prg!Tabulka(Tabulka&& x)! (s dvoma
+ampersandami) a move operátor  \prg!Tabulka& operator=(const Tabulka&& x)!,
+kompilátor by pri volaní \prg!return res;! zavolal move operátor. Ten namiesto
+kopírovania dát môže len priradiť pointer.
+Samozrejme, je dôležité, aby sa  postaral o to, že následné
+volanie deštruktora {\tt x} bude v poriadku, napr. 
+\prg!Tabulka\& operator=(const Tabulka\&\& x)\{m=x.m; n=x.n; data=x.data; x.data=nullptr; return *this;\}!.
 Na explicitné pretypovanie z {\tt lvalue} na {\tt xvalue} slúži
 funkcia {\tt move}, napr.
 
@@ -6588,6 +6598,7 @@ int main() {
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \if\sectxxii1
 \section{Binárne vyhľadávanie a logaritmy}
+\label{sect:binarysearch}
 
 Hrajme takúto hru: myslím si číslo od 1 po $N$ a tvojou úlohou je ho uhádnuť. Môžeš
 sa opýtať na nejaké číslo a ja ti odpoviem \cmd{viac}, \cmd{menej} alebo \cmd{uhádol si}.
@@ -8378,8 +8389,8 @@ to dokáže spraviť aj $10\times$ rýchlejšie.
 \ods
 A ešte jedna poznámka. V knižnici \prg!#include<complex>! je definovaný typ
 \prg!complex! na príjemnejšiu prácu s kompexnými číslami.
-Je to šablóna, ktorá ako parameter dostane typ súradníc, napr. \prg!complex<doube>!.
-Komplexné čísla môžeš ich sčitovať
+Je to šablóna, ktorá ako parameter dostane typ súradníc, napr. \prg!complex<double>!.
+Komplexné čísla môžeš  sčitovať
 a násobiť ako normálne čísla, načítavať zo vstupu v tvare napr. {\tt (-0.65,0)}
 a pod. Ak máš \prg!complex<double> z!, tak \prg!z.real()! je $x$-ová (reálna) súradnica, 
 \prg!z.imag()! je $y$-ová (imaginárna) súradnica, \prg!norm(z)! je $x^2+y^2$,
@@ -8460,7 +8471,7 @@ pre dané {\tt x} zistí\footnote{%
   napr. binárnym vyhľadávaním, aj keď pre málo zlomových bodov je 
   binárne vyhľadávanie overkill},
   bedzi ktorými zlomovými bodmi sa nachádza, a vráti príslušnú interpoláciu.
-  Gradient s troba zlomovými bodmi vyzerá napríklad takto:
+  Gradient s troma zlomovými bodmi vyzerá napríklad takto:
   
 \ods
 \centerline{\begin{tikzpicture}[xscale=5,yscale=2.2,
@@ -8594,6 +8605,326 @@ Gradient g(
 
 \fi
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectxxv1
+\section{vyhľadávacie stromy: \prg!<set>! a \prg!<map>! v STL}
+
+Pri farbení Mandelbrotovej množiny v závere minulej kapitoly som robil túto vec:
+''{\em \ldots pre každý počet iterácií } [som] {\em našiel maximálnu a minimálnu hodnotu
+\ldots}''. Ak si sa pozrel do môjho programu, tak si videl, že som trochu cheatoval
+a použil som typ \prg!map! z STL, o ktorom som ti doteraz nehovoril. Ale v tejto
+kapitole to chcem napraviť. Začnime jednoduchou rozcvičkou:
+
+\begin{uloha}
+  Na vstupe je číslo $n$. A potom postupnosť príkazov. Každý príkaz je tvaru
+  {\tt ! x} alebo {\tt ? x} a posledný príkaz je {\tt \#}. 
+  Predpokladajme, že máme $n$ žiaroviek očíslovaných $1,\ldots,n$, 
+  ktoré su na začiatku vypnuté. Príkaz {\tt ! x} znamená, že sme prepli žiarovku
+  číslo $x$ (ak bola vypnutá, bude zapnutá a naopak). Pr každý príkaz {\tt ? x}
+  treba vypísať, {\tt svieti} alebo {\tt nesvieti} podľa toho, v akom stave je práve žiarovka
+  číslo $x$.
+\end{uloha}
+
+Jednou z možností, ako túto úlohu vyriešiť, bolo urobiť si vektor $n$ hodnôt typu \prg!bool!,
+napr. \prg!vector<bool> a(n,false)! tak, že v \prg!a[i]! si budeme udržiavať stav $i$-tej
+žiarovky. Predpokladajme teraz ale, že by žiarovky neboli očíslované $1$ až $n$, ale
+že by mali iba výrobné čísla. Vstup by mohol vyzerať napríklad:
+\begin{verbatim}
+! 3736272
+! 843984
+? 3736272
+! 84872634
+! 72876
+? 99
+? 843984
+#
+\end{verbatim}
+
+Problém je, že nevieme, aké výrobné čísla sa na vstupe objavia. Nemôžme si držať v pamäti 
+pole pre všetky možné čísla, takže chceme mať zapamätané iba tie žiarovky, ktoré sme 
+už videli. Teraz ale stoja proti sebe dve veci: ak chcem nájsť stav žiarovky s číslom 
+{\tt id}, hodilo by sa mi mať žiarovky utriedené podľa čísla: mohol by som použiť
+binárne vyhľadávanie, aby som zistil, či {\tt id} svieti. Ak ich utriedené nemám,
+musím zakaždým prejsť všetky, čo trvá dlho. Na druhej strane, keď sa  objaví nová
+žiarovka, ľahko ju pridám na koniec, ale potom nebudú utriedené. Musel by som 
+všetky žiarovky v poli poposúvať, čo zase trvá dlho. 
+Riešenie je namiesto poľa (vektora) použiť dátovú štruktúru, ktorá nemá všetky dáta
+v jednom kuse pamäte, ale vo viacerých, ktoré na seba navzájom ukazujú pointrami. Tým
+sa bude dať docieliť, že pri vkladaní mového prvku
+bude namiesto posúvania všetkých hodnôt stačiť presmerovať
+zopár pointrov. 
+
+\ods Aby som ti ukázal, ako také štruktúry fungujú, začnime s jednoduchším príkladom
+a k žiarovkám sa vrátime na konci kapitoly.
+
+\begin{uloha}
+  Úradník má kartotéku, kde má uložené spisy očíslované $0,1,\ldots,n-1$ (na začiatku
+  v tomto poradí).
+  Keď potrebuje nájsť spis $i$, začne prehľadávať zaradom os začiatku kartotéky
+  a vždy prečíta číslo spisu, až kým nenájde ten, s číslom $i$. Ten potom použije a 
+  uloží na začiatok kartotéky. Napíš program, ktorý má na vstupe čísla $n, m$ a potom
+  $m$ čísel spisov (medzi 0 a $n-1$). Pre každé číslo spisu vypíš riadok, v ktorom 
+  sú čísla spisov, ktoré úradník prečítal pri hľadaní. Napríklad
+
+  \ods
+  \bp
+  \begin{verbatim}
+6 4
+5
+3
+4
+1
+\end{verbatim}
+\ep
+\bp
+\begin{verbatim}
+0 1 2 3 4 nasiel som 5!
+5 0 1 2 nasiel som 3!
+3 5 0 1 2 nasiel som 4!
+4 3 5 0 nasiel som 1!
+\end{verbatim}
+\ep
+\end{uloha}
+
+Na riešenie použijeme dátovú štruktúru {\em spájaný zoznam} ({\em linked list}).
+Každý prvok zoznamu je uložený v samostatne alokovanej pamäti a má pointer
+na nasledujúci prvok. Spravíme si typ
+
+\begin{lstlisting}
+struct Node {
+  int val;
+  Node *nxt;
+  Node(int _val = -1, Node *_nxt = nullptr) {
+    val = _val;
+    nxt = _nxt;
+  }
+};
+\end{lstlisting}
+
+v ktorom bude jeden prvok zoznamu. V programe budeme mať zoznam zapamätaný iba pointrom
+na jeho začiatok \prg!Node *head;! Zoznam {\tt [0 1 2 3 4 5]} by v pamäti vyzeral takto:
+    
+
+    \def\llnode(#1,#2)[#3]#4{
+      \begin{scope}[shift={(#1,#2)}]
+        \draw [\nodecolor, rounded corners=2pt] (-0.5,-0.5) rectangle (0.5,0.5)
+        (-0.5,0) -- (0.5,0)
+        (-0.5,0.25) node [anchor=west]{{\tt val:}}
+        (0.3,0.25) node[anchor=center]{{\tt #4}}
+        (-0.5,-0.25) node [anchor=west]{{\tt nxt:}}
+        (0.3,-0.25) node[anchor=center] {$\bullet$};
+        \coordinate (n#3) at (0.3,-0.25);
+        \coordinate (b#3) at (-0.5,0.25);
+      \end{scope}
+    }
+
+    \def\head(#1,#2){
+      \node[\nodecolor,anchor=east] (head) at (#1,#2) {{\tt head:}};
+      \node[\nodecolor,right = 0mm of head, ] (headbullet) {$\bullet$};
+    }
+
+\ods
+\centerline{
+  \begin{tikzpicture}[xscale=1.4*0.8,yscale=0.8]
+    {\small
+    \def\nodecolor{cyan!50!blue}
+    \foreach \v/\c[count =\i] in {0/A, 1/B, 2/C, 3/D, 4/E, 5/F} {
+      \llnode(1.5*\i,0.5)[\c]{\v}
+    }
+    \foreach \x/\y in {A/B, B/C, C/D, D/E, E/F} {
+    \draw[->,\nodecolor,shorten >= 0.15ex](n\x) to[out=0, in=180] (b\y);
+    }
+    \head(0,0);
+    \draw[\nodecolor,->, shorten >= 0.15ex] (headbullet) to[out=0,in=180] (bA);
+    \draw[\nodecolor,-|] (nF) to [out=0,in=90] ++(0.5,-0.5);
+    }
+  \end{tikzpicture}
+}
+
+\ods
+Vyrobíme ho jednoducho:
+
+\begin{lstlisting}
+head = nullptr;
+for (int i = 0; i < n; i++)
+  head = new Node(n - 1 - i, head);
+\end{lstlisting}
+
+V cykle vždy pri vyhodnocovaní pravej strany priradenia 
+vyrobíme novú premennú typu {\tt Node}, v ktorej nastavíme {\tt val}
+na správnu hodnotu a {\tt nxt} na rovnaké miesto, ako v práve ukazuje {\tt head}.
+V priradení potom nastavíme {\tt head}, aby ukazoval na túto novú premennú.
+
+\ods
+\centerline{
+
+  \begin{tikzpicture}[xscale=1.4*0.8, yscale=0.8]
+    {\small
+    \def\nodecolor{cyan!50!blue}
+    \foreach \v/\c[count =\i] in {4/A, 5/B} {
+      \llnode(0.8+1.5*\i,0.5)[\c]{\v}
+    }
+    \foreach \x/\y in {A/B} {
+    \draw[->,\nodecolor,shorten >= 0.15ex](n\x) to[out=0, in=180] (b\y);
+    }
+    \head(0,0);
+    \draw[\nodecolor,->, shorten >= 0.15ex] (headbullet) to[out=0,in=180] (bA);
+    \draw[\nodecolor,-|] (nB) to [out=0,in=90] ++(0.5,-0.5);
+    
+    \def\nodecolor{orange!80!black}
+    \llnode(0.5,1.2)[C]{3}
+    \draw[\nodecolor,->, shorten >= 0.15ex] (nC) to [out=0,in=90] ($(bA)+(0.5,0.25)$);
+    }  
+  \end{tikzpicture}
+  \hfill
+  \begin{tikzpicture}[xscale=1.4*0.8,yscale=0.8]
+    {\small
+    \def\nodecolor{cyan!50!blue}
+    \foreach \v/\c[count =\i] in {4/A, 5/B} {
+      \llnode(1.5+1.5*\i,0.5)[\c]{\v}
+    }
+    \foreach \x/\y in {A/B} {
+    \draw[->,\nodecolor,shorten >= 0.15ex](n\x) to[out=0, in=180] (b\y);
+    }
+    \head(0,0);
+    
+    \llnode(1.5,0.5)[C]{3}
+    \draw[\nodecolor,->, shorten >= 0.15ex] (nC) to [out=0,in=180] (bA);
+    
+    \draw[\nodecolor,-|] (nB) to [out=0,in=90] ++(0.5,-0.5);
+    
+    \def\nodecolor{orange!80!black}
+    \draw[\nodecolor,->, shorten >= 0.15ex] (headbullet) to[out=0,in=180] (bC);
+   }
+  \end{tikzpicture}
+}
+
+\ods
+Povedzme, že už máme vyrobený zoznam a máme v ňom nájsť hodnotu {\tt x}\footnote{%
+a sme si istí, že {\tt x} sa v zozname nachádza, takže nemusíme kontrolovať, či sme
+prišli na koniec zoznamu}. Spravím si premennú {\tt Node *p = heaad;}, s ktorou pôjdem
+po zozname
+
+\begin{lstlisting}
+while (p->val != x) p = p->nxt;
+\end{lstlisting}
+
+Teraz budem v situácii, že {\tt p} ukazuje na hľadaný prvok:
+
+\ods
+\centerline{
+  \begin{tikzpicture}[xscale=1.4*0.8,yscale=0.8]
+    {\small
+    \def\nodecolor{cyan!50!blue}
+    \foreach \v/\c[count =\i] in {0/A, 1/B, 2/C, 3/D, 4/E, 5/F} {
+      \llnode(1.5*\i,0.5)[\c]{\v}
+    }
+    \foreach \x/\y in {A/B, B/C, C/D, D/E, E/F} {
+    \draw[->,\nodecolor,shorten >= 0.15ex](n\x) to[out=0, in=180] (b\y);
+    }
+    \head(0,0);
+    \draw[\nodecolor,->, shorten >= 0.15ex] (headbullet) to[out=0,in=180] (bA);
+    \draw[\nodecolor,-|] (nF) to [out=0,in=90] ++(0.5,-0.5);
+    
+    \def\nodecolor{orange!80!black}
+    \draw[\nodecolor,->, shorten >= 0.15ex ] (4*1.5,1.5) node[anchor=south]{{\tt p}} 
+    -- ++(0,-0.5);
+    }
+  \end{tikzpicture}
+}
+
+\ods Ako presunúť nájdený prvok na začiatok zoznamu? Najprv ho vypojím a potom napojím
+na začiatok. Na vypojenie potrebujem nastaviť {\tt nxt} v predchodcovi na {\tt p->nxt}.
+Preto si upravím cyklus, ktorým prechádzam zoznam tak, aby som našiel aj predchodcu {\tt p}:
+
+\begin{lstlisting}
+Node *p = head, *prev = nullptr;
+while (p->val != x) {
+  prev = p;
+  p = p->nxt;
+}
+if (prev != nullptr) 
+  prev->nxt = p->nxt;
+\end{lstlisting}
+
+\ods
+\centerline{
+  \begin{tikzpicture}[xscale=1.4*0.8,yscale=0.8]
+    {\small
+    \def\nodecolor{cyan!50!blue}
+    \foreach \v/\c[count =\i] in {0/A, 1/B, 2/C, 3/D, 4/E, 5/F} {
+      \llnode(1.5*\i,0.5)[\c]{\v}
+    }
+    \foreach \x/\y in {A/B, B/C, D/E, E/F} {
+    \draw[->,\nodecolor,shorten >= 0.15ex](n\x) to[out=0, in=180] (b\y);
+    }
+    \head(0,0);
+    \draw[\nodecolor,->, shorten >= 0.15ex] (headbullet) to[out=0,in=180] (bA);
+    \draw[\nodecolor,-|] (nF) to [out=0,in=90] ++(0.5,-0.5);
+    
+    \def\nodecolor{orange!80!black}
+    \draw[\nodecolor,->, shorten >= 0.15ex ] (4*1.5,1.5) node[anchor=south]{{\tt p}} 
+    -- ++(0,-0.5);
+    
+    \def\nodecolor{green!50!black}
+    \draw[\nodecolor,->, shorten >= 0.15ex ] (3*1.5,1.5) node[anchor=south]{{\tt prev}} 
+    -- ++(0,-0.5);
+     
+     \draw[\nodecolor,->, shorten <= 0.5ex, shorten >= 0.15ex ] (nC) to [out=-80,in=270]
+     ($(bE)+(0.5,-0.75)$);
+ 
+
+    }
+  \end{tikzpicture}
+}
+
+\ods
+Teraz môžem presunúť {\tt p} na začiatok podobne, ako pri vytváraní zoznamu:
+
+\begin{lstlisting}
+p->nxt = head;
+head = p;
+\end{lstlisting}
+
+\ods Celé riešenie potom vyzerá takto:
+
+\begin{lstlisting}
+int main() {
+  int n, m;
+  cin >> n >> m;
+  Node *head = nullptr;
+  for (int i = 0; i < n; i++)
+    head = new Node(n - 1 - i, head);
+  while (m > 0) {
+    m--;
+    int x;
+    cin >> x;
+    Node *p = head, *prev = nullptr;
+    while (p->val != x) {
+      cout << p->val << " ";
+      prev = p;
+      p = p->nxt;
+    }
+    cout<<"nasiel som "<<x<<"!"<<endl;
+    if (prev != nullptr) {
+      prev->nxt = p->nxt;
+      p->nxt = head;
+      head = p;
+    }
+  }
+}
+\end{lstlisting}
+
+\begin{uloha}
+  Pri riešení úlohy~\ref{uloha:mergesort} (MergeSort) v kapitole~\ref{sect:binarysearch}
+  sme v operácii {\em merge}
+  vždy prechádzali dve polia a výsledok kopírovali do tretieho. Napíš program na 
+  triedenie algoritmom {\em MergeSort}, ktorý používa spájané zoznamy (funkcia
+  {\tt sort} dostane ako parameter začiatok zoznamu) a nekopíruje
+  dáta.
+\end{uloha}
+
+\fi
 
 
 % set a stromy
@@ -8607,8 +8938,7 @@ Gradient g(
 
 % urobit ulohy s lepsou zlozitostou
 
-%retazce, nasobenie cisel
-% nahodne cisla: generator terenu 
+% nahodne cisla: generator terenu ?
 % grafika: suradnicove sustavy?
 
 % AI - hra, NN
