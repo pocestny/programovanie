@@ -8547,8 +8547,9 @@ Druhý problém je, akú hodnotu použiť namiesto počtu iterácií, aby sa men
 Po troche hrania sa mi osvedčilo toto: pre každý pixel si zapamätám počet iterácií a
 jeho veľkosť v čase keď prekročil hranicu (kvôli väšej plynulosti beriem logaritmus
 z veľkosti; v knižnici {\tt cmath} je na to funkcia {\tt log}). Potom, keď som mal
-hotový celý obrázok, tak som pre každý počet iterácií našiel maximálnu a minimálnu hodnotu
-a potom každý pixel naškáloval.
+hotový celý obrázok, tak som zistil všetky počty iterácií, ktoré sa vyskytli a pre každý počet iterácií našiel maximálnu a minimálnu hodnotu
+veľkosti. Každý pixel potom dostal okrem počtu iterácií aj desatinnú časť, ktorá závisela od
+jeho veľkosti (relatívne k maximálnej a minimálnej veľkosti pre tento počet iterácií).
 
 \ods
 \bp
@@ -8701,7 +8702,12 @@ struct Node {
 };
 \end{lstlisting}
 
-v ktorom bude jeden prvok zoznamu. V programe budeme mať zoznam zapamätaný iba pointrom
+v ktorom bude jeden prvok zoznamu\footnote{%
+  Možno ťa zaskočilo, že súčasťou typu {\tt Node} je premenná {\tt nxt}, ktorá
+  je pointer na typ {\tt Node}. Nie je v tom ale nič zvláštne -- pointer je iba číslo
+  adresy v pamäti. Typ pointra (v našom prípade {\tt Node *}) iba hovorí kompilátoru,
+  že na adrese uloženej v premennej {\tt nxt} má očakávať premennú typu {\tt Node}.
+  }. V programe budeme mať zoznam zapamätaný iba pointrom
 na jeho začiatok \prg!Node *head;! Zoznam {\tt [0 1 2 3 4 5]} by v pamäti vyzeral takto:
     
 
@@ -8788,7 +8794,7 @@ V priradení potom nastavíme {\tt head}, aby ukazoval na túto novú premennú.
     }
     \head(0,0);
     
-    \llnode(1.5,0.5)[C]{3}
+    \llnode(1.5,1.2)[C]{3}
     \draw[\nodecolor,->, shorten >= 0.15ex] (nC) to [out=0,in=180] (bA);
     
     \draw[\nodecolor,-|] (nB) to [out=0,in=90] ++(0.5,-0.5);
@@ -8924,14 +8930,212 @@ int main() {
   dáta.
 \end{uloha}
 
+\ods
+Spájaný zoznam a pole sú v istom zmysle opakom jeden druhého: v poli sa dá jednoducho prejsť
+na hociktorý prvok, ale zle sa preusporiadava, lebo prvky treba kopírovať. V spájanom zozname
+sa zle prechádza na konkrétny prvok, lebo treba prejsť celý zoznam, ale dobre sa
+preusporiadava, lebo stačí poprehadzovať pointre. Skúsme spojiť dobré vlastnosti z oboch.
+Binárne vyhľadávanie v usporiadanom poli\footnote{%
+  nateraz nás bude zaujímať pole, v ktorom sa hodnoty neopakujú -- 
+  ako v príklade so žiarovkami} sa dá predstaviť ako rozhodovací strom:
+
+\ods
+\centerline{\begin{tikzpicture}[scale=0.8]
+  \foreach \h[count=\i] in {1,2,1,3,1,2,1,4,1,2,1,3,1,2,1} {
+    \draw[thin,gray,dotted] (\i+0.5,0.5) -- (\i+0.5,1.2+1.2*\h) coordinate (tmp-\i);
+ 
+  }
+
+  \foreach \i/\d  in {2/1,4/2,6/1,8/4,10/1,12/2,14/1} {
+    \pgfmathtruncatemacro{\prev}{\i-\d}
+    \pgfmathtruncatemacro{\next}{\i+\d}
+    \draw[thick] (tmp-\prev) -- (tmp-\i) -- (tmp-\next);
+  }
+
+  \foreach \v [count=\i] in { 12,14,17,21,25,29,30,32,34,37, 38,41,42,45,49} {
+    \filldraw[fill=yellow!20!white](\i,0) rectangle node[anchor=center]{{\tt \v}} (\i+1,1);
+
+    \filldraw[fill=green!10!white] (tmp-\i) circle (2.2ex) node [anchor=center] {{\tt \v}};
+  }
+  
+  \draw[thick,red] (11,0) rectangle (12,1);
+  \foreach \i in {8,12,10,11} {
+    \draw[very thick,red] (tmp-\i) circle(2.2ex);
+  }
+
+\end{tikzpicture}}
+
+\ods
+Keď chceme nájsť číslo $38$, najprv sa pozrieme do stredu, porovnáms číslon $32$, keďže
+$38>32$, vydáme sa vpravo, porovnáme so $41$ atď. Našim cieľom teraz bude vyrobiť si takýto
+rozhodovací strom v pamäti pomocou smerníkov. Keď sa pozrieš na obrázok, vidiš, že strom
+sa skladá z krúžkov, ktoré budem volať {\em uzly} alebo {\em vrcholy}. V každom uzle 
+je číslo, ktorému budem hovoriť {\em kľúč}. Najvyšší uzol v strede (na obrázku $32$) 
+bude {\em koreň}, uzly naspodu budú {\em listy}. Z každého uzla okrem listu vedú 
+dve čiary ({\em hrany}), ktoré vedú do koreňov menších stromov (tým hovoríme
+{\em synovia} uzla). Základná vlastnosť,
+ktorá umožňuje binárne vyhľadávanie, je to, že v celom strome aj vo všetkých podstromoch
+platí: \cmd{všetky kľúče v podstrome vľavo od koreňa sú menšie ako kľúč  v koreni
+a v podstrome vpravo zase väčšie}. Spravme si takýto typ:
+
+\begin{lstlisting}
+struct Node {
+  int key;
+  Node *left, *right;
+
+  Node(int _key = 0, Node *_l = nullptr, Node *_r = nullptr) {
+    key = _key;
+    left = _l;
+    right = _r;
+  }
+
+  ~Node() {
+    if (left != nullptr) delete left;
+    if (right != nullptr) delete right;
+  }
+
+};
+\end{lstlisting}
+
+\ods
+Vyzerá veľmi podobne ako pri spájanom zozname, len má dva pointre (na ľavého 
+a pravého syna). Pridal som navyše deštruktor: ak sa ide z pamäti odstrániť
+premenná typu {\tt Node} (či už pri volaní \prg!delete! alebo inak), najprv sa
+zavolá deštruktor, ktorý sa pozrie, že existuje ľavý a/alebo pravý syn a ak áno,
+rekurzívne ich zmaže (t.j. zavolá sa deštruktor ľavého syna, ktorý zavolá deštruktor
+jeho synov atď), až sa zmaže celý strom. 
+
+\ods
+Ak máme utriedené pole prvkov, môžme z neho vyrobiť strom napríklad takto:
+
+\vbox{
+  \begin{lstlisting}
+Node *vyrob(vector<int> &a, int i, int j) {
+  Node *res = new Node();
+  if (i == j) {
+    res->key = a[i];
+  } else {
+    int m = (i + j) / 2;
+    res->key = a[m];
+    if (i != m) res->left = vyrob(a, i, m - 1);
+    if (m != j) res->right = vyrob(a, m + 1, j);
+  }
+  return res;
+}
+  \end{lstlisting}
+}
+
+\ods
+Funkcie {\tt vyrob} má ako parametre referenciu na vektor a dva indexy {\tt i}
+a {\tt j} a vyrobí strom, ktorý bude mať kľúče z úseku \prg!a[i]!\ldots\prg!a[j]!
+(vrátane): zistí sa stredný prvok {\tt a[m]} a ak je ľavý alebo pravý úsek neprázdny,
+rekurzívne sa zavolá {\tt vyrob} a novovytvorené podstromy sa priradia do pointrov
+{\tt left} a {\tt right}. Ak mám napr. pole {\tt [10, 11, 14, 16, 20, 32, 42, 47, 50]}
+a zvolám \prg!Node *root = vyrob(a, 0, a.size()-1);!, vyrobí sa v pamäti
+takáto štruktúra z pointrov:
+
+    \def\tnode(#1)[#2]#3{
+      \begin{scope}[shift={(#1)}, xscale=1.3*0.7, yscale=0.7]
+        \draw [\nodecolor, rounded corners=3pt] (-0.5,-0.5) rectangle (0.5,0.5)
+        (-0.5,0) -- (0.5,0)
+        (0,0) -- (0,-0.5)
+        (0,0.25) node [anchor=center]{{\tt #3}}
+        (-0.25,-0.25) node[anchor=center] {$\bullet$}
+        (0.25,-0.25) node[anchor=center] {$\bullet$}
+        ;
+        \coordinate (#2l) at (-0.25,-0.25);
+        \coordinate (#2r) at (0.25,-0.25);
+        \coordinate (#2) at (0,0.5);
+      \end{scope}
+    }
+
+\ods
+\centerline{
+  \begin{tikzpicture}
+    {\small
+    \def\nodecolor{cyan!50!blue}
+    \foreach \h[count=\i] in {1,2,1,3,1,2,1,4,1,2,1,3,1,2,1} {
+      \coordinate (tmp-\i) at (0.9*\i,0.3*\h*\h) ;
+    }
+
+    \foreach \v/\c[count=\i] in {10/2, 11/4, 14/6, 16/7, 20/8, 32/10, 42/12, 47/14, 50/15} {
+      \tnode(tmp-\c)[n\i]{\v}
+    }
+
+    
+    \foreach \a/\b in {n2l/n1,n2r/n3,n3r/n4,n5l/n2,n5r/n7,n7l/n6,n7r/n8,n8r/n9} {
+      \draw[\nodecolor,->,shorten >= 0.2ex] (\a) to[out=270,in=90] (\b);
+    }
+    \draw[\nodecolor,->,shorten >= 0.2ex, shorten <= 0.5ex ] ($(n5)+(0,0.5)$)
+    node[anchor=south]{{\tt root}} -- (n5);
+    }
+  \end{tikzpicture}
+}
+
+
+\ods
+Keď chceme zistiť, či sa nejaký kľúč v strome nachádza, stačí prechádzať stromom 
+od koreňa (napr. \prg!root->najdi(42);!). 
+Metóda {\tt najdi} vráti pointer na uzol s daným kľúčom,
+alebo \prg!nullptr!, ak sa tam kľúč nenachádza. 
+
+\begin{lstlisting}
+struct Node {
+  int key;
+  Node *left, *right;
+  Node(int _key = 0, Node *_l = nullptr, Node *_r = nullptr) {...}
+  ~Node() {...}
+
+  Node *najdi(int x) {
+    if (x == key) return this;
+    if (x < key && left != nullptr) return left->najdi(x);
+    if (x > key && right != nullptr) return right->najdi(x);
+    return nullptr;
+  }
+};
+\end{lstlisting}
+
+\ods
+Teraz sme docielili, že v pamäti máme namiesto poľa prvky pospájané smerníkmi
+a môžme v nich vyhľadávať rovnako, ako pri binárnom vyhľadávaní v poli (teda
+v logaritmickej zložitosti). Pomohli ale v tom, že aj pridanie prvku má logaritmickú
+zložitosť: jednoducho ideme po strome, ako keby sme vyhľadávali, a keď prídeme
+na koniec, vyrobíme nový uzol. Metóoda {\tt pridaj} vráti \prg!true!, ak sa vrchol
+v skutočnosti pridal a \prg!false!, ak už v strome bol:
+
+\begin{lstlisting}
+struct Node {
+  int key;
+  Node *left, *right;
+  Node(int _key = 0, Node *_l = nullptr, Node *_r = nullptr) {...}
+  ~Node() {...}
+  Node *najdi(int x) {...}
+
+  bool pridaj(int x) {
+    if (x == key) return false;
+    if (x < key && left != nullptr) return left->pridaj(x);
+    if (x > key && right != nullptr) return right->pridaj(x);
+    Node *nd = new Node(x);
+    if (x < key) left = nd;
+    else right = nd;
+    return true;
+  }
+
+};
+\end{lstlisting}
+
+\ods
+
+
 \fi
 
 
 % set a stromy
+% Huffman
 % priklady na set / haldu
 
 % projekt piskvory (dedenie, pripomenut iteratory) + grafika SDL?
-
+% thready
 
 
 % grafy?
