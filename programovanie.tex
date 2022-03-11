@@ -8608,7 +8608,7 @@ Gradient g(
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \if\sectxxv1
-\section{vyhľadávacie stromy: \prg!<set>! a \prg!<map>! v STL}
+\section{vyhľadávacie stromy: {\tt<set>} a {\tt<map>} v STL}
 
 Pri farbení Mandelbrotovej množiny v závere minulej kapitoly som robil túto vec:
 ''{\em \ldots pre každý počet iterácií } [som] {\em našiel maximálnu a minimálnu hodnotu
@@ -8973,10 +8973,14 @@ sa skladá z krúžkov, ktoré budem volať {\em uzly} alebo {\em vrcholy}. V ka
 je číslo, ktorému budem hovoriť {\em kľúč}. Najvyšší uzol v strede (na obrázku $32$) 
 bude {\em koreň}, uzly naspodu budú {\em listy}. Z každého uzla okrem listu vedú 
 dve čiary ({\em hrany}), ktoré vedú do koreňov menších stromov (tým hovoríme
-{\em synovia} uzla). Základná vlastnosť,
+{\em synovia} uzla). Najdlhšia vzdialenosť od koreňa do nejakého listu sa volá 
+{\em hĺbka}. Základná vlastnosť,
 ktorá umožňuje binárne vyhľadávanie, je to, že v celom strome aj vo všetkých podstromoch
-platí: \cmd{všetky kľúče v podstrome vľavo od koreňa sú menšie ako kľúč  v koreni
-a v podstrome vpravo zase väčšie}. Spravme si takýto typ:
+platí: \cmd{keď si zoberiem hocijaký vrchol $v$, tak všetky kľúče v podstrome, ktorého koreň 
+je ľavý syn $v$, sú menšie ako kľúč vo $v$
+a všetky kľúče v podstrome, ktorého koreň je pravý syn $v$, sú zase väčšie}. 
+Takýto strom budeme volať {\em binárny vyhľadávací strom}.
+Spravme si takýto typ:
 
 \begin{lstlisting}
 struct Node {
@@ -8999,7 +9003,8 @@ struct Node {
 
 \ods
 Vyzerá veľmi podobne ako pri spájanom zozname, len má dva pointre (na ľavého 
-a pravého syna). Pridal som navyše deštruktor: ak sa ide z pamäti odstrániť
+a pravého syna). 
+Pridal som navyše deštruktor: ak sa ide z pamäti odstrániť
 premenná typu {\tt Node} (či už pri volaní \prg!delete! alebo inak), najprv sa
 zavolá deštruktor, ktorý sa pozrie, že existuje ľavý a/alebo pravý syn a ak áno,
 rekurzívne ich zmaže (t.j. zavolá sa deštruktor ľavého syna, ktorý zavolá deštruktor
@@ -9026,7 +9031,7 @@ Node *vyrob(vector<int> &a, int i, int j) {
 }
 
 \ods
-Funkcie {\tt vyrob} má ako parametre referenciu na vektor a dva indexy {\tt i}
+Funkcia {\tt vyrob} má ako parametre referenciu na vektor a dva indexy {\tt i}
 a {\tt j} a vyrobí strom, ktorý bude mať kľúče z úseku \prg!a[i]!\ldots\prg!a[j]!
 (vrátane): zistí sa stredný prvok {\tt a[m]} a ak je ľavý alebo pravý úsek neprázdny,
 rekurzívne sa zavolá {\tt vyrob} a novovytvorené podstromy sa priradia do pointrov
@@ -9036,26 +9041,28 @@ takáto štruktúra z pointrov:
 
     \def\tnode(#1)[#2]#3{
       \begin{scope}[shift={(#1)}, xscale=1.3*0.7, yscale=0.7]
-        \draw [\nodecolor, rounded corners=3pt] (-0.5,-0.5) rectangle (0.5,0.5)
+        \filldraw [\nodecolor, rounded corners=3pt, fill=white ] 
+        (-0.5,-0.5) rectangle (0.5,0.5)
         (-0.5,0) -- (0.5,0)
         (0,0) -- (0,-0.5)
-        (0,0.25) node [anchor=center]{{\tt #3}}
-        (-0.25,-0.25) node[anchor=center] {$\bullet$}
-        (0.25,-0.25) node[anchor=center] {$\bullet$}
+        (0,0.25) node [anchor=center]{\textcolor{magenta}{\tt #3}}
+        (-0.25,-0.25) node[anchor=center] {\scriptsize {$\bullet$}}
+        (0.25,-0.25) node[anchor=center] {{\scriptsize $\bullet$}}
         ;
         \coordinate (#2l) at (-0.25,-0.25);
         \coordinate (#2r) at (0.25,-0.25);
         \coordinate (#2) at (0,0.5);
+        \coordinate (#2h) at (-0.5,0);
       \end{scope}
     }
 
 \ods
 \centerline{
-  \begin{tikzpicture}
+  \begin{tikzpicture}[scale=0.8]
     {\small
     \def\nodecolor{cyan!50!blue}
     \foreach \h[count=\i] in {1,2,1,3,1,2,1,4,1,2,1,3,1,2,1} {
-      \coordinate (tmp-\i) at (0.9*\i,0.3*\h*\h) ;
+      \coordinate (tmp-\i) at (0.9*\i,0.15*\h*\h+0.8*\h) ;
     }
 
     \foreach \v/\c[count=\i] in {10/2, 11/4, 14/6, 16/7, 20/8, 32/10, 42/12, 47/14, 50/15} {
@@ -9125,13 +9132,212 @@ struct Node {
 \end{lstlisting}
 
 \ods
+Zdá sa, že všetko funguje, a to je podozrivé. A naozaj. Keď začneš s jednoprvkovým
+poľom {\tt [10]} a postupne voláš {\tt pridaj} pre $11, 14, 16, 20, 32, 42, 47, 50$,
+v pamäti to bude vyzerať takto:
 
+\ods
+\centerline{
+  \begin{tikzpicture}[scale=0.8]
+    {\small
+    \def\nodecolor{cyan!50!blue}
+
+    \foreach \v[count=\i] in {10, 11, 14, 16, 20, 32, 42, 47, 50} {
+      \tnode(\i,0-\i)[n\i]{\v}
+    }
+
+    
+    \foreach \i in {1,...,8} {
+      \pgfmathtruncatemacro{\j}{\i+1}
+      \draw[\nodecolor,->,shorten >= 0.2ex] (n\i r) to[out=270,in=90] (n\j);
+    }
+    \draw[\nodecolor,->,shorten >= 0.2ex, shorten <= 0.5ex ] ($(n1)+(0,0.5)$)
+    node[anchor=south]{{\tt root}} -- (n1);
+    }
+  \end{tikzpicture}
+}
+
+\ods
+Takže mám obyčajný spájaný zoznam a vyhľadávanie je má lineárnu zložitosť.
+Problém je, samozrejme, v tom, že pridanie prvku môže spôsobiť, že strom 
+prestane byť {\em vyvážený}, t.j. prestane platiť, že v každom uzle je hĺbka
+ľavého a pravého podstromu skoro rovnaká. Tomu sa dá zabrániť tak, že po 
+každom vložení prvku sa zavolá {\em vyvažovacia operácia}, ktorá zabezpečí, 
+že strom bude ''rozumne''\footnote{%
+t.j. tak, aby bolo zaručené, že operácie majú logaritmickú zložitosť}
+vyvážený. Je veľa spôsobov, ako toto vyvažovanie urobiť (AVL stromy, Red-Black stromy,
+\ldots). Ukážem ti jeden spôsob, zvaný AA stromy. 
+
+\ods
+Celý prístup vyzerá takto: najprv si poviem pravidlá, ktoré musí AA strom spĺňať. Potom
+sa presvedčím, že každý strom, ktorý tieto pravidlá spĺňa, má logaritmickú hĺbku. Nakoniec
+naprogramujem operácie (vkladanie, vyhľadávanie, mazanie) tak, aby udržovali splnené pravidlá
+a navyše ich zložitosť bola úmerná hĺbke. Tak poďme na to.
+
+\ods
+V AA-strome má každý uzol okrem kľúča aj ''poschodie'' ({\em level}). Pre zjednodušenie
+použijeme techniku zarážky a vyrobíme jeden špeciálny uzol {\em ''prízemie''}, ktorý bude na 
+leveli 0. Pravidlá pre dobrý AA-strom sú takéto:
+
+\ods
+
+\setlength\fboxsep{1ex}
+\centerline{\fcolorbox{magenta}{magenta!3!white}{\parbox{0.9\textwidth}{
+\begin{enumerate}\itemsep=-1mm
+\item Je to binárny vyhľadávací strom: v každom uzle platí, že všetky uzly v ľavom podstrome
+  majú menšie kľúče a všetky uzly v pravom podstrome väčšie.
+\item Každý uzol (okrem prízemia) má dvoch synov. 
+\item \label{aarule3} Ľavý syn je na leveli o 1 menšom ako rodič.
+\item Pravý syn je na rovnakom alebo o 1 menšom leveli ako rodič.
+\item \label{aarule5} 
+  Ak je pravý syn na rovnakom leveli ako rodič, jeho pravý syn je na menšom leveli.
+\end{enumerate}
+}}}
+
+\ods Pravidlo~\ref{aarule5} hovorí, že nemôžu byť na rovnakom leveli tri uzly
+rodič -- pravý syn -- jeho pravý syn. Zároveň, keďže prízemie má level 0, tak
+podľa pravidla~\ref{aarule3}, listy musia byť na leveli 1 atď. AA-strom teda vyzerá nejak 
+takto (farebné pásy sú levely):
+
+
+\def\level(#1:#2)[#3]#4 {
+  \fill[fill=#3] (\levelmin,#1) rectangle (\levelmax,#2);
+}
+
+\ods
+\centerline{
+  \begin{tikzpicture}[
+      nodelink/.style={#1, ->, shorten >= 0.2ex},
+      nodelink/.default={cyan!50!blue},
+      scale=0.8]
+    {\small
+
+    \def\levelmin{-0.7}
+    \def\levelmax{18.2}
+    \level(-1:0.9)[green!10!white]{}
+    \level(0.9:2.7)[yellow!10!white]{}
+    \level(2.7:4.5)[orange!10!white]{}
+    \level(4.5:6.4)[red!10!white]{}
+
+    \def\nodecolor{cyan!50!blue}
+    \foreach \x/\y/\v[count=\i] in {
+      0/0.1/1,1/-0.1/2,2/0.1/4,3/-0.1/5,4/0.1/7,5/0.1/9,6/0.1/11, 7/0.1/13,8/0.1/15,
+    9/0.1/17,10/0.1/19,11/-0.1/20,12/0.1/22,13/-0.1/23,14/0.1/25,
+    1.5/1.1/3, 3/0.9/6, 5.5/1/10, 7.5/1.1/14, 8.5/0.9/16, 11.5/1.1/21, 12.55/0.9/24,
+    4.5/2.12/8,9.5/2.12/18, 7.5/3.25/12
+    } {
+      \tnode(1.25*\x,1.8*\y)[n\i]{\v}
+    }
+
+    \coordinate (base) at (8.75,-1.7);
+    \foreach \i/\d in {1/l,2/l,2/r,3/l,4/l,4/r,5/l,5/r,6/l,6/r,7/l,7/r,8/l,8/r,9/l,9/r,10/l,
+    10/r,11/l,12/l,12/r,13/l,14/l,14/r,15/l,15/r} 
+      \draw[gray,very thin] (n\i\d) 
+      .. controls ($ (n\i\d) + (0,-1.3) $) ..
+    (base);
+  
+
+    \foreach \a/\b in {16l/1,17l/3,17r/5,18l/6,18r/7, 19l/8,20l/9,20r/10,21l/11,22l/13,22r/15,
+    23l/16,23r/18,24l/19,24r/21,25l/23,25r/24}
+    \draw[nodelink=\nodecolor](n\a) to [out=270,in=90](n\b);
+
+    \foreach \a/\b in {1/2, 3/4,11/12,13/14,16/17,19/20,21/22}
+    \draw[nodelink=\nodecolor](n\a r) to [out=0,in=180](n\b h);
+
+    \def\nodecolor{gray}
+    \tnode(base)[tmp]{  }
+
+    }
+  \end{tikzpicture}
+}
+
+
+\ods
+Terz chcem vyrátať, akú najväčšiu hĺbku môže mať AA strom, v ktorom je $n$ uzlov. Spomeň si,
+že hĺbka je dĺžka najdlhšej cesty z koreňa do nejakého listu. Keď začnem z koreňa a postupujem
+smerom k listu, tak nikdy nejdem na vyšší level: buď idem na nižší (napr. z $18$ do
+$14$) alebo ostávam na tom istom (napr. zo $14$ do $16$). Ale takitsto nemôžem ísť
+cez viac ako dva uzly na jednom leveli. Takže hĺbka je najviac dvojnásobok počtu levelov.
+Dobre. Poďme teda vyrátať, koľko najviac levelov môže mať AA-strom, ktorý má $n$ uzlov. 
+Najprv sa opýtam tak trochu opačnú otázku: 
+koľko najmenej listov môže mať AA-strom, ktorý má $\ell$ levelov?
+Koreň je na najvyššom leveli (teda na leveli $\ell$). 
+Jeho ľavý syn je koreň AA-stromu s $\ell-1$ levelmi. Ak je
+pravý syn koreňa na nižšom leveli, tak je tiež
+koreňom nejakého (iného) AA-stromu s $\ell-1$ levelmi.
+Ak je pravý syn koreňa na rovnakom leveli (na leveli $\ell$), tak jeho ľavý syn je koreň 
+AA-stromu s $\ell-1$ levelmi. V každom prípade, v AA-strome s $\ell$ levelmi
+viem nájsť dva rôzne AA-stromy
+s $\ell-1$ levelmi. Preto ak si označím $L(\ell)$ najmenší počet listov, ktorý môže
+mať AA-strom s $\ell$ levelmi, tak $L(\ell)\ge2L(\ell-1)$.
+Dostávam teda $L(1)=1$, $L(2)\ge2$, $L(3)\ge4$, $L(4)\ge8$, \ldots, t.j. 
+$L(\ell)\ge2^{\ell-1}$. Teda AA-strom s $\ell$ levelmi musí mať aspoň $2^{\ell-1}$
+uzlov. Vráťme sa teraz k pôvodnej otázke: koľko najviac levelov má AA-strom s $n$ uzlami?
+Keby ich mal aspoň $2+\log n$, tak by musel mať 
+$L(2+\log n)\ge2^{2+\log n-1}=2n$ listov. To ale nemôže, lebo má len $n$ uzlov. Takže
+AA-strom s $n$ uzlami musí mať menej ako $2+\log n$ levelov, a preto má aj logaritmickú hĺbku.
+
+\ods
+Ostáva už len posledné: naprogramovať vkladanie, vyberanie a vyhľadávanie do AA-stromu tak,
+aby ich zložitosť zodpovedala hĺbke stromu. Keďže AA-strom je binárny vyhľadávací strom,
+vyhľadávanie je ľahké. Najprv si spravím typ \prg!Node! podobne ako predtým. Rozdiel
+bude v tom, že uzol si navyše bude pamätať svoj level. Konštruktor aj metóda
+\prg!find! okrem kľúča dostanú aj pointer na prízemie (\prg!base!).
+Namiesto deštruktora budem mať procedúru \prg!erase!, lebo deštruktory nemôžu
+mať parametre a ja potrebujem vedieť, čo je zarážka.
+
+\ods
+\begin{lstlisting}
+struct Node {
+  int level, key;
+  Node *left, *right;
+
+  Node(int k, Node *base) { level = 1; key = k; left = right = base; }
+
+  void erase(Node *base) {
+    if (this == base) return;
+    left->erase(base);
+    right->erase(base);
+    delete this;
+  }
+
+  bool najdi(int k, Node *base) {
+    if (this == base) return false;
+    if (key == k) return true;
+    if (k < key)
+      return left->najdi(k, base);
+    else
+      return right->najdi(k, base);
+  }
+};
+\end{lstlisting}
+
+Urobím si aj nový typ \prg!Tree! pre celý strom, v ktorom budem mať zapamätaný koreň
+a prízemie:
+
+\ods
+\begin{lstlisting}
+struct Tree {
+  Node *root, *base;
+
+  Tree() {
+    base = new Node(0,nullptr); // vyrobim si prizemie
+    base->level = 0;
+    base->left = base->right = base;
+    root = base; 
+  }
+
+  ~Tree() { root->erase(base); delete base; }
+
+  bool najdi(int key) { return root->najdi(key, base); }
+};
+\end{lstlisting}
 
 \fi
 
 
 % set a stromy
-% Huffman
+% Huffman: subory, prediktory, kompresia
 % priklady na set / haldu
 
 % projekt piskvory (dedenie, pripomenut iteratory) + grafika SDL?
