@@ -38,7 +38,8 @@
   decorations.markings,decorations.text,
   decorations.shapes,intersections,
   patterns,calligraphy,calc,
-  shapes.multipart
+  shapes.multipart,
+  shapes.arrows
 }
 
 
@@ -140,7 +141,7 @@
                 literate={ĺ}{{\'l}}1{ľ}{{\'l}}1{ý}{{\'y}}1{ž}{{\v{z}}}1{á}{{\'a}}1{č}{{\v{c}}}1{í}{{\'\i}}1{ú}{{\'u}}1{š}{{\v{s}}}1{ň}{{\v{n}}}1{é}{{\'e}}1
 }
 \parindent=0pt
-\title{\bfseries\sffamily Tutoriál o programovaní v C++}
+\title{\bfseries\sffamily Programovanie v C++}
 \author{\includegraphics[width=1cm]{data/profile.jpg}}
 %  \url{https://beda.dcs.fmph.uniba.sk/programovanie/programovanie.pdf}\and
 %  \url{https://github.com/pocestny/programovanie.git}
@@ -9082,8 +9083,8 @@ takáto štruktúra z pointrov:
 
 \ods
 Keď chceme zistiť, či sa nejaký kľúč v strome nachádza, stačí prechádzať stromom 
-od koreňa (napr. \prg!root->najdi(42);!). 
-Metóda {\tt najdi} vráti pointer na uzol s daným kľúčom,
+od koreňa (napr. \prg!root->find(42);!). 
+Metóda {\tt find} vráti pointer na uzol s daným kľúčom,
 alebo \prg!nullptr!, ak sa tam kľúč nenachádza. 
 
 \begin{lstlisting}
@@ -9093,10 +9094,10 @@ struct Node {
   Node(int _key = 0, Node *_l = nullptr, Node *_r = nullptr) {...}
   ~Node() {...}
 
-  Node *najdi(int x) {
+  Node *find(int x) {
     if (x == key) return this;
-    if (x < key && left != nullptr) return left->najdi(x);
-    if (x > key && right != nullptr) return right->najdi(x);
+    if (x < key && left != nullptr) return left->find(x);
+    if (x > key && right != nullptr) return right->find(x);
     return nullptr;
   }
 };
@@ -9107,7 +9108,7 @@ Teraz sme docielili, že v pamäti máme namiesto poľa prvky pospájané smern�
 a môžme v nich vyhľadávať rovnako, ako pri binárnom vyhľadávaní v poli (teda
 v logaritmickej zložitosti). Pomohli ale v tom, že aj pridanie prvku má logaritmickú
 zložitosť: jednoducho ideme po strome, ako keby sme vyhľadávali, a keď prídeme
-na koniec, vyrobíme nový uzol. Metóoda {\tt pridaj} vráti \prg!true!, ak sa vrchol
+na koniec, vyrobíme nový uzol. Metóoda {\tt insert} vráti \prg!true!, ak sa vrchol
 v skutočnosti pridal a \prg!false!, ak už v strome bol:
 
 \begin{lstlisting}
@@ -9116,12 +9117,12 @@ struct Node {
   Node *left, *right;
   Node(int _key = 0, Node *_l = nullptr, Node *_r = nullptr) {...}
   ~Node() {...}
-  Node *najdi(int x) {...}
+  Node *find(int x) {...}
 
-  bool pridaj(int x) {
+  bool insert(int x) {
     if (x == key) return false;
-    if (x < key && left != nullptr) return left->pridaj(x);
-    if (x > key && right != nullptr) return right->pridaj(x);
+    if (x < key && left != nullptr) return left->insert(x);
+    if (x > key && right != nullptr) return right->insert(x);
     Node *nd = new Node(x);
     if (x < key) left = nd;
     else right = nd;
@@ -9133,7 +9134,7 @@ struct Node {
 
 \ods
 Zdá sa, že všetko funguje, a to je podozrivé. A naozaj. Keď začneš s jednoprvkovým
-poľom {\tt [10]} a postupne voláš {\tt pridaj} pre $11, 14, 16, 20, 32, 42, 47, 50$,
+poľom {\tt [10]} a postupne voláš {\tt insert} pre $11, 14, 16, 20, 32, 42, 47, 50$,
 v pamäti to bude vyzerať takto:
 
 \ods
@@ -9283,7 +9284,7 @@ aby ich zložitosť zodpovedala hĺbke stromu. Keďže AA-strom je binárny vyh�
 vyhľadávanie je ľahké. Najprv si spravím typ \prg!Node! podobne ako predtým. Rozdiel
 bude v tom, že uzol si navyše bude pamätať svoj level. Konštruktor aj metóda
 \prg!find! okrem kľúča dostanú aj pointer na prízemie (\prg!base!).
-Namiesto deštruktora budem mať procedúru \prg!erase!, lebo deštruktory nemôžu
+Namiesto deštruktora budem mať procedúru \prg!destroy!, lebo deštruktory nemôžu
 mať parametre a ja potrebujem vedieť, čo je zarážka.
 
 \ods
@@ -9294,20 +9295,20 @@ struct Node {
 
   Node(int k, Node *base) { level = 1; key = k; left = right = base; }
 
-  void erase(Node *base) {
+  void destroy(Node *base) {
     if (this == base) return;
-    left->erase(base);
-    right->erase(base);
+    left->destroy(base);
+    right->destroy(base);
     delete this;
   }
 
-  bool najdi(int k, Node *base) {
+  bool find(int k, Node *base) {
     if (this == base) return false;
     if (key == k) return true;
     if (k < key)
-      return left->najdi(k, base);
+      return left->find(k, base);
     else
-      return right->najdi(k, base);
+      return right->find(k, base);
   }
 };
 \end{lstlisting}
@@ -9327,16 +9328,353 @@ struct Tree {
     root = base; 
   }
 
-  ~Tree() { root->erase(base); delete base; }
+  ~Tree() { root->destroy(base); delete base; }
 
-  bool najdi(int key) { return root->najdi(key, base); }
+  bool find(int key) { return root->find(key, base); }
 };
 \end{lstlisting}
+
+\ods
+Pridávanie ale začne byť trochu komplikovanejšie. Zoberme si jednoduchú funckiu {\tt insert}
+z predchádzajúceho prípadu. Začnem s prázdnym stromom a pridám doňho čísla $9$ a $20$. Bude to vyzerať nejak takto (modré číslo znamená level, čiarkovaná čiara je prízemie):
+
+\def\aaangle{17}
+\def\aanormalcolor{yellow!7!white}
+\def\aanode(#1)#2#3{%
+  \filldraw[thick, fill=\aanormalcolor] (#1) node {{\tt #2}} circle (2.2ex) 
+        ++ (1ex,1ex) node [anchor=south west] {\textcolor{blue}{{\small\tt #3}}} ;
+  }
+\def\aasub(#1)#2#3{%
+  \coordinate(tmp1) at ($(#1)+(270-16:1.3)$);
+  \coordinate(tmp2) at ($(#1)+(270+16:1.3)$);
+  \filldraw[thick, fill=green!7!white] 
+      (#1) -- (tmp1) -- (tmp2) -- (#1);
+  \def\tmpr{1.8ex}    
+  \filldraw[thick, fill=green!7!white] 
+      ($(#1)+(-\tmpr,-\tmpr)$) rectangle 
+      node[align=center] {{\tt #2}} 
+      ($(#1)+(\tmpr,\tmpr)$) 
+      ($(#1)+ (\tmpr,\tmpr)$) node[anchor=south west]  {\textcolor{blue}{{\small\tt #3}}} ;
+  }
+\def\ground(#1)#2{
+  \coordinate (tmp1) at ($(#1)+(270#2\aaangle:5)$);
+  \coordinate (tmp2) at (intersection of #1--tmp1 and {-10,0}--{10,0});
+  \draw(#1)--(tmp2);
+}
+\ods\centerline{
+  \begin{tikzpicture}
+    \foreach\x/\y[count=\i]in{0/1,1/0.87} 
+      \coordinate (n\i) at (1.5*\x,1.5*\y);
+  
+    \draw[dashed](-1,0)--(2.5,0);
+    \ground(n1)-
+    \ground(n2)-
+    \ground(n2)+
+    \draw(n1)--(n2);
+    \draw (n1) -- +(0,0.7);
+    \aanode(n1){9}{1}
+    \aanode(n2){20}{1}
+  \end{tikzpicture}
+}
+
+\ods
+Keď chcem pridať číslo $15$, vznikne problém:
+
+\ods\centerline{
+  \begin{tikzpicture}
+    \foreach\x/\y[count=\i]in{0/1.4,1.6/1.2,1/0.5} 
+      \coordinate (n\i) at (\x,1.5*\y);
+
+    \draw[dashed](-1.2,0)--(2.7,0);
+    \ground(n1)-
+    \ground(n2)+
+    \ground(n3)-
+    \ground(n3)+
+    \draw(n1)--(n2) --(n3);
+    \draw(n1) -- +(0,0.7);
+    \aanode(n1){9}{1}
+    \aanode(n2){20}{1}
+    \aanode(n3){15}{1}
+  \end{tikzpicture}
+}
+
+\ods
+Uzol $15$ musí byť na leveli 1, lebo je to list, ale zároveň je ľavým synom uzla $20$, preto
+$20$ musí mať level $2$. Lenže pravý syn $20$ky je prízemie (s levelom 0), preto
+$20$ musí mať level $1$. Takže je zrejmé, že nestačí len aktualizovať levely, ale bude treba 
+prerobiť aj celý strom. V tomto príklade môžem na uzol $20$ použiť operáciu {\em skew} 
+({\em posun}), ktorá vyzerá takto:
+
+\ods
+\centerline{\begin{tikzpicture}
+\foreach\x/\y[count=\i]in{0/0, 1.4/0, 0.7/1.35, 2.2/1.8, 3/0}
+      \coordinate (n\i) at (\x,\y);
+      
+\draw (n1) -- (n3) -- (n2) (n3)--(n4)--(n5) (n4) -- ++(0,0.7);   
+\aanode(n3){$x$}{k}
+\aanode(n4){$y$}{k}
+\aasub(n1){$A$}{k-1}
+\aasub(n2){$B$}{k-1}
+\aasub(n5){$C$}{k-1}
+
+\node[draw, single arrow, minimum height=22mm, minimum width=8mm,
+  single arrow head extend=2mm, anchor=center] at (5.5,0.7) {};
+
+\begin{scope}[shift={(8,0)}]
+  \foreach\x/\y[count=\i]in{0/0, 1.6/0, 0.7/1.8, 2.2/1.35, 3/0}
+      \coordinate (n\i) at (\x,\y);
+      
+  \draw (n1) -- (n3) --(n4) (n2)--(n4)--(n5) (n3) -- ++(0,0.7);   
+  \aanode(n3){$x$}{k}
+  \aanode(n4){$y$}{k}
+  \aasub(n1){$A$}{k-1}
+  \aasub(n2){$B$}{k-1}
+  \aasub(n5){$C$}{k-1}
+\end{scope}
+
+\end{tikzpicture}}
+
+
+\ods
+Povedané slovami: ak mám podstrom s koreňom $y$ na leveli $k$, 
+ktorý má ľavého syna $x$ na leveli $k$ (čím
+sa porušilo pravidlo~\ref{aarule3}) a $x$ má obidvoch synov na leveli $k-1$, môžem 
+za koreň podstromu zvoliť $x$ a pravého syna $x$ prevesiť pod $y$. Po operácii posun
+strom ostane dobrý vyhľadávací strom, lebo všetky kľúče v podstrome $B$ sú menšie ako $y$.
+Operáciu \prg!skew! si naprogramujem ako metódu \prg!Node!. Zavolám ju v koreni
+podstromu (napr. \prg!root=root->skew()!) a bude vracať
+pointer na nový koreň stromu:
+
+\begin{lstlisting}
+Node *skew() {
+  if (left->level != level) return this;
+  Node *res = left, *tmp = left->right;
+  left->right = this;
+  left = tmp;
+  return res;
+}
+\end{lstlisting}
+\ods
+
+Ak aplikujem {\tt skew} na uzol $20$ z príkladu, dostanem 
+
+\ods\centerline{
+  \begin{tikzpicture}
+    \foreach\x/\y[count=\i]in{0/1.4,1.6/1.2,1/0.5} 
+      \coordinate (n\i) at (\x,1.5*\y);
+
+    \draw[dashed](-1.2,0)--(2.7,0);
+    \ground(n1)-
+    \ground(n2)+
+    \ground(n3)-
+    \ground(n3)+
+    \draw(n1)--(n2) --(n3);
+    \draw(n1) -- +(0,0.7);
+    \aanode(n1){9}{1}
+    \aanode(n2){20}{1}
+    \aanode(n3){15}{1}
+
+    \node[draw, single arrow, minimum height=20mm, minimum width=8mm,
+  single arrow head extend=2mm, anchor=center] at (4.5,1) {};
+
+
+    \begin{scope}[shift={(8,0)}]
+    \foreach\x/\y[count=\i]in{0/1.3, 1.7/0.5, 1.2/1} 
+      \coordinate (n\i) at (\x,1.5*\y);
+
+    \draw[dashed](-1.2,0)--(2.7,0);
+    \ground(n1)-
+    \ground(n2)+
+    \ground(n2)-
+    \ground(n3)-
+    \draw(n1)--(n3) --(n2);
+    \draw(n1) -- +(0,0.7);
+    \aanode(n1){9}{1}
+    \aanode(n2){20}{1}
+    \aanode(n3){15}{1}
+    \end{scope}
+  \end{tikzpicture}
+}
+
+\ods
+Teraz som vyriešil problém v pravom podstrome uzla $9$, ale problém je v samotnej $9$ke:
+uzly $15$ aj $20$ sú na leveli 1, a tým porušujú pravidlo~\ref{aarule5}. To ošetrím druhou
+operáciou, ktorú nazvem {\em split} ({\em rozdelenie}) a vyzerá takto:
+
+\ods
+\centerline{\begin{tikzpicture}
+\foreach\x/\y[count=\i]in{0.7/1.8,2.1/1.6,3.5/1.4, 0/0,1.4/0,2.8/0,4.2/0}
+      \coordinate (n\i) at (\x,\y);
+      
+  \draw (n4) -- (n1) -- (n2) -- (n3)--(n7) (n5)--(n2) (n6)--(n3) (n1) -- ++(0,0.7);   
+\aanode(n1){$x$}{k}
+\aanode(n2){$y$}{k}
+\aanode(n3){$z$}{k}
+\aasub(n4){$A$}{k-1}
+\aasub(n5){$B$}{k-1}
+\aasub(n6){$C$}{k-1}
+\aasub(n7){$D$}{k-1}
+
+\node[draw, single arrow, minimum height=20mm, minimum width=8mm,
+  single arrow head extend=2mm, anchor=center] at (6.5,0.7) {};
+
+\begin{scope}[shift={(9,0)}]
+\foreach\x/\y[count=\i]in{0.7/1.4,2.1/1.9,3.5/1.4, 0/0,1.4/0,2.8/0,4.2/0}
+      \coordinate (n\i) at (\x,\y);
+      
+  \draw (n4) -- (n1) -- (n2) -- (n3)--(n7) (n5)--(n1) (n6)--(n3) (n2) -- ++(0,0.7);   
+\aanode(n1){$x$}{k}
+\aanode(n2){$y$}{k+1}
+\aanode(n3){$z$}{k}
+\aasub(n4){$A$}{k-1}
+\aasub(n5){$B$}{k-1}
+\aasub(n6){$C$}{k-1}
+\aasub(n7){$D$}{k-1}
+\end{scope}
+
+\end{tikzpicture}}
+
+\ods
+Slovami, ak mám postupne dvoch pravých synov na rovnakom leveli ako rodič, môžem stredného
+posunúť na vyšší level. Opäť to naprogramujem rovnako, ako predtým, t.j. ako metódu,
+ktorá vracia pointer na nový koreň:
+
+\ods
+\begin{lstlisting}
+ Node *split() {
+    if (right->right->level != level) return this;
+    right->level++;
+    Node *res = right;
+    right = right->left;
+    res->left = this;
+    return res;
+  }
+\end{lstlisting}
+\ods
+Keď aplikujem {\tt split} na vrchol $15$, výsledný strom bude
+
+\ods\centerline{
+  \begin{tikzpicture}
+    \foreach\x/\y[count=\i]in{0/1.3, 1.7/0.5, 1.2/1} 
+      \coordinate (n\i) at (\x,1.5*\y);
+
+    \draw[dashed](-1.2,0)--(2.7,0);
+    \ground(n1)-
+    \ground(n2)+
+    \ground(n2)-
+    \ground(n3)-
+    \draw(n1)--(n3) --(n2);
+    \draw(n1) -- +(0,0.7);
+    \aanode(n1){9}{1}
+    \aanode(n2){20}{1}
+    \aanode(n3){15}{1}
+
+\node[draw, single arrow, minimum height=20mm, minimum width=8mm,
+  single arrow head extend=2mm, anchor=center] at (4.5,1) {};
+
+\begin{scope}[shift={(8,0)}]
+
+    \foreach\x/\y[count=\i]in{0/0.5, 1.6/0.5, 0.8/1.4} 
+      \coordinate (n\i) at (\x,1.5*\y);
+
+    \draw[dashed](-1.2,0)--(2.7,0);
+    \ground(n1)-
+    \ground(n2)+
+    \ground(n2)-
+    \ground(n1)+
+    \draw(n1)--(n3) --(n2);
+    \draw(n3) -- +(0,0.7);
+    \aanode(n1){9}{1}
+    \aanode(n2){20}{1}
+    \aanode(n3){15}{2}
+\end{scope}
+  \end{tikzpicture}
+}
+
+\ods
+Pridaním listu a následným volaním {\tt skew} a {\tt split} sa mi mohlo stať, že
+sa porušia pravidlá vyššie v strome. V mojom príklade je teraz koreň namiesto 
+uzla $9$ s levelom $1$, uzol $15$ s levelom $2$. Keby to nebol celý strom, ale 
+nad ním by bol napr. uzol $30$ s levelom $2$, porušilo by sa mi v ňom pravidlo~\ref{aarule3}.
+Možnosti, ako sa to môže stať, sú ale rovnaké, ako pri pridávaní listu\footnote{%
+  všimni si, že jediné miesto, kde level môže stúpnuť, je pri operácii {\tt split},
+  ale potom sú obaja synovia na menšom leveli}. Preto celé pridávanie môžem napísať
+  jednoducho takto:
+
+\begin{lstlisting}
+struct Node {
+  int level, key;
+  Node *left, *right;
+
+  Node(int k, Node *base) { ... }
+  void destroy(Node *base) { ... }
+  bool find(int k, Node *base) { ... }
+  
+  Node *skew() { ... }
+  Node *split() { ... }
+
+  Node *insert(int k, Node *base) {
+    if (this == base) return new Node(k, base);
+    if (k == key) return this;
+    if (k < key)
+      left = left->insert(k, base);
+    else
+      right = right->insert(k, base);
+    return skew()->split();
+  }
+};
+
+struct Tree {
+  Node *root;
+  Node *base;
+
+  Tree() { ... }
+  ~Tree() { ... }
+
+  void insert(int key) { root = root->insert(key, base); }
+  bool find(int key) { return root->find(key, base); }
+};
+
+\end{lstlisting}
+
+\ods
+Uzly, ktoré sú v strome, sa dajú odstrániť podobným spôsobom. Ak mám odstrániť list,
+nájdem ho ako pri vyhľadávaní, zmažem ho, a po zmazaní dovyvažujem strom. Problém je,
+čo urobiť, ak mám vymazať uzol, ktorý nie je list. Pomôže drobná finta: ak mám
+vymazať uzol $x$, ktorý má ľavého syna, nájdem si uzol $y$ s najväčším kľúčom v podstrome
+ľavého syna (t.j. najpravejší list). Viem, že $y$ je väčší, ako všetky kľúče v ľavom podstrome
+$x$ a zároveň menší, ako všetky kľúče v pravom podstrome. Môžem teda vymeniť hodnoty
+$x$ a $y$, a už mi stačí vymazať list. Ak $x$ nemal ľavého syna, ale iba pravého, 
+urobím to symetricky (hľadám najľavejší list). V súbore 
+\link{https://beda.dcs.fmph.uniba.sk/programovanie/aatree.h}{aatree.h}
+je strom aj s dopísanou operáciou {\tt erase}: pri postupe smerom nadol
+si v premennej {\tt deleted} uchovávam posledný uzol, ktorého kľúč je $\ge k$. Keď
+prídem do príslušného listu (najľavejšieho alebo najpravejšieho), tak vymením
+hodnoty a dovyvažujem strom (skús si premyslieť, ako to funguje).
+
+\ods
+
 
 \fi
 
 
 % set a stromy
+% set: 
+
+% toposort
+
+% 606b
+% vstup: pole cisel, mozem parne cislo vydelit dvomi, kolko krokov, kym budu vsetky neparne
+
+% 296a
+% rezanie skla: V/H, po kazdom vypisat najvacsi dielik
+
+% pi_d (1-dimensional battleships)
+% po kolkatom tahu je jasne, ze svindluje
+
+% query rank : potrebujem strom
+
+
 % Huffman: subory, prediktory, kompresia
 % priklady na set / haldu
 
