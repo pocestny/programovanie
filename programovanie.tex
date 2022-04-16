@@ -5818,10 +5818,22 @@ Podreťazec (substring) sa dá vyrobiť \prg!t=s.substr(2,4);! Metóda {\tt find
 vráti prvý výskyt podreťazca od danej pozície: ak \prg!s="barbakan"!, tak
 \prg!s.find("ba")! vráti 0 (rovnako ako \prg!s.find("ba",0)!)
 a \prg!s.find("ba",1)! vráti 3. Ak sa podreťazec v reťazci nenachádza, vráti 
-sa špeciálna hodnota {\tt string::npos}.
+sa špeciálna hodnota {\tt string::npos}. 
 
 \ods
-Pri spracovaní reťazcov sa hodí aj treida \prg!stringstream! (\prg!#include <sstream>!).
+\begin{uloha}
+  Predpokladajme, že máme premennú typu \prg!string!, v ktorej je uložený
+  zápis čísla (napr. reťazec \prg!"4247"!). Napíš funkciu, ktorá vráti premennú
+  typu \prg!int!, v ktorej bude hodnota tohoto čísla.
+\end{uloha}
+
+\ods 
+Takáto funkcia je v knižnici \prg!string! naprogramovaná a volá sa \prg!stoi!
+\footnote{{\em string-to-integer}, podobná funkcia je \prg!stol!
+ktorá vracia \prg!long!.}; dá sa napísať \prg!int x = stoi(s);!. 
+V kombinácii s \prg!find! a \prg!substr! sa \prg!stoi! dá použiť na čítanie
+čísel z reťazca. Keď treba čítať zložitejšie vstupy, 
+hodí sa  treida \prg!stringstream! (\prg!#include <sstream>!).
 Premenná typu {\tt stringstream} funguje podobne ako \prg!cin! a \prg!cout!, ale
 namiesto štandardného vstupu a výstupu pracuje nad reťazcom. Ukážme si to na príklade:
 
@@ -10164,21 +10176,191 @@ Tu je zopár príkladov, kde sa dajú výhodne použiť typy \prg!set! a \prg!ma
   vyberiem $6$ a $8$ a zaplatím $14$.
 \end{uloha}
 
+\begin{uloha}
+  V systéme sú rôzne produkty, každý má meno skladajúce sa z písmen a číselnú
+  verziu. Verzie sa postupne zvyšujú od $1$. Produkt a jeho verzia sa oddeľujú
+  pomlčkou, tkaže nap. {\tt hrniec-3} je verzia $3$ produktu {\tt hrniec}.
+  Na vstupe sú tri typy príkazov: {\tt ? produkt}, {\tt * produkt-verzia}, 
+  \hbox{\tt + produkt}. Vstup je ukončený príkazom {\tt !}.
+  V prvom prípade treba odpovedať číslom aktuálnej verzie (alebo $0$,
+  ak produkt neexistuje), v druhom prípade je odpoveď {\tt ano}/{\tt nie} podľa toho,
+  či v systéme existuje produkt s danou verziou (možno aj staršou) a v treťom prípade 
+  pridať novú verziu s číslom o 1 väčším ako doteraz aktuálna verzia.
+
+  \ods
+\bp
+\begin{verbatim}
++ hrniec
++ hrniec
++ ponozka
+* hrniec-1
+* ponozka-4
+? ponozka
+? hrniec
+!
+\end{verbatim}
+\ep
+\bp
+\begin{verbatim}
+ano
+nie
+1
+2
+\end{verbatim}
+\ep
+\end{uloha}
+
+\begin{uloha}
+Na vstupe je niekoľko riadkov, na každom riadku je veta tvaru 
+  {\tt <Podmet> je <privlastok>.} alebo {\tt <Podmet> nie je <privlastok>.}
+Posledný riadok vstupu obsahuje iba znak {\tt '!'}. Napíš program, ktorý prečíta 
+vstup a pre každý podmet vypíše všetky prívlastky.
+
+
+  \ods
+\bp
+\begin{verbatim}
+Slon je velky.
+Stolicka je tvrda.
+Zaba nie je tvrda.
+Slon je makky.
+Zaba je zelena.
+Stolicka nie je zelena.
+Slon je hladny.
+Zaba je makka.
+!
+\end{verbatim}
+\ep
+\bp
+\begin{verbatim}
+Slon je hladny, makky a velky.
+Stolicka je tvrda.
+Zaba je makka a zelena.
+\end{verbatim}
+\ep
+\end{uloha}
+
+\begin{uloha}
+Na prvom riadku vstupu sú tri čísla: $w$, $h$, $n$.
+Začíname s obdĺžnikom rozmerov $w\times h$. Nasleduje $n$ riadkov, ktoré popisujú čiary
+  cez obdĺžnik. Riadok {\tt H y} znamená, že nakreslíme horizontálnu (vodorovnú)
+  čiaru cez celý obdĺžnik vo výške {\tt y}. Riadok {\tt V x} znamená, že nakreslíme
+  vertikálnu (zvislú) čiaru vo vzdialenosti {\tt x}. Napíš program, ktorý
+  po každom vstupe vypíše plochu najväčšieho dielika. Napríklad pre $w=8$, $h=6$
+  môže byť takáto postupnosť:
+
+  \ods
+  \centerline{\begin{tikzpicture}[scale=0.5]
+  \def\w{8}
+  \def\h{6}
+  \def\hlist{0}
+  \def\vlist{0}
+  \def\addH#1{\edef\hlist{\hlist,#1}}  
+  \def\addV#1{\edef\vlist{\vlist,#1}}  
+  \def\uloha(#1,#2)(#3,#4)#5#6{
+    \filldraw[fill=green!10!white](#1,#2)rectangle(#3,#4);
+    \draw (0,0) rectangle (\w,\h);
+    \node [above] at (0.5*\w,\h) {{\tt #5}};
+    \node [below] at (0.5*\w,0) {najväčší dielik je $#6$};
+    \foreach\y in \hlist {\draw(0,\y)--(\w,\y);}
+    \foreach\x in \vlist {\draw(\x,0)--(\x,\h);}
+  }
+
+    \addH1
+    \uloha(0,1)(\w,\h){H 1}{40}
+
+    \addV3
+    \begin{scope}[shift={(10,0)}]
+      \uloha(3,1)(\w,\h){V 3}{25}
+    \end{scope}
+
+    \addV7
+    \begin{scope}[shift={(20,0)}]
+      \uloha(3,1)(7,\h){V 7}{20}
+    \end{scope}
+
+    \addV5
+    \begin{scope}[shift={(0,-9)}]
+      \uloha(0,1)(3,\h){V 5}{15}
+    \end{scope}
+
+    \addH5
+    \begin{scope}[shift={(10,-9)}]
+      \uloha(0,1)(3,5){H 5}{12}
+    \end{scope}
+  \end{tikzpicture}}
+\end{uloha}
+
+\begin{uloha}
+  V prvom riadku vstupu sú tri čísla $n$, $k$, $a$, ktoré predstavujú súčiatku, ktorú treba
+  testovať. Je to rúrka dlhá $n$ a v nej je $k$ valčekov dĺžky $a$, ktoré sa nedotýkajú.
+  Napr. pre $n=16$, $k=3$, $a=3$ niektoré správne súčiastky môžu vyzerať takto:
+
+  \ods
+  \centerline{\begin{tikzpicture}[scale=0.4]
+    \def\grd{%
+    \foreach\x in {1,...,16} {
+      \draw (\x-1,0) rectangle (\x,1);
+      \node [above] at (\x-0.5,1) {{\scriptsize\tt\x}};
+    }
+    }
+    \def\rct#1{(#1,0) rectangle (#1+3,1)}
+
+    \def\clr{yellow!20!white}
+    \filldraw[\clr] \rct0 \rct6 \rct{10};
+    \grd
+
+    \begin{scope}[shift={(20,0)}]
+      \filldraw[\clr] \rct1 \rct9 \rct{13};
+    \grd
+    \end{scope}
+
+    \begin{scope}[shift={(0,-3)}]
+      \filldraw[\clr] \rct3 \rct7 \rct{11};
+    \grd
+    \end{scope}
+
+    \begin{scope}[shift={(20,-3)}]
+      \filldraw[\clr] \rct0 \rct4 \rct{13};
+    \grd
+    \end{scope}
+  \end{tikzpicture}}
+
+  \ods
+  Ďalej je dané číslo $m$ a potom $m$ pozícií (číslovaných od 1), 
+  na ktorých sa súčiastka testovala a zistilo sa,
+  že na tej pozícii nie je valček. Napr. ak by sa testovali pozície $4,5,6,10,14$, súčiastka
+  by mohla vyzerať ako vľavo hore. Keby ale na žiadnej z pozícií $4,5,6,10,14,1$ 
+  valček nebol, tak je jasné,
+  že súčiastka je chybná. Napíš program, ktorý prečíta jednotlivé testy a vypíše,
+  po ktorom teste začne byť jasné, že súčiastka je chybná. 
+\end{uloha}
+
+\ods
+Typy \prg!set! a \prg!map! sú síce naprogramované pomocou vyhľadávacích stromov, ale zámerom
+je, že spôsob, akým sú naprogramované, je vecou kompilátora a teba ako programátora
+to nemá čo zaujímať; máš len zaručené, že operácie vkladania, vyhľadávania a mazania
+majú logaritmickú zložitosť. Preto ani nemáš v programe prístup priamo k uzlom stromu.
+Niekedy by sa to ale hodilo. Nasledovný príklad ľahko vyriešiš, ak upravíš náš
+AA strom \prg!Tree! tak, že každý uzol si bude navyše pamätať, 
+koľko listov je v jeho podstrome.
+
+\begin{uloha}
+  Napíš program, ktorý vyhodnocuje postupnosť príkazov: {\tt pridaj x}, {\tt vymaz x}
+  a {\tt ? x}, kde {\tt x} je nejaké prirodzené číslo. Príkazy {\tt pridaj} a {\tt uber}
+  pridávajú a uberajú čísla do/z množiny. 
+  Pre každý príkaz {\tt ? x} treba vypísať, koľko čísel 
+  menších ako {\tt x} je momentálne v množine.
+  Posledný príkaz je {\tt !}.
+\end{uloha}
+
 \fi
 
-% cf 4 (reg system)
 
-% 296a
-% rezanie skla: V/H, po kazdom vypisat najvacsi dielik
-
-% pi_d (1-dimensional battleships)
-% po kolkatom tahu je jasne, ze svindluje
-
-% query rank : potrebujem strom
 
 
 % Huffman: subory, prediktory, kompresia
-% priklady na set / haldu
+% nahodne cisla: generator terenu ? / hasovanie
 
 % projekt piskvory (dedenie, pripomenut iteratory) + grafika SDL?
 % thready
@@ -10188,7 +10370,6 @@ Tu je zopár príkladov, kde sa dajú výhodne použiť typy \prg!set! a \prg!ma
 
 % urobit ulohy s lepsou zlozitostou
 
-% nahodne cisla: generator terenu ?
 % grafika: suradnicove sustavy?
 
 % AI - hra, NN
