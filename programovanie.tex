@@ -91,6 +91,7 @@
 \def\sectxxiii{1} % algoritmy v STL
 \def\sectxxiv{1} % komplexne cisla
 \def\sectxxv{1} % set a map, stromy
+\def\sectxxvi{1} %binarne subory a kompresia
 \fi
 
 %% ALL OFF
@@ -122,6 +123,7 @@
 \def\sectxxiii{0} % algoritmy v STL
 \def\sectxxiv{0} % komplexne cisla
 \def\sectxxv{0} % set a map, stromy
+\def\sectxxvi{0} %binarne subory a kompresia
 \fi
 
 
@@ -5915,6 +5917,7 @@ z neho sa pri čítaní nestrácajú.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \if\sectxxi1
 \section{Konštruktory, referencie, operátory a iný cukor}
+\label{sect:cukor}
 
 V predchádzajúcej kapitole si videl, že typ {\tt vector} mal niektoré
 divné vlastnosti (napr. že \prg!a[x]! vráti {\tt x}-tú premennú podobne ako 
@@ -10356,22 +10359,302 @@ koľko listov je v jeho podstrome.
 
 \fi
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectxxvi1
+\section{Binárne súbory a kompresia}
+
+Doteraz sme na vstup a výstup používali objekty {\tt cin} a {\tt cout}, ktoré
+sú tzv. {\em streamy}. Predstavujú štandardný vstup a výstup, za obvyklých
+okolností sú to klávesnica a konzola, ale pri spúšťaní z príkazového riadka sa dajú 
+presmerovať. Niekedy ale chceme priamo z programu písať do súboru. Na to existuje
+knižnica \prg!fstream! (\prg!#include <fstream>!), v ktorej sú (okrem iného) definované
+triedy \prg!ifstream! a \prg!ofstream! na čítanie a zapisovanie z/do súborov. Používajú
+sa podobne. 
+
+\begin{lstlisting}
+#include <fstream>
+#include <iostream>
+using namespace std;
+
+int main() {
+  ifstream s("pako.txt");
+  int x = -1;
+  s >> x;
+  cout << s.good() << " " << s.eof() << " " 
+       << s.fail() << x << endl;
+}
+\end{lstlisting}
+
+\ods
+V tomto programe som vyrobil premennú \prg!s! typu \prg!istream! zviazanú so súborom
+{\tt pako.txt} v aktuálnom adresári (t.j. tam, kde sa spúšťa binárka). 
+Potom z neho skúšam načítať číslo. Trieda \prg!istream! má metódu \prg!bool good()!, ktorá
+vždy povie, či je stream pripravený a metódu \prg!bool eof()!, ktorá hovorí, či bol
+dosiahnutý koniec súboru. 
+Ďalšia užitočná funkcia je \prg!fail()!, ktorá hovorí, či pri poslednom načítavaní
+nastala chyba 
+Vyskúšaj si spustiť tento program za rôznych okolností:
+ak  súbor {\tt pako.txt} neexistuje, ak existuje, ale na začiatku nemá číslo, ale písmeno, 
+ak existuje,
+na začiatku má číslo a za ním nejaké znaky (napr. koniec riadka) a napokon ak existuje
+a je v ňom iba jedno číslo (bez konca riadka). Všimni si, že ak raz nastane chyba a stream
+prestane byť {\tt good}, už taký ostane, a {\tt eof} sa dosiahne, až keď sa pokúsi načítavať
+za posledný znak v súbore. Ak chceš skončiť prácu so streamom, môžeš zavolať \prg!s.close()!.
+Ak to nespravíš, všetko potrebné sa spraví v deštruktore (v našom prípade na konci programu).
+Nasledovný program postupne prečíta zo súboru všetky čísla a vypíše ich:
+
+\vbox{
+\begin{lstlisting}
+#include <fstream>
+#include <iostream>
+using namespace std;
+
+int main() {
+  ifstream s("pako.txt");
+  int x = -1;
+  while (true) {
+    s >> x;
+    if (s.fail()) break;
+    cout << x << endl;
+  }
+}
+\end{lstlisting}
+}
+
+To isté sa dá docieliť aj jednoduchšie:
+
+\begin{lstlisting}
+#include <fstream>
+#include <iostream>
+using namespace std;
+
+int main() {
+  ifstream s("pako.txt");
+  int x = -1;
+  while (s >> x)
+    cout << x << endl;
+}
+\end{lstlisting}
+
+Čo znamená to \prg!while (s >> x)!? Podobne, ako sme v kapitole~\ref{sect:cukor}
+pre náš typ {\tt Tabulka} definovali 
+
+\begin{lstlisting}
+ostream& operator <<(ostream& str , const Tabulka& o)
+\end{lstlisting}
+
+tak aj \prg!ifstream::operator>>(...)! vracia referenciu \prg!ifstream&!. Zároveň
+má \prg!ifstream! definovaný \prg~operator bool() {return !fail();}~, ktorým sa dá hodnota
+\prg!ifstream! pretypovať na \prg!bool! (a výsledok je \prg!true! práve vtedy,
+ak volanie \prg!fail! vráti \prg!false!). Takže zápis \prg!while (s >> x)! hovorí
+\cmd{Prečítaj z {\tt s} celé číslo, ulož ho do {\tt x} a vráť referenciu na {\tt s}. 
+Príkaz {\tt while} očakáva výraz typu {\tt bool}, 
+preto zavolaj pretypovací operátor z {\tt ifstream}
+a použi výslednú hodnotu.} Cyklus sa teda vykonáva, kým bolo načítanie úspešné.
+
+\ods
+Pretože \prg!ifstream! pracuje so súborom, nemusí, na rozdiel od \prg!cin! čítať súvisle
+za sebou. Dá sa predstaviť tak, že po súbore sa pohybuje kurzor, ktorý určuje miesto, z ktorého
+sa práve ide čítať. Pozíciu kurzora vracia funkcia \prg!tellg()!. Kurzor sa dá posúvať
+pomocou \prg!seekg()!, ktorá má dva parametre: prvý určuje o koľko sa má kurzor posunúť
+a druhý odkiaľ sa má počítať: \prg!ios::beg! od začiatku súbora, \prg!ios::end! od konca, 
+\prg!ios:cur! od súčasnej pozície. 
+To \prg!ios::beg!, \prg!ios::end!, \prg!ios::cur! sú nejaké
+konštanty, ktoré sú definované
+v rámci {\tt ios}; nebudeme teraz rozoberať, čo to presne je.
+Vyskúšaj si napísať súbor {\tt pako.txt} s číslami,
+medzerami a prázdnymi riadkami a spustiť si tento program:
+
+\begin{lstlisting}
+#include <fstream>
+#include <iostream>
+using namespace std;
+
+int main() {
+  ifstream s("pako.txt");
+  int x = -1;
+  s.seekg(0, ios::end);
+  cout << "subor ma " << s.tellg() << " bytov." << endl;
+  s.seekg(0, ios::beg);
+  while (s >> x)
+    cout << x << " a kurzor je na " << s.tellg() << endl;
+}
+\end{lstlisting}
+
+\ods
+Trieda \prg!ofstream! funguje podobne, 
+s tým rozdielom, že vždy vytvorí nový súbor (ak súbor s daným
+menom existoval, tak ho prepíše) a bude doňho zapisovať. Kvôli efektivite sa nezapisuje ihneď,
+ale najprv do vyhradeného poľa v pamäti, ktoré sa do súboru zapíše až pri volaní \prg!close!.
+Dá sa to ale urobiť aj skôr, zavolaním \prg!flush()!. Ak nechceš, aby sa súbor premazal,
+môžeš použiť druhý parameter v konštruktore (resp. v \prg!open!), ktorým môžeš nastaviť
+rôzne vlastnosti. Ak zavoláš \prg!ofstream s("pako.txt",ios:app);!, bude sa zapisovať na
+koniec existujúceho súboru ({\em append}). Presúvať kurzor sa dá rovnako, ale namiesto
+\prg!seekg! a \prg!tellg! treba použiť metódy \prg!seekp! a \prg!tellp!.
+
+\ods
+Súbory sa, rovnako ako pamäť, dajú predstaviť ako pole núl a jednotiek. Ak máš premennú
+\prg!int x = 42!, v pamäti sú bity nastavené podľa dvojkového zápisu:
+{\tt 00101010} (a ešte ďalších 7 bytov samých núl, lebo \prg!int! má 8 bytov).
+Operátory \prg!>>! a \prg!<<! ale čítajú a píšu textovú reprezentáciu: ak 
+máš \prg!ofstream s;!
+a napíšeš \prg!s << x!, do súboru sa napíšu dva byty: {\tt 00110100} (čiže $52$) a 
+{\tt 00110010} (čiže $50$), čo sú ASCII kódy pre
+znak \prg!'4'! a znak \prg!'2'!. Typy \prg!ifstream! a \prg!ofstream! umožňujú zapisovať
+a čítať aj priamo byty\footnote{%
+  Ak pracuješ na inom systéme ako na Linuxe, operačný systém môže niektoré znaky (napr. 
+  koniec riadku) prekladať inak. To znamená, že sa do súboru zapíše viac/iných znakov.
+  Ak tento preklad nechceš, treba pri otváraní súboru použiť prepínač \prg!ios::binary!,
+  napr. \prg!ifstream is("pako.txt", ios::in | ios::binary);! alebo
+  \prg!ofstream os("pako.txt", ios::out | ios::binary);!. Všimni si, že na použitie
+  viacerých prepínačov použivam bitové OR. To je častá finta, ako v jednej premennej typu
+  \prg!int! zapamätať niekoľko prepínačov: ak ich hodnoty sú mocniny dvojky, napr.
+  \prg!int a=1, b=2, c=4, d=8;! tak každý z nich má v dvojkovom zápise iba jednu jednotku. 
+  Preto napr. \prg!int x = b|d! je v dvojkovej sústave {\tt 0010 | 1000}, čiže
+  {\tt 1010}, t.j. $10$.  Preto pre \prg!x=10! sú zapnuté prepínače {\tt b} a {\tt d}. 
+  Otestovať, či je niektorý bit nastavený sa dá napr.
+  \prg~if (x&d != 0) ...~.
+  } pomocou funkcií \prg!read! a \prg!write!. Tie dostávajú ako parameter pointer na 
+  \prg!char! a číslo $n$ a prečítajú resp. zapíšu $n$ bytov do/z pamäte. Samozrejme, 
+  treba si dávať pozor, aby tá pamäť bola vhodne alokovaná, inak sa môže prepísať
+  nejaká iná premenná (prípadne program spadne na segfault). 
+
+  \ods Vyskúšaj spustiť nasledovný program:
+  
+\begin{lstlisting}
+#include <fstream>
+#include <iostream>
+using namespace std;
+
+void zapis(long int x) {          
+  ofstream s("pako.txt", ios::out | ios::binary);
+  s.write((char *)&x, sizeof(x));
+  s.close();                     // netreba, urobil by destruktor
+}
+
+void citaj(long int &x) {        // toto & znamena referenciu
+  ifstream s("pako.txt", ios::in | ios::binary);
+  s.read((char *)&x, sizeof(x)); // ale toto & znamena adresu
+  s.close();                     // netreba, urobil by destruktor
+}
+
+int main() {
+  long int x = 7020664791986103674;
+  zapis(x);
+  long int y;
+  citaj(y);
+  cout << y << endl;
+  cout << sizeof(y) << endl;
+}
+\end{lstlisting}  
+
+Teraz sa v nejakom editore pozri, čo sa vytvorilo v súbore \prg!pako.txt!.
+
+\ods
+Najmenšia jednotka, ktorá sa dá zapisovať a čítať je jeden byte, t.j. 8 bitov.
+Aj typ \prg!bool!, ktorému by inak stačil 1 bit, má v pamäti (a v súbore)
+veľkosť 1 byte. Nasledovný 
+kus porgramu
+
+\begin{lstlisting}
+bool a[40];
+for (int i = 0; i < 20; i++) {
+  a[2 * i] = false;
+  a[2 * i + 1] = true;
+}
+ofstream s("pako.txt", ios::out | ios::binary);
+s.write((char *)a, sizeof(a));
+s.close();
+\end{lstlisting}
+
+preto do súboru {\tt pako.txt} zapíše 40 bytov s hodnotami striedavo 0 a 1.
+Preto ak chceme zapisovať do súboru priabo bity, musíme to spraviť ručne. Vyrobíme
+si triedu {\tt BitWriter}, ktorá bude mať otvorený súbor na zápis a zároveň si bude
+pamätať buffer \prg!buff!
+na zapisovanie bitov: to môže byť napr. 8-bitový \prg!unsigned char! 
+alebo 32-bitový \prg!unsigned int! alebo niečo iné, čo budeme mať ako šablónu
+\prg!Buffer!.
+Zároveň si budeme pamätať pozíciu bitu, ktorý práve nastavujeme ako \prg!int sz!,
+takže ak máme pridať bit \prg!v! na koniec, zvýšime \prg!sz! a
+spravíme \prg!(buff<<1)|(int)v!, čiže
+posunieme binárny zápis \prg!buff! o 1 pozíciu doľava a na poslené miesto zapíšeme 
+pomocou OR hodnotu \prg!v!. Ak zaplníme všetky bity, tak buffer zapíšeme do súboru
+a vynulujeme. Ostáva jeden problém: na konci treba do súboru zapísať zostávajúci buffer,
+ktorý doplníme nulami. Potom ale nevieme rozlíšiť, koľko núl bolo doplnených.
+Môžme to spraviť tak, že na začiatok súboru napíšeme napr. \prg!long int len!, kde
+si budeme pamätať celkovú dĺžku. Ako ju napísať na začiatok? Najprv tam zapíšeme 0,
+aby sme mali v súbore urobené miesto a pred zatvorením súboru nastavíme kurzor
+pomocou \prg!seekp! na začiatok a zapíšeme. Na zapisovanie bitu môžme definovať
+\prg!operator<<! a môžme prihodiť aj verziu {\tt <<} pre čísla, ktorá postupne
+zapíše všetky bity. Výsledok môže vyzerať nejak takto:
+
+\begin{lstlisting}
+template <typename Buffer = unsigned int>
+struct BitWriter {
+  ofstream f;
+  Buffer buff;
+  int sz;
+  long int len;
+  const int N = sizeof(Buffer);
+
+  BitWriter(const string &fname) {
+    f.open(fname, ios::out | ios::binary);
+    sz = 0;
+    buff = (Buffer)0;
+    len = 0;
+    f.write((char *)&len, sizeof(len));
+  }
+
+  ~BitWriter() {
+    if (sz > 0) {    // zapis do suboru zostavajuci buffer
+      buff <<= 8 * N - sz;
+      f.write((char *)(&buff), N);
+    }
+    f.seekp(0);     // na zaciatok zapiseme vyslednu velkost
+    f.write((char *)&len, sizeof(len)); 
+    f.close();
+  }
+
+  BitWriter &operator<<(bool v) {
+    buff = (buff << 1) | ((int)v);
+    sz++;
+    len++;
+    if (sz == 8 * N) {
+      f.write((char *)(&buff), N);
+      sz = 0;
+      buff = (Buffer)0;
+    }
+    return *this;
+  }
+
+  template <typename T>
+  BitWriter &operator<<(const T &v) {
+    for (int i = 8 * sizeof(T) - 1; i >= 0; i--)
+      (*this) << ((v & (1 << i)) != 0);
+    return *this;
+  }
+};
+\end{lstlisting}
+
+\begin{uloha}
+  Naprogramuj analogickú triedu {\tt BitReader}, ktorá bude čítať (pomocou
+  operátora {\tt >>}) to, čo {\tt BitWriter} zapísal. Pridaj \prg!operator bool(){...}!
+  ktorý vráti true, ak sa ešte nedočítalo do konca.
+\end{uloha}
+
+Nejaká verzia tried {\tt BitWriter} a {\tt BitReader} je v súbore
+\link{https://beda.dcs.fmph.uniba.sk/programovanie/bitwriter.h}{bitwriter.h}
 
 
+\fi
 
 % Huffman: subory, prediktory, kompresia
-% nahodne cisla: generator terenu ? / hasovanie
 
-% projekt piskvory (dedenie, pripomenut iteratory) + grafika SDL?
+% nahodne cisla: generator terenu (3d?) ;  hasovanie
+
+% projekt breakthrough (dedenie, pripomenut iteratory) + grafika SDL?
 % thready
 
-
-% grafy?
-
-% urobit ulohy s lepsou zlozitostou
-
-% grafika: suradnicove sustavy?
-
-% AI - hra, NN
+% NN
 
 \end{document}
