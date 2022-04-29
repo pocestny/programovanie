@@ -1,27 +1,34 @@
 \documentclass[10pt]{article}
-\usepackage{a4wide}
-\usepackage{ltablex}
-\usepackage{xcolor}
-\usepackage[slovak]{babel}
-\usepackage{listings}
-\usepackage[utf8]{inputenc}
 \usepackage[colorlinks]{hyperref}
-\usepackage{tikz}
-\usepackage{pgffor}
+\usepackage[slovak]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{a4wide}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{epigraph}
+\usepackage{etoolbox}
+\usepackage{etoolbox}
 \usepackage{fancyvrb}
 \usepackage{graphicx}
+\usepackage{listings}
+\usepackage{ltablex}
+\usepackage{multirow}
+\usepackage{pgffor}
 \usepackage{pgfplotstable}
 \usepackage{pgfplots}
+\usepackage{pgf}
 \usepackage{scrextend}
-\usepackage{booktabs}
-\usepackage{amsmath}
-\usepackage{etoolbox}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usepackage{xparse}
 \usepackage{xspace}
-\usepackage{epigraph}
-\usepackage{amssymb}
+\AtBeginDocument{\shorthandoff{-}}
 
 \deffootnote[0em]{0em}{0em}{\textsuperscript{\thefootnotemark}\;\enskip}
-
+\def\arraystretch{1.2}
+\def\rootpath{https://beda.dcs.fmph.uniba.sk/programovanie}
 
 % invoke with: pdflatex -shell-escape -output-dir=/tmp <thisfile>
 \if11
@@ -29,6 +36,7 @@
 \tikzexternalize
 \fi
 
+\usepgflibrary{fpu}
 \usetikzlibrary{%
   arrows,matrix,
   arrows.meta,
@@ -43,10 +51,26 @@
 }
 
 
+\NewDocumentCommand{\calc}{O{} m}{%
+\pgfkeys{
+    /pgf/fpu = true,
+    /pgf/number format/.cd,
+    precision=0,
+    fixed,
+    %fixed zerofill,
+    %use comma,
+    1000 sep={},
+    #1
+}
+\pgfmathparse{#2}
+\pgfmathprintnumber{\pgfmathresult}
+}
+
 
 \def\prg{\lstinline}
 \def\ods{\vspace*{10pt}}
 \def\link#1#2{\href[pdfnewwindow=true]{#1}{#2\footnote{\nolinkurl{#1}}}}
+\def\linkk#1#2#3{\href[pdfnewwindow=true]{#1}{#2\footnote{\nolinkurl{#1}, #3}}}
 \long\def\IGNORE#1{}
 \long\def\cmd#1{{\em\color[rgb]{0.12,0.4,0.3}#1}}
 
@@ -55,7 +79,7 @@
 \let\angle\measuredangle
 \newsavebox{\TmpBox}
 
-\def\bp{\begin{minipage}[t]{0.45\textwidth}}\vspace{0pt}
+\def\bp{\begin{minipage}[t]{0.45\textwidth}\vspace{0pt}}
 \def\ep{\end{minipage}}
 \def\inp{{\rm Vstup:}\\[-4.2ex]}
 \def\outp{{\rm Výstup:}\\[-4.2ex]}
@@ -129,11 +153,12 @@
 
 
 \begin{document}
+\definecolor{stringcolor}{rgb}{0.8,0.5,0.3}
 \lstset{language=C++,
                 basicstyle=\rm\ttfamily,
                 lineskip=-1pt,
                 keywordstyle=\color[rgb]{0,0.5,1}\ttfamily,
-                stringstyle=\color[rgb]{0.8,0.5,0.3}\ttfamily,
+                stringstyle=\color{stringcolor}\ttfamily,
                 commentstyle=\color[rgb]{0.4,0.4,0.6}\ttfamily,
                 morecomment=[l][\color{magenta}]{\#},
                 emph={cout,endl,cin},emphstyle={\color{magenta}\ttfamily},
@@ -145,8 +170,6 @@
 \parindent=0pt
 \title{\bfseries\sffamily Programovanie v C++}
 \author{\includegraphics[width=1cm]{data/profile.jpg}}
-%  \url{https://beda.dcs.fmph.uniba.sk/programovanie/programovanie.pdf}\and
-%  \url{https://github.com/pocestny/programovanie.git}
 \date{\sffamily\today}
 \maketitle
 \renewcommand{\abstractname}{Čo je toto?}
@@ -1676,7 +1699,7 @@ int main() {
 
 Dvojrozmerné pole núl a jednotiek sa dá chápať ako čiernobiely obrázok, kde 1 je biela
 a 0 čierna. Aby sa dali lepšie pozerať, môžeš si stiahnuť súbor 
-\link{https://beda.dcs.fmph.uniba.sk/programovanie/obrazok.h}{obrazok.h}, v ktorom som ti
+\link{\rootpath/obrazok.h}{obrazok.h}, v ktorom som ti
 pripravil\footnote{V skutočnosti som len použil program {\tt lodePNG}, ktorý je
 voľne prístupný a vie zapisovať obrázky vo formáte PNG.} 
 príkaz na zapísanie dvojrozmerného poľa do obrázku. Ukážem ti, ako sa s ním
@@ -3774,9 +3797,13 @@ struct Gradient{
 \end{lstlisting}
 }
 
-a písať \prg!Gradient g = {{f, {100, 100, 100, 255}}, false};! alebo 
+a písať\footnote{%
+  S takýmto zápisom v kučeravých zátvorkách sa stretneme ešte veľakrát, hovorí sa mu {\em inicializačný zoznam} ({\em initializer list}). Do (takmer) hocijakej premennej,
+  ktorá má viac zložiek (napr. pole, \prg!struct!) môžeš priradiť konštantu, ak jednotlivé položky (v poradí, v akom sú definované) vymenuješ
+  v kučeravých zátvorkách.
+}\prg!Gradient g = {{f, {100, 100, 100, 255}}, false};! alebo 
 \prg!g.x[1].r = g.x[0].b;! a pod. V súbore  
-\link{https://beda.dcs.fmph.uniba.sk/programovanie/obrazok.h}{obrazok.h}
+\link{\rootpath/obrazok.h}{obrazok.h}
 je aj jednoduchá podpora na prácu s farebnými obrázkami, takže napr. program
 
 \ods
@@ -4120,7 +4147,8 @@ Ak si za $c$ zoberiem $\frac{1}{x_2-x_1}$, tak
 
 \ods
 Na nakreslenie čiary stačí vyrátať $s$, pohnúť sa na priamke tak, aby 
-som bol v strede počiatočného pixela (prvá modrá bodka, súradnice\footnote{%
+som bol v smere $x$-ovej osi v strede počiatočného pixela 
+(prvá modrá bodka, súradnice\footnote{%
   v matematike sa zvykne písať $\lfloor x\rfloor$ na označenie dolnej
 celej časti, t.j. \prg!(int)x!} $\lfloor x_1\rfloor+0.5$ a 
  \hbox{$y_1+s(\lfloor x_1\rfloor+0.5-x_1)$}) a potom
@@ -7635,7 +7663,7 @@ To treba mať na pamäti: častá chyba je, že sa v cykle
 a vnútrii cyklu sa robia operácie, ktoré môžu iterátory zneplatniť. 
 
 \ods Ak ťa zaujíma, čo od iterátora potrebuje napr. funkcia {\tt sort}, v súbore
-\link{https://beda.dcs.fmph.uniba.sk/programovanie/puch.h}{puch.h}
+\link{\rootpath/puch.h}{puch.h}
 je dorobený {\tt Puch::iterator} zo začiatku kapitoly. Program
 
 \begin{lstlisting}
@@ -9670,7 +9698,7 @@ vymazať uzol $x$, ktorý má ľavého syna, nájdem si uzol $y$ s najväčším
 $x$ a zároveň menší, ako všetky kľúče v pravom podstrome. Môžem teda vymeniť hodnoty
 $x$ a $y$, a už mi stačí vymazať list. Ak $x$ nemal ľavého syna, ale iba pravého, 
 urobím to symetricky (hľadám najľavejší list). V súbore 
-\link{https://beda.dcs.fmph.uniba.sk/programovanie/aatree.h}{aatree.h}
+\link{\rootpath/aatree.h}{aatree.h}
 je strom aj s dopísanou operáciou {\tt erase}: pri postupe smerom nadol
 si v premennej {\tt deleted} uchovávam posledný uzol, ktorého kľúč je $\ge k$. Keď
 prídem do príslušného listu (najľavejšieho alebo najpravejšieho), tak vymením
@@ -9773,10 +9801,11 @@ aby zložitosť všetkých operácií (vyhľadávanie, vkladanie, mazanie) bola 
 Existujúce kompilátory väčšinou používajú
 tzv. {\em Red-Black} stromy, ktoré majú trochu iný spôsob vyvažovania, ale v podstate
 sú veľmi podobné AA stromom. 
-V nasledovnej tabuľke je porovnanie časov. Pre rôzne hodnoty $n$ som
+V nasledovnom grafe je porovnanie časov. Pre rôzne hodnoty $n$ som
 povkladal do stromu $n$ rôznych čísel (v náhodnom poradí) a potom som ich (v náhodnom poradí)
 zo stromu vymazal. Meral som si priemerný čas, ktorý trvala jedna operácia. Vidno, že
-\prg!set! je trochu rýchlejší, ako náš {\tt Tree}, ale zase nie až tak o veľa. V obidvoch
+\prg!set! je trochu rýchlejší\footnote{a aj konzitentnejší, modrá krivka je viac roztrasená}, 
+ako náš {\tt Tree}, ale zase nie až tak o veľa. V obidvoch
 prípadoch rastie čas, ktorý treba na vloženie (vymazanie) iba veľmi pomaly 
 v závislosti od veľkosti stromu.
 
@@ -10349,12 +10378,26 @@ AA strom \prg!Tree! tak, že každý uzol si bude navyše pamätať,
 koľko listov je v jeho podstrome.
 
 \begin{uloha}
-  Napíš program, ktorý vyhodnocuje postupnosť príkazov: {\tt pridaj x}, {\tt vymaz x}
-  a {\tt ? x}, kde {\tt x} je nejaké prirodzené číslo. Príkazy {\tt pridaj} a {\tt uber}
+  Napíš program, ktorý vyhodnocuje postupnosť príkazov: {\tt pridaj x}, {\tt uber x}
+  a {\tt ? x}, kde {\tt x} je nejaké nezáporné celé číslo. Príkazy {\tt pridaj} a {\tt uber}
   pridávajú a uberajú čísla do/z množiny. 
   Pre každý príkaz {\tt ? x} treba vypísať, koľko čísel 
   menších ako {\tt x} je momentálne v množine.
   Posledný príkaz je {\tt !}.
+\end{uloha}
+
+\begin{uloha}
+  Napíš program, ktorý vyhodnocuje postupnosť príkazov: {\tt pridaj x}, {\tt uber x}
+  a {\tt ? x}, kde {\tt x} je nejaké nezáporné celé číslo. Príkazy {\tt pridaj} a {\tt uber}
+  pridávajú a uberajú čísla do/z množiny. 
+  Pre každý príkaz {\tt ? x} treba vypísať $x$-té najmenšie číslo (brané od 0), ktoré
+  sa v množine nenachádza.
+  Posledný príkaz je {\tt !}.
+
+  \ods
+  Napr. ak v množine sú čísla $\{2,3,6,8\}$ tak {\tt ? 0} vráti {\tt 0} (lebo $0$ nie
+  je v množine), {\tt ? 3} vráti {\tt 5}
+  lebo v množine nie sú čísla $0,1,4,5$ a {\tt ? 5} vráti {\tt 9}.
 \end{uloha}
 
 \fi
@@ -10643,12 +10686,834 @@ struct BitWriter {
 \end{uloha}
 
 Nejaká verzia tried {\tt BitWriter} a {\tt BitReader} je v súbore
-\link{https://beda.dcs.fmph.uniba.sk/programovanie/bitwriter.h}{bitwriter.h}
+\link{\rootpath/bitwriter.h}{bitwriter.h}
 
+\subsection*{Projekt: pakovač}
+
+Asi poznáš rôzne programy\footnote{napr. {\tt zip}, {\tt rar}, {\tt pkzip}, {\tt bzip2},
+{\tt gzip}, {\tt 7-zip} a mnohé iné}, ktoré zoberú veľký súbor a urobia z neho 
+menší\footnote{väčšina z nich robí ešte veľa ďalších vecí, napr. že zabalí celý adresár
+do jedného súboru, ale to nás teraz nebude zaujímať}. Ako to môže fungovať? Finta je v tom,
+že nemôže. Povedzme, že chceme vedieť každý súbor s dĺžkou aspoň $1$ MiB (t.j. 
+$1024\times1024=1048576$ bytov) skrátiť o $10$ bytov, t.j. vyrobiť kratší súbor, z ktorého
+vieme ten pôvodný zrekonštruovať. Je jasné, že ak z dvoch rôznych pôvodných súborov $A$, $B$
+dostaneme rovnaký skrátený súbor $X$, už je to celé v keli, lebo nevieme, či z $X$ sa má
+zrekonštruovať $A$ alebo $B$. Čiže pre rôzne pôvodné súbory potrebujeme mať rôzne skrátené
+súbory. Lenže všetkých súborov s dĺžkou $N$ bytov je $256^N$ (lebo jeden byte má $2^8=256$ 
+rôznych hodnôt) a o $10$ bytov kratších súborov je iba $256^{N-10}$. Teda iba malý
+zlomok $\frac{256^{N-10}}{256^N}=\frac{1}{256^10}\approx0.00000000000000000000008271\%$ 
+všetkých
+súborov vieme skrátiť. Zostávajúcu drvivú väčšinu 
+\hbox{$\approx99.99999999999999999999991729\%$}
+súborov neskrátime ani len o $10$ bytov, nech by sme robili čokoľvek.
+Tak prečo tie programy fungujú? Súbory, ktoré používame, nie sú náhodné; väčšinu možných
+súborov nikto nikdy nevytvorí, takže je nám srdečne jedno, že sa nedajú skrátiť. Nám záleží
+na tom,
+aby sa dalo skrátiť tých zopár málo, ktoré používame. 
+Zober si napr. súbor 
+\linkk{\rootpath/huff/demacek.txt}{\hbox{demacek.txt}}{Ondrej Demáček je legendárny učiteľ 
+informatiky, ktorý vychoval niekoľko generácií slovenských programátorov.}: 
+má $81571$ bytov, ale používa 
+iba $11$ rôznych znakov:  \prg!'.'!, \prg!':'!, \prg!'-'!, \prg!'='!, \prg!'+'!,
+\prg!'*'!, \prg!'#'!, \prg!'%'!, \prg!'@'!
+a k tomu medzera a koniec riadku. Na uloženie jedného znaku sa používa byte, t.j. 8 bitov,
+aj keby stačilo $\log(11)\approx 3.45$ bitu\footnote{%
+  Bit je predsa nula alebo jednotka, tak ako môžeme použiť $3.45$ bitu? Myslíme
+  tým priemernú dľžku na jeden znak. Ak by sme chceli zakódovať každý z 11 znakov, 
+  potrebovali by sme $4$ bity na znak ($3$ nestačia). Ak by sme si ale povedali, že budeme
+  kódovať dvojznakové kombinácie, ktorých je $11.11=121$, na jeden dvojznak by nám
+  stačilo $7$ bitov ($2^7=128$), teda v priemere $\frac{7}{2}=3.5$ bitu na znak.
+ Čím dlhšiu kombináciu
+  znakov budeme kódovať naraz, tým viac sa budeme blížiť k hodnote $3.45$ na znak.
+  }.
+Keby sme si na začiatok súboru zaznačili znaky, ktoré používame, a potom používali iba 
+ich čísla, súbor by sme skráili na menej ako polovicu. Väčšina súborov, ktoré nás zaujímajú,
+ale používa veľa rôznych znakov, takže tout fintou veľa neušetríme. Ale pravda je, že 
+v súboroch spravidla nie sú všetky znaky zastúpené rovnomerne. Napr. v slovenskom
+texte (s diakritikou)
+\linkk{\rootpath/huff/dobsinsky.txt}{\hbox{dobsinsky.txt}}{tri diely Dobšinského rozprávok
+zo servera \url{https://zlatyfond.sme.sk/}} tvorí $18$ najfrekventovanejších 
+znakov\footnote{
+  medzera, a, o, e, i, l, t, n, s, r, k, v, d, m, u, p, čiarka, h }
+dokopy viac ako $80\%$ textu. V anglickom texte 
+\linkk{\rootpath/huff/robinson.txt}{\hbox{robinson.txt}}{román Robinson Crusoe zo servera
+\hbox{\url{https://www.gutenberg.org}}} je to ešte výraznejšie, $18$ najfrekventovanejších
+znakov\footnote{medzera, e, t, o, a, n, h, i, s, r, d, l, u, m, w, čiarka,  c, f}
+zaberá až viac ako $88\%$ textu. 
+Aj v rámci frekventovaných znakov sú veľké rozdiely, nasledukúce grafy
+ukazujú rozloženie početnosti najfrekventovanejších znakov:
+
+\ods
+\def\freqplot#1#2{
+\begin{tikzpicture}
+\begin{axis}[
+    ybar interval,
+    grid=none,
+    ymajorgrids,
+  width=\textwidth, 
+  %ylabel=frekvencia \%,
+  xlabel={\tt #2},
+    xtick={},
+    xticklabels={,,},
+    x tick label style={major tick length=0pt},
+    y tick label style={},
+    yticklabel={\pgfmathparse{\tick}\pgfmathprintnumber{\pgfmathresult}\%},
+    xmin=0,
+    ymin=0,
+    xmax=50
+]
+  \addplot+[draw=blue!40!black,fill={rgb:blue,5;green,3;white,4}] 
+  table [y=f, x=n]{data/#1_cnt.dat};
+\end{axis}
+\end{tikzpicture}
+}
+
+\bp
+\freqplot{dobsinsky}{dobsinsky.txt}
+\ep
+\bp
+\freqplot{robinson}{robinson.txt}
+\ep
+
+Programy sa správajú podobne ako prirodzený jazyk, vľavo je frekvencia početnosti znakov
+pre súbor 
+\link{\rootpath/huff/blender.src}{blender.src}, čo je 
+zdrojový kód (v jazyku C++) grafického programu \link{https://www.blender.org/}{blender}.
+Pre skompilované binárky je situácia horšia (graf vpravo je súbor 
+\link{\rootpath/huff/wesnoth.bin}{wesnoth.bin}, čo je 
+hlavná binárka hry \link{https://www.wesnoth.org/}{The Battle for Wesnoth}),
+ale aj tam sa niektoré byty vyskytujú častejšie ako iné.
+
+\ods
+\bp
+\freqplot{blender}{blender.src}
+\ep
+\bp
+\freqplot{wesnoth}{wesnoth.bin}
+\ep
+
+\def\code#1{\textcolor{magenta}{\tt #1}}
+
+\ods Ako vieme jednoducho využiť nerovnomernosti v zastúpení jednotlivých bytov\footnote{%
+  V slovenskom texte je to trochu zložitejšie, lebo používa kódovanie UTF8, v ktorom jeden 
+  znak (napr. keď má diakritiku) môže zaberať viac bytov; navyše, ten istý znak ({\em glyf})
+  sa dá niekedy zapísať rôznymi bytami. Nič z tohto nebudeme brať do úvahy a budeme pracovať 
+  s bytami.}? Namiesto toho, aby sme každý znak zakódovali 8-bitovým číslom, môžme znakom,
+  ktoré sa vyskytujú častejšie, priradiť kratšie kódy. Treba si ale dávať pozor, 
+  aby sme to, čo zakódujeme, vedeli aj dekódovať. Napr. keby sme priradili kódy
+  $a\mapsto\code{01}$ a $b\mapsto\code{0101}$, tak nevieme, či \code{0101} má byť
+  $aa$ alebo $b$. Navyše chceme, aby sme zakódovaný súbor vedeli dekódovať efektívne.
+Povedzme, že máme kód $a\mapsto\code{00}$, $b\mapsto\code{001}$, $c\mapsto\code{01}$
+a $d\mapsto\code{10}$.
+Keď vidíme začiatok postupnosti $\code{0010101\cdots}$ tak ju nevieme dekódovať, kým sa 
+nepozrieme na koniec, lebo $\code{00101\cdots01}$ sa dekóduje ako $bccc\cdots c$, ale
+$\code{00101\cdots010}$ sa dekóduje ako $addd\cdots d$.
+Dobrý spôsob, ako zaručiť, že zakódovanú postupnosť 
+budeme vedieť efektívne dekódovať, je navrhnúť kódy tak,
+aby žiadny nebol začiatkom ({\em prefixom}) iného (napr. v našom poslednom príklade
+je kód $a$čka \code{00} prefixom kódu $b$čka \code{001}. Každý takýto {\em bezprefixový}
+kód si vieme nakresliť do stromu: koreň stromu bude zodpovedať všetkým kódom,
+jeho ľavý syn všetkým kódom začínajúcim nulou a pravý syn kódom začínajúcim jednotkou.
+Napríklad tento strom:
+
+\ods
+\centerline{\begin{tikzpicture}[scale=0.8]
+  \foreach \x/\y [count=\i] in {0/-1,
+  -1.5/-2.5, 1.5/-2.5,
+  -2.5/-4, -0.5/-4, 0.5/-4,2.5/-4,
+  -0.4/-5.8, 1.4/-5.8
+  } 
+  \coordinate (n\i) at (\x,\y);
+
+  \foreach \i/\j in {1/2,2/4,3/6, 6/8}
+  \draw (n\i) -- node[anchor=east] {\textcolor{magenta}{\tt 0}} (n\j);
+  
+  \foreach \i/\j in {1/3,2/5,3/7,6/9}
+  \draw (n\i) -- node[anchor=west] {\textcolor{magenta}{\tt 1}} (n\j);
+
+  \foreach \i in {1,...,9}
+  \filldraw[fill=white] (n\i) circle (2ex);
+
+  \foreach \i/\a in {4/a,5/b,8/c,9/d,7/e}
+  \node[draw=none] at (n\i) {{\tt \a}};
+\end{tikzpicture}}
+
+\ods
+reprezentuje kód, ktorý priradí $a\mapsto\code{00}$, $b\mapsto\code{01}$,
+$c\mapsto\code{100}$, $d\mapsto\code{101}$, $e\mapsto\code{11}$. Uvedom si, že ak
+hodnoty jednotlivých znakov sú v listoch, tak kód je naozaj bezprefixový.
+Naopak, každému stromu vieme priradiť bezprefixový kód. Takže kód a strom je v podstate to 
+isté. Naša úloha je teraz takáto: máme daný text a chceme k nemu nájsť taký kód (t.j.
+strom), že po zakódovaní dostaneme najkratší možný výstup. Ako to urobiť? Zoberme
+si nasledovný text\footnote{Nie je to práve literrárny skvost, ale chcel som, aby tam
+bolo čo najmenej rôznych znakov.}:
+
+\begin{verse}
+\noindent
+  \textcolor{rgb:blue,5;green,3;white,1}{\tt%
+ema ma mamu. mama ma malu emu ale ema nema lamu. mama ma lamu. mama a ema melu malu lamu. mala
+lama nelame emu. emu lame eme lana. nela ema a lena melu lan. mama ma nulu. mama lame eme lamu.
+  lama ma lunu. ela ma umelu lamu. lama ma mlela.%
+  }
+\end{verse}
+
+Jendotlivé znaky sa v texte vyskytujú takto:
+
+\ods
+\centerline{\begin{tabular}%
+  {|>{\tt\textcolor{stringcolor}\bgroup'}c<{'\egroup}|r|l@{\ \%\;}|}\hline
+a&51&21.4286\\\hline 
+\textvisiblespace&50&21.0084\\\hline
+m&47&19.7479\\\hline
+l&27&11.3445\\\hline
+e&24&10.084\\\hline 
+u&19&7.98319\\\hline
+.&12&5.04202\\\hline 
+n&8&3.36134\\\hline 
+\end{tabular}}
+
+\ods
+\def\pis#1{\textcolor{stringcolor}{\tt '#1'}}
+Ako bude vyzerať dobrý strom? Určite písmeno \pis{n}, ktoré sa v texte vyskytuje najmenej,
+dostane najdlhší kód. Prečo? Dajme tomu, že \pis{n} dostane kód dĺžky 3, ale \pis{l} dĺžky
+5. Výskyty písmen \pis{n} a \pis{l} preto dokopy dajú $8\cdot3+27\cdot5=159$ bitov. 
+Keby som ale všetky ostatné kódy nechal tak, a vymenil kódy \pis{n} a \pis{l}, písmená
+ \pis{n} a \pis{l} budú dávať iba $8\cdot 5+27\cdot 3=121$ bitov.
+Podobne druhý najdlhší kód bude mať druhý najzriedkavejší znak, \pis{.}. 
+Dva najdlhšie kódy v strome majú znaky, ktoré sú v dvoch najspodnejších listoch. Teraz si 
+všimni, že vždy sa dajú nájsť dva najhlbšie listy, ktoré majú spoločného rodiča. 
+To znamená, že zatiaľ síce neviem, ako bude výsledný strom vyzerať, ale viem, že znaky
+\pis{n} a \pis{.} budú na spodku stromu napr. takto (nezáleží na tom, ktorý
+je vpravo a ktorý vľavo):
+
+\ods
+\centerline{\begin{tikzpicture}[scale=0.6]
+  \foreach \x/\y [count=\i] in {0/-1,
+  -1/-2.5, 1/-2.5,
+  } 
+  \coordinate (n\i) at (\x,\y);
+
+  \foreach \i/\j in {1/2}
+  \draw (n\i) -- node[anchor=east] {\textcolor{magenta}{\small\tt 0}} (n\j);
+  
+  \foreach \i/\j in {1/3}
+  \draw (n\i) -- node[anchor=west] {\textcolor{magenta}{\small\tt 1}} (n\j);
+
+  \foreach \i in {1,...,3}
+  \filldraw[fill=white] (n\i) circle (2.1ex);
+
+  \foreach \i/\a in {2/n,3/.}
+  \node[draw=none] at (n\i) {{\small\tt \a}};
+\end{tikzpicture}}
+
+\ods
+\def\psi{$\mathfrak{z}$}
+\def\psii{$\mathfrak{y}$}
+\def\psiii{$\mathfrak{d}$}
+Ako bude vyzerať zvyšok stromu? Viem, že \pis{n} a \pis{.} majú rovnaký kód,
+ktorý sa líši iba tým, že jeden má na konci nulu a druhý jednotku. Takže viem, že výsledný
+text bude mať $8$-krát nulu (z kódov \pis{n}) a $12$-krát jednotku (z kódov \pis{.}).
+Keď si odmyslím tieto posledné znaky, \pis{n} a \pis{.} sa správajú ako jedno
+písmenko, napr. \pis{\psi}. Preto ak chcem nájsť najlepší strom pre celý text, stačí
+mi nájsť najlepší strom pre nasledovný text:
+
+\begin{verse}
+\noindent
+  \textcolor{rgb:blue,5;green,3;white,1}{\tt%
+ema ma mamu\psi{} mama ma malu emu ale ema \psi{}ema lamu\psi{} mama ma lamu\psi{} mama a ema melu malu lamu\psi{} mala lama \psi{}elame emu\psi{} emu lame eme la\psi{}a\psi{} \psi{}ela ema a le\psi{}a melu la\psi{}\psi{} mama ma \psi{}ulu\psi{} mama lame eme lamu\psi{} lama ma lu\psi{}u\psi{} ela ma umelu lamu\psi{} lama ma mlela\psi{}
+}
+\end{verse}
+
+Spravím rovnakú úvahu: pozriem si početnosti jednotlivých znakov, zoberiem dva najmenej
+početné (v tomto prípade \pis{\psi} a \pis{u}) a aktualizujem strom
+
+\definecolor{donec}{rgb}{0.06, 0.3, 0.57}
+\ods
+\bp
+\centerline{\begin{tabular}%
+  {|>{\tt\textcolor{stringcolor}\bgroup'}c<{'\egroup}|r|l@{\ \%\;}|}\hline
+a&51&21.42866\\\hline
+\textvisiblespace&50&21.0084\\\hline
+m&47&19.74799\\\hline
+l&27&11.34454\\\hline
+e&24&10.084\\\hline
+\psi&20&8.403368\\\hline
+u&19&7.98319\\\hline
+\end{tabular}}  
+\ep
+\hfill
+\bp
+\centerline{\begin{tikzpicture}[scale=0.6]
+  \foreach \x/\y [count=\i] in {0/-1,
+  -1/-2.5, 1/-2.5,
+  -2/-1, -1/0.5
+  } 
+  \coordinate (n\i) at (\x,\y);
+
+  % stare hrany
+  \foreach \i/\j in {1/2}
+  \draw[donec] (n\i) -- node[anchor=east] {\textcolor{donec}{\small\tt 0}} (n\j);
+  \foreach \i/\j in {1/3}
+  \draw[donec] (n\i) -- node[anchor=west] {\textcolor{donec}{\small\tt 1}} (n\j);
+  
+  % nove hrany
+  \foreach \i/\j in {5/4}
+  \draw (n\i) -- node[anchor=east] {\textcolor{magenta}{\small\tt 0}} (n\j);
+  \foreach \i/\j in {5/1}
+  \draw (n\i) -- node[anchor=west] {\textcolor{magenta}{\small\tt 1}} (n\j);
+
+  % stare vrcholy
+  \foreach \i in {2,3}
+  \filldraw[draw=donec,fill=white] (n\i) circle (2.1ex);
+  \foreach \i/\a in {2/n,3/.}
+  \node[draw=none] at (n\i) {\textcolor{donec}{\small\tt \a}};
+
+  % nove vrcholy
+  \foreach \i in {1,4,5}
+  \filldraw[fill=white] (n\i) circle (2.1ex);
+  \foreach \i/\a in {1/\psi,4/u,5/{}}
+  \node[draw=none] at (n\i) {{\small\tt \a}};
+  
+\end{tikzpicture}}
+\ep
+
+\ods
+Opäť v texte spojím znaky \pis{\psi} a \pis{u} do nového znaku \pis{\psii} a dostanem text
+
+\begin{verse}
+\noindent
+  \textcolor{rgb:blue,5;green,3;white,1}{\tt%
+ema ma mam\psii{}\psii{} mama ma mal\psii{} em\psii{} ale ema \psii{}ema lam\psii{}\psii{} mama ma lam\psii{}\psii{} mama a ema mel\psii{} mal\psii{} lam\psii{}\psii{} mala lama \psii{}elame em\psii{}\psii{} em\psii{} lame eme la\psii{}a\psii{} \psii{}ela ema a le\psii{}a mel\psii{} la\psii{}\psii{} mama ma \psii{}\psii{}l\psii{}\psii{} mama lame eme lam\psii{}\psii{} lama ma l\psii{}\psii{}\psii{}\psii{} ela ma \psii{}mel\psii{} lam\psii{}\psii{} lama ma mlela\psii{}
+}
+\end{verse}
+
+\ods
+Zistím si početnosti a zaradím dva najmenej početné znaky do stromu:
+
+\ods
+\bp
+\centerline{\begin{tabular}%
+  {|>{\tt\textcolor{stringcolor}\bgroup'}c<{'\egroup}|r|l@{\ \%\;}|}\hline
+a&51&21.42866\\\hline
+\textvisiblespace&50&21.0084\\\hline
+m&47&19.74799\\\hline
+\psii&39&16.3866\\\hline
+l&27&11.3445\\\hline
+e&24&10.084\\\hline
+\end{tabular}}
+\ep
+\hfill
+\bp
+\centerline{\begin{tikzpicture}[scale=0.6]
+  \foreach \x/\y [count=\i] in {0/-1,
+  -1/-2.5, 1/-2.5,
+  -2/-1, -1/0.5,
+  3/-2.5, 5/-2.5, 4/-1
+  } 
+  \coordinate (n\i) at (\x,\y);
+
+  % stare hrany
+  \foreach \i/\j in {1/2, 5/4}
+  \draw[donec] (n\i) -- node[anchor=east] {\textcolor{donec}{\small\tt 0}} (n\j);
+  \foreach \i/\j in {1/3, 5/1}
+  \draw[donec] (n\i) -- node[anchor=west] {\textcolor{donec}{\small\tt 1}} (n\j);
+  
+  % nove hrany
+  \foreach \i/\j in {8/6}
+  \draw (n\i) -- node[anchor=east] {\textcolor{magenta}{\small\tt 0}} (n\j);
+  \foreach \i/\j in {8/7}
+  \draw (n\i) -- node[anchor=west] {\textcolor{magenta}{\small\tt 1}} (n\j);
+
+  % stare vrcholy
+  \foreach \i in {1,...,5}
+  \filldraw[draw=donec,fill=white] (n\i) circle (2.1ex);
+  \foreach \i/\a in {2/n,3/.,1/\psi,4/u,5/\psii}
+  \node[draw=none] at (n\i) {\textcolor{donec}{\small\tt \a}};
+
+  % nove vrcholy
+  \foreach \i in {6,...,8}
+  \filldraw[fill=white] (n\i) circle (2.1ex);
+  \foreach \i/\a in {6/l,7/e,8/{}}
+  \node[draw=none] at (n\i) {{\small\tt \a}};
+  
+\end{tikzpicture}}
+\ep
+
+\ods
+Teraz som dostal dva nesúvislé kusy stromu, ale to mi nijak nevadí: viem, že vo výsledom 
+strome bude kdesi visieť jeden kus a kdesi inde druhý. Pokračujem rovnako ďalej, spojím
+\pis{l} a \pis{e} do jedného znaku \pis{\psiii}:
+
+\begin{verse}
+\noindent
+  \textcolor{rgb:blue,5;green,3;white,1}{\tt%
+\psiii{}ma ma mam\psii{}\psii{} mama ma ma\psiii{}\psii{} \psiii{}m\psii{} a\psiii{}\psiii{} \psiii{}ma \psii{}\psiii{}ma \psiii{}am\psii{}\psii{} mama ma \psiii{}am\psii{}\psii{} mama a \psiii{}ma m\psiii{}\psiii{}\psii{} ma\psiii{}\psii{} \psiii{}am\psii{}\psii{} ma\psiii{}a \psiii{}ama \psii{}\psiii{}\psiii{}am\psiii{} \psiii{}m\psii{}\psii{} \psiii{}m\psii{} \psiii{}am\psiii{} \psiii{}m\psiii{} \psiii{}a\psii{}a\psii{} \psii{}\psiii{}\psiii{}a \psiii{}ma a \psiii{}\psiii{}\psii{}a m\psiii{}\psiii{}\psii{} \psiii{}a\psii{}\psii{} mama ma \psii{}\psii{}\psiii{}\psii{}\psii{} mama \psiii{}am\psiii{} \psiii{}m\psiii{} \psiii{}am\psii{}\psii{} \psiii{}ama ma \psiii{}\psii{}\psii{}\psii{}\psii{} \psiii{}\psiii{}a ma \psii{}m\psiii{}\psiii{}\psii{} \psiii{}am\psii{}\psii{} \psiii{}ama ma m\psiii{}\psiii{}\psiii{}a\psii{}
+}
+\end{verse}
+
+\ods
+\bp
+\centerline{\begin{tabular}%
+  {|>{\tt\textcolor{stringcolor}\bgroup'}c<{'\egroup}|r|l@{\ \%\;}|}\hline
+a&51&21.42866\\\hline
+\psiii&51&21.4286\\\hline
+\textvisiblespace&50&21.0084\\\hline
+m&47&19.74799\\\hline
+\psii&39&16.3866\\\hline
+\end{tabular}}
+\ep
+\hfill
+\bp
+\centerline{\begin{tikzpicture}[scale=0.6]
+  \foreach \x/\y [count=\i] in {0/-1,
+  -1/-2.5, 1/-2.5,
+  -2/-1, -1/0.5,
+  3/-2.5, 5/-2.5, 4/-1,
+  1/0.5, 0/2
+  } 
+  \coordinate (n\i) at (\x,\y);
+
+  % stare hrany
+  \foreach \i/\j in {1/2, 5/4,8/6}
+  \draw[donec] (n\i) -- node[anchor=east] {\textcolor{donec}{\small\tt 0}} (n\j);
+  \foreach \i/\j in {1/3, 5/1, 8/7}
+  \draw[donec] (n\i) -- node[anchor=west] {\textcolor{donec}{\small\tt 1}} (n\j);
+  
+  % nove hrany
+  \foreach \i/\j in {10/5}
+  \draw (n\i) -- node[anchor=east] {\textcolor{magenta}{\small\tt 0}} (n\j);
+  \foreach \i/\j in {10/9}
+  \draw (n\i) -- node[anchor=west] {\textcolor{magenta}{\small\tt 1}} (n\j);
+
+  % stare vrcholy
+  \foreach \i in {1,...,8}
+  \filldraw[draw=donec,fill=white] (n\i) circle (2.1ex);
+  \foreach \i/\a in {2/n,3/.,1/\psi,4/u,5/\psii,6/l,7/e,8/\psiii}
+  \node[draw=none] at (n\i) {\textcolor{donec}{\small\tt \a}};
+
+  % nove vrcholy
+  \foreach \i in {9,10}
+  \filldraw[fill=white] (n\i) circle (2.1ex);
+  \foreach \i/\a in {9/m,10/{}}
+  \node[draw=none] at (n\i) {{\small\tt \a}};
+  
+\end{tikzpicture}}
+\ep
+
+\ods
+Takto budem postupne zdola nahor vytvárať strom: vždy spojím dve najmenej početné znaky do 
+jedného a zlepím príslušné kusy stromu spoločným vrcholom, až dostanem napr. strom:
+
+\ods
+\def\stromzobrazka{%
+\centerline{\begin{tikzpicture}[scale=0.6]
+  \foreach \x/\y [count=\i] in {0/-1,
+  -1/-2.5, 1/-2.5,
+  -2/-1, -1/0.5,
+  3/0.5, 5/0.5, 4/2,
+  1/0.5, 0/2,
+  2/4,
+  -4/2, -2/2, -3/4, -0.5/6 
+  } 
+  \coordinate (n\i) at (\x,\y);
+
+  \foreach \i/\j in {10/5,1/2, 5/4,8/6,11/10,14/12,15/14}
+  \draw (n\i) -- node[anchor=east] {\textcolor{magenta}{\small\tt 0}} (n\j);
+  \foreach \i/\j in {10/9,1/3, 5/1, 8/7,11/8,14/13,15/11}
+  \draw (n\i) -- node[anchor=west] {\textcolor{magenta}{\small\tt 1}} (n\j);
+
+  \foreach \i in {1,...,15}
+  \filldraw[fill=white] (n\i) circle (2.1ex);
+  \foreach \i/\a in {2/n,3/.,1/{},4/u,5/{},6/l,7/e,8/{},9/m,10/{},11/{},
+  12/{\textvisiblespace},13/a,14/{},15/{}}
+  \node[draw=none] at (n\i) {{\small\tt \a}};
+\end{tikzpicture}}}
+\stromzobrazka
+
+\ods
+Táto metóda je známa pod menom {\em Huffmanovo} kódovanie. Poďme ju teraz skúsiť 
+naprogramovať. Najprv sa treba rozhodnúť, ako budeme v pamäti reprezentovať strom,
+ktorý vytvárame. Spravme si takýto typ:
+
+\begin{lstlisting}
+struct Item {
+  unsigned char val;
+  int par = -1, freq = 0;
+  int l = -1, r = -1;
+};
+\end{lstlisting}
+
+v ktorom si o každom znaku budeme pamätať jeho hodnotu (\prg!char val!) a početnosť 
+(\prg!int freq!). Tieto znaky budeme mať uložené v poli a hodnoty \prg!par, l, r! budú
+indexy rodiča, ľavého a pravého syna. Takže strom z obrázka hore by mohol
+vyzerať napr. takto:
+
+\ods
+\centerline{
+\begin{tikzpicture}[xscale=0.9,yscale=0.5]
+    \def\cmd(#1)#2{
+      \begin{scope}[shift={(#1,0)}]
+        \draw (0,-0.1) rectangle (1,5.2);
+        \foreach \v [count = \i] in {#2}{
+          \node [anchor=south] at (0.5,\i-1) {{\tt \textcolor{magenta}{\v}}};
+        }
+        \node [anchor=south] at (0.5,5.2) {$#1$};
+      \end{scope}
+      }
+
+  \foreach \l [count = \i] in {r,l,par,freq,val}
+   \node [anchor=south east] at (0,\i-1) {{\tt \l}};
+
+  \cmd(0){-1,-1,10,27,\pis{l}}
+  \cmd(1){-1,-1,8,12,\pis{.}}
+  \cmd(2){-1,-1,9,19,\pis{u}}
+  \cmd(3){-1,-1,8,8,\pis{n}}
+  \cmd(4){-1,-1,12,50,\pis{\textvisiblespace}}
+  \cmd(5){-1,-1,12,51,\pis{a}}
+  \cmd(6){-1,-1,11,47,\pis{m}}
+  \cmd(7){-1,-1,10,24,\pis{e}}
+  \cmd(8){3,1,9,20,{}}
+  \cmd(9){2,8,11,39,{}}
+  \cmd(10){0,7,13,51,{}}
+  \cmd(11){9,6,13,86,{}}
+  \cmd(12){4,5,14,101,{}}
+  \cmd(13){11,10,14,137,{}}
+  \cmd(14){12,13,-1,238,{}}
+\end{tikzpicture}
+}
+
+\ods
+Ako takéto pole vyrobíme? Začiatok je ľahký: prečítame vstupný súbor do poľa znakov,
+prejdeme cez neho a pre každý znak (je ich iba 256 možných) si v pomocnom poli {\tt freq}
+budeme pamätať, koľkokrát sa tam príslušný znak vyskytuje. Nakoniec pre každý znak,
+ktorý má nenulový počet výskytov pridáme jeden {\tt item}:
+
+\begin{lstlisting}
+ifstream f(src, ios::in | ios::binary);
+f.seekg(0, ios::end);
+vector<unsigned char> text(f.tellg());
+f.seekg(0, ios::beg);
+f.read((char *)(text.data()), text.size());
+
+vector<int> freq(256, 0);
+for (unsigned char c : text) freq[c]++;
+
+vector<Item> items;
+for (int i = 0; i < 256; i++) if (freq[i] > 0) 
+    items.push_back({(unsigned char)i, -1, freq[i], -1, -1});
+\end{lstlisting}
+
+\ods
+Ďalej budeme potrebovať opakovane spájať najmenej početné znaky. Budeme na to potrebovať
+dátovú štruktúru, kde vieme 1) vložiť znak a 2) odobrať znak s najmenšou početnosťou. 
+Takáto dátová štruktúra sa volá {\em halda} ({\em heap}) a ľahko by sme si ju 
+vedeli naprogramovať v poli, ale keď máme v ruke kladivo (typ {\tt set}), tak všetko
+vyzerá ako klinec: spravíme si premennú {\tt heap}  typu {\tt set}. 
+Treba si ale premyslieť, čo budeme do nej
+ukladať. Na jednej strane potrebujeme, aby boli prvky usporiadané podľa početnosti. 
+Na druhej strane, keď zoberieme najmenej početný znak (hodnotu {\tt *heap.begin()}),
+potrebujeme na základe nej vedieť upraviť pole {\tt items}. Použijeme jednoduchú fintu,
+ktorú umožňuje verzia typu {\tt set} s porovnávacou funkciou: v premennej {\tt heap}
+si budeme ukladať iba indexy do poľa {\tt items} a porovnávacia funkcia 
+sa bude rozhodovať podľa hodnoty {\tt items[i].freq}:
+
+\begin{lstlisting}
+multiset<int, function<bool(int, int)>> heap(
+    [&items](int i, int j) { 
+        return items[i].freq < items[j].freq; 
+    });
+\end{lstlisting}
+
+Tento zápis hovorí, že používam šablónu na ukladanie typu \prg!int! s tým,
+že v konštruktore pridám porovnávaciu funkciu typu \prg!function<bool(int, int)>!,
+t.j. lambdu, ktorá zoberie dva parametre typu \prg!int! a vráti \prg!bool!.
+Vzápätí takú premennú s menom \prg!heap! vyrobím, a v konštruktore 
+jej pridám lambdu, ktorá má ako {\em capture} referenciu\footnote{%
+  to je dôležité: zápis {\tt[items](\prg!int i,int j!)\{...\}} by do lambdy
+zobral hodnotu {\tt items}, t.j. 
+lokálnu kópiu poľa {\tt items}, ako vyzeralo v čase volania konštruktora}
+  na pole {\tt items}:
+\prg![&items](int i, int j) {...}!. Preto v tele lambdy viem pristupovať k poľu
+{\tt items} a porovnávať dva prvky {\tt i} a {\tt j} podľa početností znakov
+\prg!items[i].freq! a \prg!items[j].freq!. Tu si ale treba dať dobrý pozor a uvedomiť si
+čo sa deje: v type {\tt set} sa pracuje s vyvažovaným stromom, kde v uzloch sú uložené
+čísla. Vždy, keď treba dve čísla porovnať, tak namiesto {\tt <} sa zavolá príslušná
+lambda. To znamená, že ak by sme zmenili hodnoty {\tt freq} v poli {\tt items}, strom, 
+ktorý je vyrobený v {\tt heap} už nebude správny. Preto hodnoty v {\tt items} musíme 
+meniť tak, že najprv odoberieme z {\tt heap} index, ktorého frekvenciu chceme zmeniť,
+potom zmeníme frekvenciu, a potom index znovu pridáme do {\tt heap}, takže všetky porovnania,
+ktoré sa v strome {\tt heap} robia, budú konzistentné. Ešte si treba uvedomiť, 
+že v {\tt heap} síce budeme mať uložené rôzne čísla (indexy do {\tt items}), ale 
+porovnávame ich podľa našej funkcie, a keďže môžme mať viacero znakov s rovnakou
+frekvenciou, potrebujeme použiť typ {\tt multiset}. Pri vytváraní poľa {\tt items}
+si zároveň pripravíme pole {\tt idx}, ktoré použijeme neskôr pri samotnom vytváraní kódu:
+pre každý znak \prg!c! mám v \prg!idx[c]! uložené, kde v {\tt items} je príslušný list.
+Celý kus kódu môže vyzerať takto:
+
+\begin{lstlisting}
+vector<int> idx(256, -1);
+for (int i = 0; i < 256; i++) if (freq[i] > 0) {
+    int n = items.size();
+    items.push_back({(unsigned char)i, -1, freq[i], -1, -1});
+    heap.insert(n);
+    idx[i] = n;
+}
+int n_chars = items.size(); // pocet listov stromu
+
+while (heap.size() > 1) {
+  int i = pop(heap);
+  int j = pop(heap);
+  int n = items.size();
+  items.push_back({0, -1, items[i].freq + items[j].freq});
+  items[i].par = items[j].par = n;
+  heap.insert(n);
+}
+\end{lstlisting}
+
+\ods
+Funkcia {\tt pop} je len jednoduchá pomocná funkcia, by som ušetril písanie, napr. takto:
+
+\begin{lstlisting}
+template <typename T>
+int pop(T &heap) {
+  int u = *heap.begin();
+  heap.erase(heap.begin());
+  return u;
+}
+\end{lstlisting}
+
+\ods
+Zatiaľ máme v poli {\tt items} nastavených rodičov, ale ešte sme nenastavovali
+položky {\tt l} a {\tt r}. Tie môžme nastaviť napr. takto:
+
+\begin{lstlisting}
+for (int i = 0; i < items.size(); i++)
+  if (items[i].par != -1) {
+    if (items[items[i].par].l == -1)
+      items[items[i].par].l = i;
+    else
+      items[items[i].par].r = i;
+  }
+\end{lstlisting}
+
+\ods
+Keď máme hotové pole {\tt items}, chceme pre každý znak vyrobiť jeho kód. To je
+jednoduché: postupujeme smerom k rodičovi a podľa toho, či to bol ľavý alebo
+pravý syn, priradíme 0 alebo 1. Nakoniec kód obrátime, lebo ho chceme mať smerom
+od koreňa k listom:
+
+\begin{lstlisting}
+vector<vector<bool>> code(n_chars);
+
+for (int i = 0; i < n_chars; i++)
+  for (int j = i; items[j].par != -1; j = items[j].par)
+    if (items[items[j].par].l == j)
+      code[i].push_back(true);
+    else
+      code[i].push_back(false);
+
+for (auto &x : code) reverse(x.begin(), x.end());
+\end{lstlisting}
+
+\ods
+Do výstupného súboru potrebujeme zapísať pre každý znak jeho kód. Potrebujeme ale
+nejak zapísať aj ''slovník'', t.j. pre každý znak zapísať jeho kód. Ten chceme zapísať 
+tak, aby sme použili čo najmenej bitov a pritom bolo jednoduché ho zapísať aj prečítať.
+Dá sa to urobiť napr. tak, že zapíšeme rekurzívne celý strom: ak sme v liste, zapíšeme
+bit {\tt 1} a za ním znak (8 bitov). Ak sme vo vnútornom vrchole, zapíšeme bit {\tt 0}
+a za ním rekurzívny zápis ľavého a pravého syna. Strom z nášho príkladu:
+
+\ods
+\stromzobrazka
+
+\ods
+by sme zapísali {\tt 0\textcolor{blue!60!white}{01\textvisiblespace1a}0001u01n1.1m01l1e}.
+Pri dekódovaní najprv prečítame slovník do premennej typu {\tt *Node}
+
+\begin{lstlisting}
+struct Node {
+  unsigned char val;
+  Node *l, *r;
+  Node() : l(nullptr), r(nullptr) {}
+  ~Node() {
+    if (l) delete l;
+    if (r) delete r;
+  }
+};
+\end{lstlisting}
+
+Samotné dekódovanie je priamočiare: čítame bity, prechádzame stromom a vždy, keď prídeme
+do listu, vypíšeme príslušný znak:
+
+\begin{lstlisting}
+void decompress(const string &src, const string &dst) {
+  BitReader<> in(src);
+  ofstream dstf(dst, ios::out | ios::binary);
+  Node *root = readTree(in);
+  for (Node *p = root; in;) {
+    bool v;
+    in >> v;
+    if (v)
+      p = p->l;
+    else
+      p = p->r;
+    if (p->l == nullptr) {
+      dstf.write((char *)&(p->val), 1);
+      p = root;
+    }
+  }
+}
+\end{lstlisting}
+
+\ods
+Nakoniec by sme chceli vyrobiť program, ktorý vie kódovať a dekódovať podobne, ako 
+štandardné programy, teda funguje z príkazového riadka ({\em CLI, command line interface}).
+Zatiaľ vieme skompilovať program, ktorý keď sa spustí, číta zo štandardného vstupu
+alebo zo súboru. Ale veľakrát vidíš programy, ktoré čítajú parametre
+priamo pri spustení, napr. {\tt gzip -k subor.txt}
+Tieto parametre operačný systém posiela programu ako parametre funkcie {\tt main}.
+Ak v programe namiesto {\tt int main() ...} napíšeš {\tt int main (int argc, char** argv)...}
+premenná {\tt argc } bude obsahovať počet argumentov a premenné {\tt argv[0]},
+{\tt argv[1]},\ldots,{\tt argv[argc-1]} postupne všetky parametre (ako reťazce znakov 
+\prg!char *! alokované kdesi v systémovej pamäti) s tým, že {\tt argv[0]} je názov
+binárky, t.j. pre príklad {\tt gzip -k subor.txt} je \prg!argc==3!, \prg!argv[0]=="gzip"!,
+\prg!argv[1]=="-k"! a \prg!argv[2]=="subor.txt"!.
+
+\begin{uloha}
+  Naprogramuj Huffmanovu kompresiu. Program má dostať ako parametre zdrojový súbor z cieľový
+  súbor. Ak je spustený s prepínačom {\tt -d} má dekódovať, inak kódovať.
+\end{uloha}
+
+Po naprogramovaní vyzerajú veľkosti súborov takto:
+
+\ods
+\def\line#1#2#3{{\tt #1}&$#2$&$#3$&$\calc[precision=3]{8*#3/#2}$&%
+$\calc[precision=2]{100*#3/#2}\;\%$\\}
+\centerline{
+  \begin{tabular}{|l|r|r|r|r|}\hline
+    súbor & pôvodne (B) & Huffman (B) & bit/znak& kompresia \\\hline
+    \line{blender.src}{54259819}{35354132}
+    \line{demacek.txt}{81571}{31013}
+    \line{dobsinsky.txt}{2045382}{1266856}
+    \line{robinson.txt}{659018}{369272}
+    \line{wesnoth.bin}{22159352}{16074583}\hline
+  \end{tabular}
+}
+
+\ods
+Jednou z nevýhod tohto kódovania je, že neberie do úvahy závislosti medzi znakmi. 
+Napr. v slovenčine je \pis{y} pomerne častý znak, ale po \pis{š} nejde takmer nikdy.
+Preto \pis{y} by mohlo dostávať rôzne dlhý kód v závislosti od toho, čo bolo pred ním.
+Mohli by sme to urobiť tak, že si vyrobíme veľa nezávislých Huffmanových kódov: pre každé
+predchádzajúce písmenko (tzv. {\em kontext}) jeden a pri kódovaní a dekódovaní
+vždy použijeme ten správny. Problém je, že ak by sme chceli mať kontext dlhší, napr.
+2, 3, či viac predchádzajúcich písmen, počet stromov bude veľmi narastať. 
+Iná možnosť, ako docieliť podobný efekt, je z takejto úvahy: ak by som mal program 
+({\em prediktor}), ktorý
+vie vždy z doterajšieho textu povedať, aké písmenko bude nasledovať, tak netreba nič 
+komprimovať, prediktor mi súbor rovno vygeneruje. 
+Taký program nedúfam, že budem mať, ale čo ak by som 
+mal nie celkom dokonalý, ale stále dosť dobrý prediktor, ktorý dosť často trafí, aké písmenko
+bude nasledovať, a ak sa aj netrafí, nebude mať veľkú chybu. Na zrekonštruovanie pôvodného
+textu mi stačí pamätať si iba chybu, ktorú prediktor spravil. Ak je prediktor dobrý,
+môžem dúfať, že chyby budú väčšinou nuly, a teda sa budú dať skomprimovať lepšie, ako 
+pôvodný súbor. Napríklad si môžem pre každý kontext (niekoľko predchádzajpúcich písmeniek)
+pamätať znaky usporiadané podľa početnosti, koľkokrát som ktorý v danom kontexte videl.
+Prediktor potom vráti poradie znaku v tomto usporiadaní. Ak je napr. kontext {\tt nsk},
+a pamätám si usporiadanie písmen {\tt ý, é, á, ú, o, a, ... } a na vstupe je ako
+ďalšie písmenko {\tt o}, prediktor vráti $4$, lebo to je poradie {\tt o} v tomto kontexte.
+
+\begin{uloha}
+  Naprogramuj takýto prediktor.
+\end{uloha}
+
+Ak sa pozrieš, ako tento prediktor funguje pre kontext troch písmeniek, vidno, že po 
+predspracovaní súborov sa frekvencie znakov výrazne zmenia:
+\def\freqplot#1#2{
+\begin{tikzpicture}
+\begin{axis}[
+    grid=none,
+    ymajorgrids,
+  width=\textwidth, 
+  %ylabel=frekvencia \%,
+  xlabel={\tt #2},
+    xtick={},
+    xticklabels={,,},
+    x tick label style={major tick length=0pt},
+    y tick label style={},
+    yticklabel={\pgfmathparse{\tick}\pgfmathprintnumber{\pgfmathresult}\%},
+    xmin=0,
+    ymin=0,
+    ymax=65,
+    xmax=50
+]
+  \addplot+[ybar interval,draw=blue!40!black,fill={rgb:blue,5;green,3;white,5},
+  mark size=0] 
+  table [y=f, x=n]{data/#1_prd_cnt.dat};
+  \addplot+[ybar interval, draw=orange, fill=orange!50!white, opacity=0.3, mark size=0] 
+  table [y=f, x=n]{data/#1_cnt.dat};
+\end{axis}
+\end{tikzpicture}
+}
+
+\bp
+\freqplot{dobsinsky}{dobsinsky.txt}
+\ep
+\bp
+\freqplot{robinson}{robinson.txt}
+\ep
+
+\bp
+\freqplot{blender}{blender.src}
+\ep
+\bp
+\freqplot{wesnoth}{wesnoth.bin}
+\ep
+
+\ods
+Keď teraz Huffmanovým pakovačom skomprimujem výsledky prediktora, dostnem lepšiu kompresiu:
+
+\ods
+\def\tmp#1#2{$\calc[precision=3]{8*#2/#1}$&$\calc[precision=2]{100*#2/#1}\;\%$}
+\def\line#1#2#3#4#5{{\tt #1}&\tmp{#2}{#3}&\tmp{#2}{#4}&\tmp{#2}{#5}\\}
+\def\lbl{& bit/znak& kompresia }
+\centerline{
+  \begin{tabular}{|c|r|r|r|r|r|r|}\hline
+    \multirow{2}{*}{súbor}
+    &\multicolumn{2}{c|}{Huffman}&\multicolumn{2}{c|}{Huffman s prediktorom}&
+    \multicolumn{2}{c|}{{\tt gzip}}\\\cline{2-7}
+     \lbl\lbl\lbl \\\hline
+    \line{blender.src}{54259819}{35354132}{16621515}{10570257}
+    \line{demacek.txt}{81571}{31013}{13864}{12312}
+    \line{dobsinsky.txt}{2045382}{1266856}{773429}{788664}
+    \line{robinson.txt}{659018}{369272}{239737}{246535}
+    \line{wesnoth.bin}{22159352}{16074583}{10270957}{7402770}\hline
+  \end{tabular}
+}
+
+\ods
+Ako vidíš, prediktor výrazne pomohol kompresii, v niektorých prípadoch je výsledok
+lepší ako {\tt gzip}\footnote{aj keď beží o dosť pomalšie}. 
+Väčšina kompresných algoritmov používa buď Huffmanovo kódovanie
+kombinované s tzv. {\em run-length encoding}\footnote{%
+  Huffmanov kód z princípu nevie urobiť menšiu ako 8-násobnú kompresiu, lebo na každý
+  znak použije aspoň 1 bit. Ak je vo vstupnom súbore dlhá postupnosť rovnakých znakov,
+  napr. {\tt 0000000000000}, je lepšie ju nahradiť {\tt [13]0} s významom \cmd{trinásťkrát
+  zopakuj nulu}.} alebo algoritmy, ktoré kódujú nie jednotlivé znaky ale celé skupiny
+  znakom (napr. \link{https://en.wikipedia.org/wiki/LZ77_and_LZ78}{LZ77}).
+
+\ods
+S kompresiou sa môžeš v rámci projektu hrať ďalej: ak vymyslíš lepší prediktor, kompresia
+bude lepšia. Zaujímavá súťaž je \link{http://prize.hutter1.net/}{Hutter Prize}, kde
+môžeš vyhrať cenu, ak skomprimuješ jeden konrétny súbor (úryvok z wikipédie) lepšie ako 
+ostatní. Ak vieš, že v súbore je anglický text, prediktor môže vychádzať zo slovníka,
+štruktúry vety, \ldots . Keďže ide o to, skomprimovať konrétny súbor, čo ti bráni celý
+súbor vložiť priamo do programu ako jeden veľký \prg!cout<<"cely text co mam vypisat"!?
+Nič, môžeš to tak urobiť, ale hodnotí sa celková skomprimovaná dľžka vrátane binárky,
+ktorá rozbaľuje (v skutočnosti tam pošleš len binárku, ktorá keď sa spustí, má ten konkrétny
+súbor vygenerovať). 
 
 \fi
-
-% Huffman: subory, prediktory, kompresia
 
 % nahodne cisla: generator terenu (3d?) ;  hasovanie
 
@@ -10658,3 +11523,5 @@ Nejaká verzia tried {\tt BitWriter} a {\tt BitReader} je v súbore
 % NN
 
 \end{document}
+
+

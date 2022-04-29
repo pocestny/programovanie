@@ -2,7 +2,7 @@
 #include <iostream>
 using namespace std;
 
-template <typename Buffer=unsigned int>
+template <typename Buffer=unsigned char>
 struct BitWriter {
   ofstream f;
   Buffer buff;
@@ -48,7 +48,7 @@ struct BitWriter {
   }
 };
 
-template <typename Buffer=unsigned int>
+template <typename Buffer=unsigned char>
 struct BitReader {
   ifstream f;
   Buffer buff;
@@ -79,9 +79,13 @@ struct BitReader {
   template <typename T>
   BitReader &operator>>(T &v) {
     v = 0;
-    for (int i = 8 * sizeof(T) - 1; i >= 0; i--) v |= ((int)((*this)()) << i);
+    bool b;
+    for (int i = 8 * sizeof(T) - 1; i >= 0; i--) {
+      (*this)>>b;
+      v |= (int)b << i;
+    }
     return *this;
   }
 
-  explicit operator bool() { return len > 0; }
+  operator bool() { return len > 0; }
 };
