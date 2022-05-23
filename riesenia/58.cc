@@ -1,11 +1,13 @@
 #include <iostream>
 using namespace std;
 
-int *kopiruj(int n, int *a) {
-  int *p = new int[n];
-  int i;
-  for (i = 0; i < n; i++) p[i] = a[i];
-  return p;
+void otoc(int n, int *a) {
+  int i, k;
+  for (i = 0; i < n / 2; i++) {
+    k = a[i];
+    a[i] = a[n - i - 1];
+    a[n - i - 1] = k;
+  }
 }
 
 int main() {
@@ -14,9 +16,8 @@ int main() {
   a = new int[n];
   int i;
   for (i = 0; i < n; i++) cin >> a[i];
-  int *p = kopiruj(n, a);
-  for (i = 0; i < n; i++) cout << p[i] << " ";
+  otoc(n, a);
+  for (i = 0; i < n; i++) cout << a[i] << " ";
   cout << endl;
   delete[] a;
-  delete[] p;
 }

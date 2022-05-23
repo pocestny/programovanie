@@ -1,48 +1,36 @@
-#include <algorithm>
 #include <iostream>
-#include <set>
-#include <sstream>
 #include <string>
+#include <map>
+#include <set>
 
 using namespace std;
 
 int main() {
-  int w, h, n;
-  string line;
-
-  getline(cin, line);
-  stringstream ss(line);
-  ss >> w >> h >> n;
-
-  multiset<int> d[2];
-  set<int> x[2];
-  // 0 - x, 1 - y
-
-  d[0].insert(w);
-  d[1].insert(h);
-  x[0].insert(0);
-  x[0].insert(w);
-  x[1].insert(0);
-  x[1].insert(h);
-
-  while (n-- > 0) {
-    getline(cin, line);
-    int j = 0;
-    if (line[0] == 'H') j = 1;
-    stringstream ss(line.substr(2));
-    int i;
-    ss >> i;
-    auto tmp = x[j].lower_bound(i);
-    int i2 = *tmp;
-    tmp--;
-    int i1 = *tmp;
-    d[j].erase(d[j].find(i2 - i1));
-    d[j].insert(i - i1);
-    d[j].insert(i2 - i);
-    x[j].insert(i);
-    auto xx = d[0].end(), yy = d[1].end();
-    xx--;
-    yy--;
-    cout << (*xx) * (*yy) << endl;
+  map<string,set<string>> m;
+  while(true) {
+    string podmet;
+    cin>>podmet;
+    if (podmet[0]=='!') break;
+    string in;
+    cin>>in;
+    if (in=="nie") {
+      cin>>in>>in;
+    } else {
+      cin>>in;
+      m[podmet].insert(in.substr(0,in.find('.')));
+    }
+  }
+  for(auto &x:m) {
+    cout<<x.first<<" je ";
+    int i=0;
+    for(auto &s:x.second) {
+      if (i>0) {
+        if (i<x.second.size()-1) cout<<", ";
+        else cout<<" a ";
+      }
+      cout<<s;
+      i++;
+    }
+    cout<<"."<<endl;
   }
 }

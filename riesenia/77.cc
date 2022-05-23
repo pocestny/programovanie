@@ -3,29 +3,25 @@
 
 using namespace std;
 
-vector<int> V;
+vector<int> C;
 int n, k;
 
-bool test(int t) {
-  int x = 0;
-  for (int i = 0; i < n; i++)
-    if (V[i] > t) {
-      x += (V[i] - t) / k;
-      if ((V[i] - t) % k) x++;
-    }
-  return (x <= t);
+bool test(int r) {
+  int sum = 0;
+  for (int i = 0; i < k; i++) sum += C[i] / r;
+  return sum >= n;
 }
 
 void search(int l, int r) {
   if (r - l < 10) {
-    for (int i = l; i <= r; i++)
+    for (int i = r - 1; i >= l; i--)
       if (test(i)) {
         cout << i << endl;
         exit(0);
       }
   } else {
     int m = (l + r) / 2;
-    if (!test(m))
+    if (test(m))
       search(m, r);
     else
       search(l, m);
@@ -33,18 +29,11 @@ void search(int l, int r) {
 }
 
 int main() {
-  cin >> n;
-  V.resize(n);
-  int max = 0;
-  for (int i = 0; i < n; i++) {
-    cin >> V[i];
-    if (V[i] > max) max = V[i];
-  }
-  cin >> k;
-  k--;
-
-  if (k == 0)
-    cout << max << endl;
+  cin >> n >> k;
+  C.resize(k);
+  for (int i = 0; i < k; i++) cin >> C[i];
+  if (test(n))
+    cout << n << endl;
   else
-    search(0, max);
+    search(1, n);
 }

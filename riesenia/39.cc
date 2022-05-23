@@ -1,29 +1,31 @@
 #include <iostream>
 using namespace std;
 
-int a[1000][1000];
-int r, s;
+int a[10000];
 
-void fill(int i, int j) {
-  if (i < 0 || i >= r || j < 0 || j >= s) return;
-  if (a[i][j] == 0) {
-    a[i][j] = 1;
-    fill(i - 1, j);
-    fill(i + 1, j);
-    fill(i, j - 1);
-    fill(i, j + 1);
+void rob(int i, int n, int m, int k) {
+  if (i == n && m == 0 && k == 0) {
+    int j;
+    for (j = 0; j < n; j++) cout << a[j] << " ";
+    cout << endl;
+  } else {
+    if (n - i >= m + k) {
+      a[i] = 0;
+      rob(i + 1, n, m, k);
+    }
+    if (m > 0) {
+      a[i] = 1;
+      rob(i + 1, n, m - 1, k);
+    }
+    if (k > 0) {
+      a[i] = 2;
+      rob(i + 1, n, m, k - 1);
+    }
   }
 }
 
 int main() {
-  int i, j;
-  cin >> r >> s;
-  for (i = 0; i < r; i++)
-    for (j = 0; j < s; j++) cin >> a[i][j];
-  cin >> i >> j;
-  fill(i, j);
-  for (i = 0; i < r; i++) {
-    for (j = 0; j < s; j++) cout << a[i][j] << " ";
-    cout << endl;
-  }
+  int n, m, k;
+  cin >> n >> m >> k;
+  rob(0, n, m, k);
 }

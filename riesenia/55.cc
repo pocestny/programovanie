@@ -14,15 +14,20 @@ double y(int i) {
 }
 
 int main() {
-  cin >> n;
+  int s;
+  cin >> n >> s;
   l = 800;
   r = 350;
-
   cout << "i " << l << " " << l << "\n";
   cout << "m " << x(0) << " " << y(0) << endl;
-  for (int i = 1; i < n; i++) cout << "l " << x(i) << " " << y(i) << endl;
+  for (int i = 1; i < n; i++)
+    cout << "l " << x(s * i) << " " << y(s * i) << endl;
   cout << "l " << x(0) << " " << y(0) << endl;
-  cout << "c 0 255 0\n";
+  cout << "c 255 255 0\n";
   cout << "f " << l / 2 << " " << l / 2 << " 0 0 0 \n";
-  cout << "s 53.png\n";
+  r = 0.9 * r;
+  cout << "c 255 0 0 ";
+  for (int i = 0; i < n; i++)
+    cout << "f " << x(i) << " " << y(i) << " 0 0 0" << endl;
+  cout << "s 54.png\n";
 }

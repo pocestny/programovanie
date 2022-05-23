@@ -9,7 +9,6 @@
 \usepackage{booktabs}
 \usepackage{epigraph}
 \usepackage{etoolbox}
-\usepackage{etoolbox}
 \usepackage{fancyvrb}
 \usepackage{graphicx}
 \usepackage{listings}
@@ -20,11 +19,12 @@
 \usepackage{pgfplots}
 \usepackage{pgf}
 \usepackage{scrextend}
-\usepackage{tikz}
+\usepackage{tikz,tikz-3dplot}
 \usepackage{xcolor}
 \usepackage{xparse}
 \usepackage{xspace}
 \AtBeginDocument{\shorthandoff{-}}
+ \pgfplotsset{compat=1.6} 
 
 \deffootnote[0em]{0em}{0em}{\textsuperscript{\thefootnotemark}\;\enskip}
 \def\arraystretch{1.2}
@@ -115,7 +115,8 @@
 \def\sectxxiii{1} % algoritmy v STL
 \def\sectxxiv{1} % komplexne cisla
 \def\sectxxv{1} % set a map, stromy
-\def\sectxxvi{1} %binarne subory a kompresia
+\def\sectxxvi{1} % binarne subory a kompresia
+\def\sectxxvii{1} % pravdepodobnost a nahoda
 \fi
 
 %% ALL OFF
@@ -148,6 +149,7 @@
 \def\sectxxiv{0} % komplexne cisla
 \def\sectxxv{0} % set a map, stromy
 \def\sectxxvi{0} %binarne subory a kompresia
+\def\sectxxvii{0} % pravdepodobnost a nahoda
 \fi
 
 
@@ -2677,13 +2679,16 @@ desaťkrát hodnota čísla \prg!'456'! plus hodnota cifry \prg!'7'!.
   Uprav predchádzajúce riešenie tak, aby pracovalo s viaccifernými číslami.
 \end{uloha}
 
-
-
 \begin{uloha}
   Napíš program, ktorý načíta zo vstupu jedno prirodzené číslo a vypíše ho otočené.
   Má to ale háčik: v celom programe môžeš použiť iba jedinú premennú (tú, do 
   ktorej načítaš vstup).
 \end{uloha}
+
+Niekedy je dobé mať globálnu premennú (napr. pole), do ktorého rekurzívna procedúra
+postupne generuje všetky možnosti: skúsi prvú možnosť, rekurzívne doplní zvyšok, skúsi
+druhú možnosť, atď.
+
 
 \begin{uloha}
 Napíš program, ktorý prečíta číslo $n$ a vypíše všetky možné usporiadania
@@ -2696,6 +2701,42 @@ Napíš program, ktorý prečíta číslo $n$ a vypíše všetky možné usporia
 3 2 1
 3 1 2
 \end{verbatim}
+\end{uloha}
+
+\begin{uloha}
+Napíš program, ktorý prečíta čísla $n$, $m$, $k$
+  a vypíše všetky postupnosti dĺžky $n$ zložené z čísel {\tt 0,1,2}, ktoré obsahujú
+  $m$ jednotiek, $k$ dvojok a ostatné sú nuly. Napr. pre vstup {\tt 4 2 1} vypíše
+  $12$ možností:
+
+  \ods
+\begin{minipage}[t]{0.3\textwidth}
+\begin{verbatim}
+0 1 1 2 
+0 1 2 1 
+0 2 1 1 
+1 0 1 2 
+\end{verbatim}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.3\textwidth}
+\begin{verbatim}
+1 0 2 1 
+1 1 0 2 
+1 1 2 0 
+1 2 0 1 
+\end{verbatim}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.3\textwidth}
+\begin{verbatim}
+1 2 1 0 
+2 0 1 1 
+2 1 0 1 
+2 1 1 0
+\end{verbatim}
+\end{minipage}
+
 \end{uloha}
 
 \begin{uloha}
@@ -5970,25 +6011,26 @@ struct Tabulka {
 \end{lstlisting}
 }
 
-Konštruktor je funkcia takmer ako každá iná, a preto môže mať aj parametre:
+Konštruktor je funkcia takmer ako každá iná, a preto môže mať aj parametre. 
+Konštruktor pre typ {\tt Tabulka} preto môžem zmeniť takto:
 
 \begin{lstlisting}[] 
-  Tabulka(int _m, int _n) {a
+Tabulka(int _m, int _n) {
     m = _m;
     n = _n;
     data = new int[m * n];
     for (int i = 0; i < m; i++)
       for (int j = 0; j < n; j++) 
         data[i * n + j] = 0;
-  }
+}
 \end{lstlisting}
 
 A pridáme aj deštruktor:
 
 \begin{lstlisting}[] 
-  ~Tabulka() {
+~Tabulka() {
     delete[] data;
-  }
+}
 \end{lstlisting}
 
 Teraz sa premenná typu {\tt Tabulka} dá vyrobiť, iba ak dostane dva parametre:
@@ -6021,9 +6063,70 @@ alokuje jednu premennú, ale máš možnosť dodať parametre. Len si treba dať
 že premenné alokované cez \prg!new! treba odalokovať cez \prg!delete! a premenné alokované 
 cez \prg!new[]! treba odalokovať cez \prg!delete[]!. 
 
+\ods
+Okrem alokovania polí môžu parametre v konštruktoroch spôsobovať problémy aj pri vnorených 
+typoch. Predstav si, že chceme mať typ, ktorý obsahuje tabuľku a pole dvoch čísel, napr.
+
+\begin{lstlisting}
+ struct Tukan {
+  int a[2];
+  Tabulka t;
+};
+\end{lstlisting}
+
+Teraz sa zamysli, čo sa stane, keď chceš vyrobiť premennú {\tt Tukan x}: v pamäti sa vyhradí 
+miesto pre jednu typu \prg!int[2]! a jednu premennú typu {\tt Tabulka}. V čase, keď
+sa zavolá konštruktor {\tt Tukan} (ktorý je zatiaľ iba defaultný), musia sa nastaviť premenné
+{\tt a} a {\tt t} ich vlastnými konštruktormi. Ale {\tt Tabulka} nemá konštruktor bez 
+parametrov, takže sa vyhlási chyba. Ešte raz zopakujem: keď sa vytvára premenná nejakého typu,
+najprv sa vyhradí miesto, potom sa (rekurzívne) zavolajú konštruktory všetkých zložiek
+a nakoniec sa zavolá hlavný konštruktor\footnote{toto je jediná postupnosť, ktorá dáva zmysel:
+v konštruktore typu {\tt Tukan} asi chceš pristupovať k premennej {\tt t},
+takže chceš, aby {\tt Tabulka t} už bola inicializovaná}. Ako môžeš dodať premennej {\tt t}
+parametre? Mohlo by ťa napadnúť napísať 
+
+\begin{lstlisting}
+ struct Tukan {
+  int a[2];
+  Tabulka t(3,3);
+};
+\end{lstlisting}
+
+ale tým jednak stratíš možnosť inicializovať tabuľku inými parametrami ako $3$, ale hlavne
+nie je jasné, kedy sa má konštruktor {\tt Tabulka} vlastne volať. Takýto zápis sa
+ti kompilátor ani nepokúsi skompilovať. Riešenie je špeciálny zápis konštruktora s
+dvojbodkou:
+
+\begin{lstlisting}
+ struct Tukan {
+  int a[2];
+  Tabulka t;
+
+  Tukan() : t(3,3) {}
+};
+\end{lstlisting}
+
+Týmto zápisom hovoríš, že {\tt Tukan} má konštruktor bez parametrov, ktorý predtým,
+ako sa začne vykonávať, zavolá konštruktor {\tt Tabulka} s parametrami $3,3$.
+Za dvojbodkou môže byť aj viacero konštruktorov oddelených čiarkami, napr.
+
+\begin{lstlisting}
+  Tukan(int x) : t(x,x), a{x,x} {a[1] += a[0];}
+\end{lstlisting}
+
+Keď teraz zavoláš {\tt Tukan x(3);} tak najprv sa zavolá konštruktor {\tt Tabulka t(3,3)}
+a inicializuje sa pole {\tt a} hodnotami {\tt 3,3} a potom sa začne vykonávať
+hlavný konštruktor, v ktorom sa nastaví {\tt a[1]=6}.
+
 \ods Nielen pri konštruktoroch je niekedy
-užitočný mechanizmus {\em default} parametrov. Ak pri definovaní funkcie
-za posledných niekoľko parametrov dopíšeš {\tt =}, nastavíš im implicitné hodnoty.
+užitočný mechanizmus {\em default parametrov}. Ak pri definovaní funkcie
+za posledných\footnote{
+  Musia to byť posledné, lebo inak by nebolo jasné, ktorý parameter 
+  sa má nahradiť. Keby si mal \prg!int f(int a=3, int b, int c=1)!,
+  volanie \prg!f(2,2)! môže znamenať \prg!a=2!, \prg!b=2! a \prg!c=1! (default),
+  ale aj \prg!a=3! (default), \prg!b=2! a \prg!c=2!. Kvôli tejto nejednoznačnosti
+  je takéto umiestnenie default parametrov zakázané.
+}niekoľko parametrov dopíšeš {\tt =}, nastavíš im implicitné hodnoty.
 Ak sa potom pri volaní príslušný parameter vynechá, doplní sa
 implicitnou hdontou. Napr.
 
@@ -6039,8 +6142,10 @@ int main() {
 \end{lstlisting}
 }
 
-Preto keď konštruktor zmeníš na \prg!Tabulka(int _m = 3, int _n = 3)!, tak
-zápis \prg!Tabulka q;! vyrobí tabuľku $3\times 3$. Takže 
+Preto, keď sa vrátime k našim tabuľkám, 
+keď do konštruktora typu {\tt Tabulka} pridáš default paramatre napr. takto:
+\prg!Tabulka(int _m = 3, int _n = 3)!, tak
+zápis \prg!Tabulka q;! vyrobí tabuľku $3\times 3$. Podobne
 \prg!Tabulka *a = new Tabulka[10];! vyrobí pole $10$ tabuliek, každú rozmerov
 $3\times 3$.
 
@@ -6326,7 +6431,7 @@ s parametrom \prg!int! alebo \prg!int &!. Keďže je to ten druhý prípad, tak
 
 \ods Referencie sa hodia napríklad keď chceme upraviť, akým spôsobom sa majú tabuľky 
 kopírovať. Podobne ako pri vyrábaní premenných sa volá konštruktor, pri priradení
-sa volá {\em operátor} priradenia ({\tt =}). Default operátor sa správa tak, 
+sa volá {\em operátor} priradenia ({\tt =}). Default operátor priradenia sa správa tak, 
 že skopíruje premenné, ale môžme si to upraviť: je to funkcia triedy ako každá iná, len
 má trochu divný zápis. V našom prípade môžme triedu {\tt Tabulka} definovať
 napr. takto:
@@ -8375,6 +8480,7 @@ Mandelbrota zaujímalo, ktoré čísla sú také, že nikdy neujdú z kruhu
 s polomerom $R$.
 
 \begin{uloha}
+  \label{uloha-mandelbrot}
   Na vstupe sú čísla $R$ a $N$. Potom nasledujú komplexné čísla v kartézskych
   súradniciach, t.j. číslo $x+iy$ je zapísane dvojicou {\tt x y}.
   Vstup končí číslo {\tt 0 0}. Napíš program, ktorý pre každé číslo
@@ -11428,7 +11534,9 @@ a pamätám si usporiadanie písmen {\tt ý, é, á, ú, o, a, ... } a na vstupe
 \end{uloha}
 
 Ak sa pozrieš, ako tento prediktor funguje pre kontext troch písmeniek, vidno, že po 
-predspracovaní súborov sa frekvencie znakov výrazne zmenia:
+predspracovaní súborov sa frekvencie znakov výrazne zmenia (priesvitné modré stĺpce
+sú pôvodné frekvencie bez prediktora, zelené s prediktorom)
+
 \def\freqplot#1#2{
 \begin{tikzpicture}
 \begin{axis}[
@@ -11445,12 +11553,13 @@ predspracovaní súborov sa frekvencie znakov výrazne zmenia:
     xmin=0,
     ymin=0,
     ymax=65,
-    xmax=50
+    xmax=20
 ]
-  \addplot+[ybar interval,draw=blue!40!black,fill={rgb:blue,5;green,3;white,5},
+  \addplot+[ybar interval,draw=green!40!black,fill={rgb:red,3;green,7;white,4},
   mark size=0] 
   table [y=f, x=n]{data/#1_prd_cnt.dat};
-  \addplot+[ybar interval, draw=orange, fill=orange!50!white, opacity=0.3, mark size=0] 
+  \addplot+[ybar interval, draw=blue!40!black, fill={rgb:blue,5;green,3;white,9}, 
+  opacity=0.6, mark size=0] 
   table [y=f, x=n]{data/#1_cnt.dat};
 \end{axis}
 \end{tikzpicture}
@@ -11499,8 +11608,8 @@ kombinované s tzv. {\em run-length encoding}\footnote{%
   Huffmanov kód z princípu nevie urobiť menšiu ako 8-násobnú kompresiu, lebo na každý
   znak použije aspoň 1 bit. Ak je vo vstupnom súbore dlhá postupnosť rovnakých znakov,
   napr. {\tt 0000000000000}, je lepšie ju nahradiť {\tt [13]0} s významom \cmd{trinásťkrát
-  zopakuj nulu}.} alebo algoritmy, ktoré kódujú nie jednotlivé znaky ale celé skupiny
-  znakom (napr. \link{https://en.wikipedia.org/wiki/LZ77_and_LZ78}{LZ77}).
+  zopakuj nulu}.} alebo algoritmy, ktoré kódujú nie jednotlivé znaky, ale celé skupiny
+  znakov (napr. \link{https://en.wikipedia.org/wiki/LZ77_and_LZ78}{LZ77}).
 
 \ods
 S kompresiou sa môžeš v rámci projektu hrať ďalej: ak vymyslíš lepší prediktor, kompresia
@@ -11515,13 +11624,383 @@ súbor vygenerovať).
 
 \fi
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectxxvii1
+\section{Náhoda a pravdepodobnosť}
+
+\ods
+Čo je to náhoda? Dalo by sa povedať, že niečo (napr. keď hodím kockou) je náhodné,
+ak sa nedá dopredu povedať, ako to dopadne.
+Existuje náhoda? To je ťažká otázka. Ako totiž rozlíšim, či sa niečo dopredu nedá povedať,
+alebo to iba neviem? Ak sa traja kamaráti dohodnú, že zavolajú štvrtému v priebehu jednej 
+minúty, jemu to bude pripadať ako veľká náhoda, že z celého dňa si všetci vybrali akurát
+túto minútu. Aj pri hádzaní kockou by klasická fyzika povedala, že ak presne viem všetky
+parametre (veľkosť a hustotu kocky, tvar ruky, silu a smer trasenia, odpor vzduchu,\ldots)
+tak viem dopredu vypočítať, čo na kocke padne. Preto sa fyzici dlho domnievali, že náhoda
+neexistuje, sú len tzv. skryté parametre. S nástupom kvantovej fyziky sa pohľad zmenil
+a väčšina si skôr myslí, že náhoda (t.j. javy, ktoré sa dopredu naozaj nedajú predpovedať,
+lebo od ničoho predtým nezávisia) existuje. Ako je to naozaj sa asi nikdy nedozvieme, ale
+to nám nebráni s náhodou počítať. Keď vieme, že o náhodnom jave sa dopredu nedá nič povedať,
+znamená to, že keď vidíme výsledok, dozvieme sa niečo, čo sme predtým nemohli vedieť
+(získame informáciu). Napr. ak mám mincu, na ktorej
+úplne náhodne môže padnúť $0$ alebo $1$, a vidím, že padla $1$, dozviem sa $1$ bit informácie.
+Ak by som mal mincu, na ktorej stále padá $1$, nedozviem sa nič, čo by som už dopredu
+nevedel. Ak mám mincu, kde nula padá veľmi zriedka a vidím, že padla $1$, niečo sa dozviem,
+ale je to menej ako $1$ bit. Ak si pripomenieš
+predchádzajúcu kapitolu, tak prediktor bol spôsob, ako z doterajšieho vstupu povedať
+niečo o budúcom. Ak mám dobrý prediktor, viem veľa predpovedať, teda sa málo informácie
+dozviem a vstup je málo náhodný. A naopak. Takže ak mám mincu, kde stále padá $1$,
+budem ňou dlho hádzať a budem si písať výsledky, dostanem takúto postupnosť:
+
+\ods
+\centerline{{\tt 
+1111111111111111111111111111111111111111111111111111111111111111111111111111111}}
+
+\ods
+na ktorú mám $100\%$ prediktor. Ak som si skúsil vygenerovať súbor $10$ MB jednotkových bitov,
+{\tt gzip} ho spakoval na $10\,216$ B. Keby som mal úplne náhodnú mincu, výsledky hodov by
+mohli vyzerať napr. takto
+
+\ods
+\centerline{{\tt
+01011100111001010000101001100110111001000001100000010001101011010101011011011011}}
+
+\ods
+a žiaden prediktor by mi nepomohol. A $10$ MB náhodných bitov {\tt gzip} spakoval na
+$10\,487\,390$  B (teda vôbec). Nakoniec, keby som mal mincu, kde jednotka padá iba v $1\%$
+prípadov, výsledky by vyzerali nejak takto:
+
+\ods
+\centerline{{\tt 
+00000000000000100000000000000000000000000000001000000000000000000000000000000000}}
+
+\ods
+Prediktor, čo vždy predikuje nulu je veľmi dobrý -- pomýli sa iba v $1\%$ prípadov. 
+A aj {\tt gzip} spakuje $10$ MB takýchto bitov na $1\,343\,524$ B.
+
+\ods
+To znamená, že síce neviem, či nejaká skutočne náhodná postupnosť bitov 
+existuje, ale viem povedať, že ak by existovala, tak žiaden prediktor mi
+nepomôže skomprimovať
+ju.
+Z toho viem napr. povedať, že keď by som veľakrát hádzal náhodnou mincou, 
+tak vo výsledku je zhruba rovnako
+veľa núl a jednotiek. Ak by tam bolo viac jednotiek, tak prediktor, čo hovorí vždy $1$,
+by mi pomohol.
+
+\ods
+S náhodou súvisí aj {\em pravdepodobnosť}. Kým náhodnosť je vlastnosť nejakého procesu
+(napr. náhodné hádzanie kocky), pravdepodobnosť je vlastnosťou nejakého javu (napr. že 
+padne číslo deliteľné tromi). 
+
+\ods
+Ak mám náhodný proces (napr. hádzanie kockou), 
+ktorý môže mať $n$ rôznych výsledkov (napr. na kocke môže 
+padnúť $6$ rôznych čísel) a mám jav, ktorý nastane pri $k$ z nich (napr. číslo deliteľné 
+tromi na kocke je len $3$ a $6$, t.j. $k=2$), tak poviem, že pravdepodobnosť tohto javu je
+$\frac{k}{n}$.
+
+\ods 
+Z toho, čo sme hovorili, je zrejmé, že ak mám jav s pravdepodobnosťou napr. $0.01$,
+tak pri veľkom počte opakovaní budem ten jav vidieť v $1\%$ prípadov.
+
+\ods
+Napr. aká je pravdepodobnosť, že na kocke padne šestka? Jedna šestina, t.j. asi $0.167$. 
+Keď veľakrát hádžem kockou,
+v šestine prípadov hodím šestku. Aká je pravdepodobnosť, že keď hodím 
+dvakrát, obidva razy hodím šestku?
+Všetkých možných výsledkov dvoch hodov je $6\cdot 6=36$ a dve šestky sú iba v jednom 
+z nich, t.j. pravdepodobnosť je $\frac{1}{36}=\frac{1}{6}\cdot\frac{1}{6}\approx0.0278$. 
+Aká je pravdepodobnosť, že hodím šestku päťkrát za sebou? 
+$\left(\frac{1}{6}\right)^5\approx0.00013$.
+To platí vždy: ak mám náhodný jav s pravdepodobnosťou
+$p$ a zopakujem ko $k$-krát, tak pravdepodobnosť, že nastane vždy, je $p^k$.
+Ale stále platí to, že náhodný jav nijak nezávisí od minulosti: ak hádžem kockou 
+a päťkrát za sebou mi padne šestka, aká je pravdepodobnosť, že padne aj šiestykrát?
+Čo bolo, bolo, zase je to len jedna šestina.
+
+
+\ods
+Je to veľmi prekvapivé, ale náhoda nám v skutočnosti môže pomôcť niečo rátať. 
+Predstav si, že Bob a Bobek majú každý na disku veľký súbor, povedzme 1 
+TB\footnote{To je $2^{40}$ bytov, takže na uloženie dĺžky takého súboru už nestačí $32$-bitové číslo,
+preto budeme používať $64$-bitové.}.
+Tie súbory by mali byť rovnaké, ale oni si nie sú istí, či sa náhodou medzičasom nezmenili,
+tak by to potrebovali overiť. Jedna možnosť je, aby Bob poslal Bobkovi po sieti 
+svoj súbor a Bobek u seba oba súbory porovná. Ale posielať 1 TB po sieti je priveľa. 
+Spravia teda toto. 
+Bobov súbor je postupnosť $8\cdot2^{40}=2^{43}$ núl a jednotiek (1 byte má 8 bitov).
+Bob si predstaví, že celý súbor je jedno naozaj obrovské číslo $N$
+zapísané v dvojkovej sústave.
+$2^{43}=8796093022208$, teda $N$ môže byť až
+$2^{2^{43}}=2^{8796093022208}$, čo je v desiatkovej sústave
+zhruba jednotka a za ňou $2.6$ bilióna núl. 
+To je síce veľa, ale to nevadí.
+Bob si vymyslí náhodné $64$-bitové prvočíslo\footnote{To sa
+zdá ako ťažká úloha, ale keby Bob mal k dispozícii mincu, ktorá mu dáva náhodne nuly
+a jednotky, tak s trochou šikovnej matematiky, ktorú tu teraz nebudem ukazovať,
+sa to dá naprogramovať pomerne ľahko.} $p$ a vyráta zvyšok z $N$ po delení $p$ (ktorý si
+označí ako $z$).
+To sa dá naprogramovať rovnako, ako keď počítaš delenie na papier -- súborom stačí 
+raz prejsť jedným cyklom.
+
+\begin{uloha}
+  Naprogramuj funkciu, ktorá pre dané meno súboru a číslo $p$ zráta zvyšok po delení
+  čísla $N$ číslom $p$, kde $N$ je (veľmi veľké) číslo, ktoré predstavuje daný súbor.
+\end{uloha}
+
+Namiesto celého súboru pošle Bobkovi iba $p$ a $z$, t.j. dve $64$-bitové čísla. 
+Bobek si predstaví svoj súbor ako obrovské číslo $N'$ a
+vypočíta  zvyšok $z'$ po delení $p$ a porovná $z$ a $z'$.
+Ak sa rovnajú, vyhlási súbory za rovnaké, ak nie, povie, že sú rôzne. 
+
+\ods
+Bude takéto porovnanie fungovať? Nie vždy. Ak sú súbory skutočne rovnaké, t.j.
+ak $N=N'$, tak pochopiteľne nech je $p$ hocijaké, tak aj zvyšok po delení bude rovnaký.
+Ale môže sa napr. stať, že $N=192$ a $N'=98$ a zvolené prvočíslo je $47$
+a potom oba zvyšky sú $4$. Aká je pravdepodobnosť, že sa Bobek na konci pomýli?
+Ak $N$ a $N'$ majú po delení $p$ rovnaký zvyšok, potom $N-N'$ má po delení $p$ zvyšok $0$.
+Aj $N$ aj $N'$ sú $2^{43}$-bitové čísla, preto aj ich rozdiel je $2^{43}$-bitové číslo.
+Ak označím $n=2^{43}$, tak $N-N'\le 2^n$. Predstavím si prvočíselný rozklad 
+$N-N'=p_1\cdot p_2\cdots p_z\le 2^n$. Každé z $p_i$
+je aspoň $2$, preto $z<n$ (keby bolo v rozklade viac ako $n$ prvočísel, ich súčin
+by bol väčší ako $2^n$). Bobek sa pomýli, ak $p$ delí $N-N'$, t.j. ak
+Bob nešťastnou náhodou za $p$
+zvolil jedno z tých najviac $2^n$ prvočísel z rozkladu $N-N'$. Aby sme videli, aká je to 
+pravdepodobnosť, treba vedieť, koľko je $64$-bitových prvočísel. Presne to ťažko povedať,
+ale platí\footnote{opäť jedna pekná matematická úvaha, ktorú tu teraz nepoviem},
+že pre hocijaké číslo $x$, počet prvočísel menších ako $x$ (čo sa zvykne označovať ako 
+$\pi(x)$) je $\pi(x)>\frac{x}{\log(x)}$. Keď si za $x$ dosadím $2^{64}$, dostanem,
+že $64$-bitových prvočísel je viac ako $415828534266394360\approx 2^{58.5}$.
+Preto ak si Bob vyberie náhodné $64$-bitové prvočíslo, tak pravdepodobnosť, že Bobek sa
+pomýli, bude najviac $\frac{n}{415828534266394360}$. Pre terabajtový súbor je $n=2^{43}$,
+takže po dosadení máme pravdepodobnosť chyby $\approx0.0000211531$.
+Preto ak by porovnávali veľa súborov, tak najviac zhruba $2$ z $10000$ budú porovnané zle.
+To je pomerne málo, ale čo ak je ten súbor tak dôležitý, že Bob a Bobek nechcú riskovať
+ani takúto malú chybu? Bob môže celý postup zopakovať dvakrát, to znamená, že Bobkovi
+pošle štyri $64$-bitové čísla $p$, $z$, $p'$, $z'$. Bobek vie, že ak sú súbory rovnaké,
+tak v obidvoch prípadoch mu musí vyjsť rovnaký zvyšok. Preto ak mu čo len raz vyjde rôzny,
+vie, že súbory sa nazoaj líšia. Takže pravdepodobnosť. že sa pomýli teraz, je 
+$\approx(0.0000211531)^2=0.00000000044745363961$. Ak Bob celý postup zopakuje
+dvadsaťkrát, t.j. pošle Bobkovi $40$ $64$-bitových čísel, pravdepodobnosť, že
+sa Bobek pomýli bude iba $\approx 3.217\cdot 10^{-94}$ (to je nula, desatinná čiarka,
+$93$ núl a potom $3217$). To je oveľa mensia pravdepodobnosť, ako že sa počítač sám
+odseba pokazí.
+
+\ods
+Je ešte veľa iných príkladov toho, ako náhodné čísla môžu pomôcť urobiť lepšie programy,
+nateraz sa ale uspokojíme s tým, že náhodné čísla sú užitočné a chceli by sme ich mať.
+Ako ich ale získať? Rôzne operačné systémy poskytujú rôzne spôsoby, ako ich získavať, 
+spravidla tak, že sa systém meria časy rôznych udalostí (stláčania kláves, prijatie 
+sieťových paketov a pod., v skutočnosti sa v pozadí robia pomerne zložité
+veci), ktoré sa dajú považovať za náhodné podobne ako hádzanie 
+kockou. Napr. v linuxe existuje súbor {\tt /dev/urandom}, do ktorého systém píše náhodné
+bity. Takže ak programuješ v linuxe, môžeš napísať napr.
+
+\begin{lstlisting}
+int main() {
+  unsigned int x;
+  ifstream rand("/dev/urandom", ios::binary);
+  for (int i = 0; i < 10; i++) {
+    rand.read((char *)&x, sizeof(x));
+    cout << x % 100 << " ";
+  }
+  cout << endl;
+}
+\end{lstlisting}
+
+a vždy, keď ten program spustíš, vypíše sa $10$ náhodných čísel z rozsahu 
+$0,\ldots,99$.
+
+\ods
+Iná možnosť je skúsiť náhodné čísla vyrobiť priamo nejakým programom. Môže to 
+fungovať? Zjavne nie: hovorili sme, že náhodné veci sú také, pre ktoré nemám
+dobrý prediktor, ale program, ktorý tie čísla generuje, by bol úplne spoľahlivý
+prediktor. Na druhej strane, ak si pamätáš, ako poskakovali niektoré body v
+úlohe \ref{uloha-mandelbrot}, tak to vyzeralo pomerne chaoticky. Ak by si
+nevedel presný bod, ale iba jeho veľkosť (t.j. vzdialenosť od 0), tak predpovedať
+veľkosť nasledujúceho bodu v Mandelbrotovej iterácii by bolo veľmi ťažké. 
+Tak fungujú tzv. {\em pseudonáhodné generátory}.
+Aj keď nevieme
+náhou vyrobiť, môžeem ju vedieť namnožiť. 
+Pseudonáhodný generátor je program, ktorý dostane krátky náhodný vstup (tzv. 
+{\em seed}) a z neho vyrobí postupnosť čísel, ktoré síce nie sú náhodné, ale žiaden
+program s polynomiálnou zložitosťou ich nevie rozoznať od skutočne náhodných. To 
+znamená, že pseudonáhodné čísla by sme mohli pre všetky rozumné účely použiť rovnako
+dobre ako náhodné. Či takýto dokonalý pseudonáhodný generátor existuje, zatiaľ nikto
+nevie, ale existuje viacero takých, 
+ktoré sú dosť dobré v tom zmysle, že nikto zatiaľ nevymyslel,
+ako ich výstup rozlíšiť od náhodných čísel.
+
+\ods 
+Jedna z možností, ako navrhnúť pseudonáhodný generátor je napr.\footnote{%
+  Tu som použil inú formu šablóny. Doteraz sme ako parameter šablóny 
+  používali typ, ale parametrom môže byť aj číslo. Toto funguje rovnako 
+  ako pri typoch -- pre každú hodnotu parametra sa vyrobí nový typ, v ktorom 
+  sa v čase kompilácie parameter nahradí príslušnou hodnotou.
+}
+
+\begin{lstlisting}
+using Int = unsigned long int;
+
+template <Int a, Int c, Int m>
+struct Nahoda {
+  Int x; 
+
+  Nahoda(Int seed) { x = seed; }
+  
+  int operator()() {
+    x = (a * x + c) % m;
+    return x % (1 << 30);
+  }
+};
+\end{lstlisting}
+
+\ods
+Keď teraz napíšem
+
+\begin{lstlisting}
+Nahoda<7, 3, 23> r(3);
+for (int i = 0; i < 20; i++) cout << r() << " ";
+cout << endl;
+\end{lstlisting}
+
+vypíše sa {\tt 1 10 4 8 13 2 17 7 6 22 19 21 12 18 14 9 20 5 15 16}. To na prvý pohľad vyzerá
+náhodne, ale 
+ak pokračujem vo vypisovaní a namiesto $20$ vypíšem $60$ čísel, dostanem 
+{\tt 1 10 4 8 13 2 17 7 6 22 19 21 12 18 14 9 20 5 15 16 0 3 1 10 4 8 13 2 17 7 6 22 19 21 12 18 
+14 9 20 5 15 16 0 3 1 10 4 8 13 2 17 7 6 22 19 21 12 18 14 9 } -- čísla sa po chvíli 
+začnú opakovať. Keď sa nad tým zamyslíš, tak ak mám v tomto generátore parameter {\tt m},
+tak najneskôr po {\tt m} krokoch sa číslo zopakuje a potom sa už bude opakovať stále. Môžme
+to skúsiť napraviť tak, že zvolíme veľmi veľké {\tt m}, napr.\footnote{%
+  Tento pseudonáhodný generátor použila v minulosti IBM na svojich mainframoch
+  pod menom {\em randu}. Parameter  $a=2^{16}+3$, a $m=2^{31}$.} \prg!Nahoda<65539,0,2147483648>!
+Teraz sa už čísla tak skoro neopakujú. Skúsil som 4 rôzne seedy a výstup som naškáloval do rozsahu $0\ldots1$:
+
+\ods  
+\def\tmp#1#2{%
+\begin{tikzpicture}
+\begin{axis}[
+  width=\textwidth, 
+  height=3.5cm,
+  xlabel={},
+  ylabel={},
+  xticklabels={,,},
+  legend cell align={left},
+  legend pos = north west,
+  xmax=500,
+  xmin=1
+]
+  \addplot+[#1, 
+  line join=round, mark size=0.2pt, mark color=red] table [y=#2, x=n]{data/randu.dat};
+\end{axis}
+\end{tikzpicture}}
+
+\tmp{blue!50!white}{r1}
+
+\tmp{green!50!black}{r2}
+
+\tmp{orange!70!black}{r3}
+
+\tmp{magenta!50!white}{r4}
+
+\ods
+Teraz vyzerá byť všetko v poriadku, ale nie je. Ak si budem z generátora brať trojice čísel (naškálovaných na
+rozsah $0\ldots1$) a predstavím si ich ako body v 3D priestore, očakával by som náhodné pozície ako na obrázku
+vľavo. Ale {\tt randu} dá body, ktoré všetky ležia na 15 rovinách ako na obrázku vpravo. Náhoda je náročná vec.
+
+\bp
+\begin{tikzpicture}
+    \begin{axis}
+    [   view={-35}{35},
+      xrange=0:1,
+      yrange=0:1,
+      xmin=0, xmax=1,
+      ymin=0, ymax=1,
+      zmin=0, zmax=1,
+      unit vector ratio=1 1 1,
+      scale=2,
+    ]
+    \addplot3[scatter, only marks, mark color=blue, mark size=0.21pt, domain=0:1, y domain = 0:1] file{data/randucube2.dat};
+    \end{axis}
+\end{tikzpicture}
+\ep
+\hfill
+\bp
+\begin{tikzpicture}
+    \begin{axis}
+    [   view={-35}{35},
+      xrange=0:1,
+      yrange=0:1,
+      xmin=0, xmax=1,
+      ymin=0, ymax=1,
+      zmin=0, zmax=1,
+      unit vector ratio=1 1 1,
+      scale=2,
+    ]
+    \addplot3[scatter, only marks, mark color=blue, mark size=0.21pt, domain=0:1, y domain = 0:1] file{data/randucube.dat};
+    \end{axis}
+\end{tikzpicture}
+\ep
+
+\ods
+Pri lepšej voľbe parametrov môže ale aj takáto jednoduchá procedúra dobre fungovať na generovanie pseudonáhodných čísel.
+Napr. $\left\langle1103515245,12345,2^{31}\right\rangle$,
+$\left\langle25214903917,11,2^{48}\right\rangle$
+alebo 
+$\left\langle6364136223846793005,1442695040888963407,2^{64}\right\rangle$, 
+sú populárne voľby. Samozrejme, existuje aj veľa všelijakých iných prístupov. Skús sa zamyslieť, ako by si generoval
+pseudonáhodné čísla po svojom, prípadne ako by si testoval, či čísla, ktoré vidíš, sú náhodné alebo generované nejakým
+programom.
+
+\ods
+Najjednoduchší spôsob, ako pseudonáhodné čísla použiť, je funkcia {\tt random()} definovaná v knižnici {\tt cstdio}.
+Pred použitím treba inicializovať seed volaním {\tt srandom(seed)} a potom každé  volanie {\tt random()} vráti číslo
+z rozsahu $0,\ldots,2^{31}-1$. Napr.
+
+\begin{lstlisting}
+#include <cstdio>
+#include <iostream>
+using namespace std;
+int main() {
+  srandom(42);
+  for (int i = 0; i < 10; i++) {
+    cout << random() % 100 << " ";
+  }
+  cout << endl;
+}
+\end{lstlisting}
+
+vypíše 10 pseudonáhodných čísel z rozsahu $0,\ldots,99$.
+\fi
+
 % nahodne cisla: generator terenu (3d?) ;  hasovanie
 
-% projekt breakthrough (dedenie, pripomenut iteratory) + grafika SDL?
+% projekt breakthrough (dedenie, pripomenut iteratory)
+% grafika SDL (GUI - sofistikovanejsei dedenie, virtualne metody)
 % thready
+
+
 
 % NN
 
 \end{document}
 
+\IGNORE{
+\ods
+Predstav si, že budem hádzať dvoma kockami a budem sa pozerať na súčet čísel
+na oboch. Aké je priemerné číslo, ktoré mi budem dostávať?
+Lákalo by to k takejto úvahe: môže mi padnúť $11$ rôznych súčtov: od $2$ po $12$.
+Priemer je preto $(2+3+\cdots+12)/11=7$. Lenže napr. súčet $2$ mi môže padnúť iba jedným 
+spôsobom, t.j. s pravdepodobnosťou $\frac{1}{36}$, ale napr. 
+súčet $7$ šiestimi, t.j. s pravdepodobnosťou $\frac{6}{36}=\frac{1}{6}$. Preto 
+súčet $7$ sa bude vyskytovať oveľa častejšie.
+
+\ods
+V matematike sa {\em náhodná premenná} volá niečo, čo viem vyrátať z náhodného javu. Napr.
+ak hodím dve kocky, tak viem vyrátať súčet bodiek -- súčet bodiek je preto náhodná premenná.
+{\em Stredná (očakávaná) hodnota} náhodnej premennej je priemerná hodnota výsledku, ktorý 
+budem dostávať. Ak 
+}
 

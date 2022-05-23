@@ -1,15 +1,26 @@
 #include <iostream>
-#include <string>
+#include <vector>
 using namespace std;
-
-int cislo(string s) {
-  int i, res = 0;
-  for (i = 0; i < s.size(); i++) res = 10 * res + (s[i] - '0');
-  return res;
-}
+const int base = 10;
 
 int main() {
-  string s;
-  cin >> s;
-  cout << cislo(s) << endl;
+  int n;
+  vector<int> a;
+  cin >> n;
+  a.push_back(1);
+  while (n > 1) {
+    int prenos = 0;
+    for (int i = 0; i < a.size(); i++) {
+      int s = n * a[i] + prenos;
+      a[i] = s % base;
+      prenos = s / base;
+    }
+    while (prenos > 0) {
+      a.push_back(prenos % base);
+      prenos = prenos / base;
+    }
+    n--;
+  }
+  for (int i = a.size() - 1; i >= 0; i--) cout << a[i];
+  cout << endl;
 }
