@@ -6061,18 +6061,19 @@ A pridáme aj deštruktor:
 
 \begin{lstlisting}[] 
 ~Tabulka() {
-    delete[] data;
+  if (data!=nullptr) delete[] data;
 }
 \end{lstlisting}
 
 Teraz sa premenná typu {\tt Tabulka} dá vyrobiť, iba ak dostane dva parametre:
 
+\vbox{
 \begin{lstlisting}[] 
 int main() {
   Tabulka t(3,3);  // v poriadku
   Tabulka q;       // kompilator vyhlasi chybu
 }
-\end{lstlisting}
+\end{lstlisting}}
 
 Kým si nemal vlastný konštruktor, kompilátor používal na vytváranie premenných 
 {\em implicitný} (default) konštruktor. Keď si si ale zadefinoval svoj, default
@@ -6204,7 +6205,9 @@ struct Tabulka {
         data[i * n + j] += x;
   }
 
-  ~Tabulka() { delete[] data; }
+  ~Tabulka() { 
+    if (data!=nullptr) delete[] data; 
+  }
 };
 \end{lstlisting}
 
@@ -6500,11 +6503,15 @@ struct Tabulka {
   }
 
   Tabulka& operator=(Tabulka& x) {
+    if (data!=nullptr) delete[] data;
+    alokuj(x.m, x.n);
     pridaj(x);
     return *this;
   }
 
-  ~Tabulka() { delete[] data; }
+  ~Tabulka() { 
+    if (data!=nullptr) delete[] data; 
+  }
 };
 \end{lstlisting}
 
@@ -6618,13 +6625,13 @@ všetky\footnote{%
 en.cppreference.com/w/cpp/language/operators}}}.
 Ak chceme napríklad vedieť sčitovať tabuľky, môžme spraviť niečo takéto:
 
-\begin{lstlisting}
+\vbox{\begin{lstlisting}
 struct Tabulka {
   // cela definicia
 };
 
 Tabulka operator+(Tabulka &x, Tabulka &y) {
-  Tabulka res = x;
+  Tabulka res(x);
   res.pridaj(y);
   return res;
 }
@@ -6633,7 +6640,7 @@ int main() {
   Tabulka r, s, t;
   t = r + s;
 }
-\end{lstlisting}
+\end{lstlisting}}
 
 \begin{lrbox}{\TmpBox}
   \begin{lstlisting}[basicstyle=\small\ttfamily]
@@ -6677,7 +6684,7 @@ kompilátor by pri volaní \prg!return res;! zavolal move operátor. Ten namiest
 kopírovania dát môže len priradiť pointer.
 Samozrejme, je dôležité, aby sa  postaral o to, že následné
 volanie deštruktora {\tt x} bude v poriadku, napr. 
-\prg!Tabulka\& operator=(const Tabulka\&\& x)\{m=x.m; n=x.n; data=x.data; x.data=nullptr; return *this;\}!.
+\prg!Tabulka\& operator=(Tabulka\&\& x)\{m=x.m; n=x.n; data=x.data; x.data=nullptr; return *this;\}!.
 Na explicitné pretypovanie z {\tt lvalue} na {\tt xvalue} slúži
 funkcia {\tt move}, napr.
 
@@ -8152,7 +8159,7 @@ adresa premennej {\tt z} zo sveta funkcie {\tt quak}. Lenže {\tt quak} vzápät
 a na tej adrese môže byť čokoľvek. Na záver ešte poznámka: ak chceš do {\em capture}
 zoznamu dať všetky lokálne premenné, dá sa použiť {\tt[=]} (resp. \prg![&]!, ak 
 sa majú brať ich referencie). Ak sa lambda nachádza v rámci triedy, netreba
-zabudnúť dať do {\em capture} zoznamu \prg!this!, inak premenné z triedy nemudú
+zabudnúť dať do {\em capture} zoznamu \prg!this!, inak premenné z triedy nebudú
 viditeľné (lambda je nezávislá funkcia).
 
 \ods Lambda výrazy sú často vhod pri práci s algoritmami v STL. Veľa funkcií
@@ -8852,8 +8859,8 @@ a k žiarovkám sa vrátime na konci kapitoly.
 \begin{uloha}
   Úradník má kartotéku, kde má uložené spisy očíslované $0,1,\ldots,n-1$ (na začiatku
   v tomto poradí).
-  Keď potrebuje nájsť spis $i$, začne prehľadávať zaradom os začiatku kartotéky
-  a vždy prečíta číslo spisu, až kým nenájde ten, s číslom $i$. Ten potom použije a 
+  Keď potrebuje nájsť spis $i$, začne prehľadávať zaradom od začiatku kartotéky
+  a vždy prečíta číslo spisu, až kým nenájde ten s číslom $i$. Ten potom použije a 
   uloží na začiatok kartotéky. Napíš program, ktorý má na vstupe čísla $n, m$ a potom
   $m$ čísel spisov (medzi 0 a $n-1$). Pre každé číslo spisu vypíš riadok, v ktorom 
   sú čísla spisov, ktoré úradník prečítal pri hľadaní. Napríklad
@@ -8898,6 +8905,8 @@ v ktorom bude jeden prvok zoznamu\footnote{%
   je pointer na typ {\tt Node}. Nie je v tom ale nič zvláštne -- pointer je iba číslo
   adresy v pamäti. Typ pointra (v našom prípade {\tt Node *}) iba hovorí kompilátoru,
   že na adrese uloženej v premennej {\tt nxt} má očakávať premennú typu {\tt Node}.
+  Pretože všetky pointre sú rovnako dlhé, kompilátoru nevadí, že typ {\tt Node} zatiaľ nie 
+  je pripravený, stačí mu vedieť, koľko miesta treba v pamäti vyhradzovať.
   }. V programe budeme mať zoznam zapamätaný iba pointrom
 na jeho začiatok \prg!Node *head;! Zoznam {\tt [0 1 2 3 4 5]} by v pamäti vyzeral takto:
     
@@ -12318,7 +12327,7 @@ srandom(system_clock::now().time_since_epoch().count());
 \end{lstlisting}
 
 \begin{uloha}
-  Naprogramuj funkciu \prg!template<typename F>int meraj(F f){...}!, ktorá
+  Naprogramuj funkciu \prg!template<typename F> int meraj(F f){...}!, ktorá
   má ako parameter funkciu/lambdu bez parametrov a odmeria, koľko milisekúnd trvá
   jej spustenie.
 \end{uloha}
@@ -12355,7 +12364,7 @@ náhodný vektor s $n$ prvkami, odmeria sa čas, ktorý treba na jeho utriedenie
 
 % nahodne cisla: generator terenu (3d?) ;  hasovanie
 
-% projekt breakthrough (dedenie, pripomenut iteratory)
+% projekt breakthrough (rozdelit veci do suborov, dedenie)
 % grafika SDL (GUI - sofistikovanejsei dedenie, virtualne metody)
 % thready
 
