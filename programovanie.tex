@@ -24,6 +24,8 @@
 \usepackage{xcolor}
 \usepackage{xparse}
 \usepackage{xspace}
+%\usepackage[export]{adjustbox} %includegraphics[valign=t]{...}
+
 \makesavenoteenv{tabular}
 \AtBeginDocument{\shorthandoff{-}}
  \pgfplotsset{compat=1.6} 
@@ -120,6 +122,7 @@
 \def\sectxxvi{1} % binarne subory a kompresia
 \def\sectxxvii{1} % pravdepodobnost a nahoda
 \def\sectxxviii{1} % cas a static
+\def\sectxxix{1} % ostrovy
 \fi
 
 %% ALL OFF
@@ -154,6 +157,7 @@
 \def\sectxxvi{0} %binarne subory a kompresia
 \def\sectxxvii{0} % pravdepodobnost a nahoda
 \def\sectxxviii{0} % cas a static
+\def\sectxxix{0} % ostrovy
 \fi
 
 
@@ -11759,6 +11763,7 @@ To platí vždy: ak mám náhodný jav s pravdepodobnosťou
 $p$ a zopakujem ko $k$-krát, tak pravdepodobnosť, že nastane vždy, je $p^k$.
 Ale stále platí to, že náhodný jav nijak nezávisí od minulosti: ak hádžem kockou 
 a päťkrát za sebou mi padne šestka, aká je pravdepodobnosť, že padne aj šiestykrát?
+Zdalo by sa, že to bude malá pravdepodobnosť. Ale kocka si nijak históriu nepamätá.
 Čo bolo, bolo, zase je to len jedna šestina.
 
 
@@ -12358,6 +12363,168 @@ náhodný vektor s $n$ prvkami, odmeria sa čas, ktorý treba na jeho utriedenie
   časov v milisekundách.
 \end{uloha}
 
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\if\sectxxix1
+\section{Projekt: generátor ostrovov}
+
+Náhodné čísla, okrem toho, že môžu pomôcť niečo efektívnejšie naprogramovať,
+ako sme videli pri porovnávaní súborov, a môžu sa s nimi vyrábať testovacie vstupy 
+pri ladení programov, sa dajú dobre využiť aj pri generovaní rôznych vecí,
+ktoré chceme, aby zakaždým vyzerali inak. Tu sa hodí, že máme pseudonádondé
+čísla: na rozdiel od náhodných totiž môžene použiť seed na to, aby sme
+"náhodné" veci presne zopakovali, ak treba. Určite poznáš rôzne hry, ktoré
+vedia generovať náhodné svety. V tomto projekte predpokladáme,
+že chceme mať hru, ktorá sa má odohrávať na hornatom ostrove. Pre lepšiu 
+hrateľnosť chceme, aby sa zakaždým vygeneroval iný. Nateraz budeme
+chcieť iba terén bez miest, riek, rastlín a pod. a budeme
+ho chcieť zobraziť ako plastickú mapu nejak takto:
+
+\ods
+\centerline{\includegraphics[width=0.6\textwidth]{data/86_rendered.png}}
+
+\ods
+Úlohu si rozdelíme na menšíe časti a o každej z nich si niečo povieme.
+Najprv si  vyrobíme 
+výškovú mapu ({\em heightmap}): tabuľku \prg!double! s číslami z rozsahu
+$0\ldots1$, kde $0$ znamená najmenšiu a $1$ najväčšiu výšku (obrázok A).
+Z nej potom urobíme dva obrázky: jeden, ktorý bude určovať farbu získame tak,
+že každému pixelu priradíme farbu z nejakého gradientu podľa jeho výšky (obrázok B)
+a druhý, ktorý bude určovať tiene, vyrobíme  podľa sklonu terénu (obrázok C). Napokon
+oba obrázky spojíme do výsledku (obrázok D).
+
+
+\ods
+\centerline{
+  \begin{tikzpicture}[scale=5]
+    \def\tmp#1{\includegraphics[width=3.8cm]{data/86_#1.png}}
+    \node (A) at (0,0) {\tmp{heightmap}};
+    \node (B) at (1,0) {\tmp{colored}};
+    \node (D) at (2,0) {\tmp{rendered}};
+    \node (C) at (1,-1) {\tmp{normal}};
+
+    \foreach \a in {A,B,C,D}
+    \node [above = of \a, yshift = -10mm] {(\a)};
+
+    \draw[->] (A) -- (B);
+    \draw[->] (B) -- (D);
+    \draw[->] (A) to[out=270,in=180] (C);
+    \draw[->] (C) to[out=0,in=270] (D);
+  \end{tikzpicture}}
+
+Začneme s prípravnou prácou: na zapisovanie finálneho výsledku môžeme použiť starý súbor
+\link{\rootpath/obrazok.h}{obrazok.h}. Okrem toho budeme veľa robiť s tabuľkami,
+kde budeme mať buď reálne čísla alebo farby, tak je dobré sa na to pripraviť.
+
+\begin{uloha}
+  Uprav triedu {\tt Tabulka} z kapitoly \ref{sect:cukor} tak, aby sa v nej 
+  dali ukladať akékoľvek typy.
+\end{uloha}
+
+\subsection*{Výšková mapa}
+
+Prvý pokus môže vyzerať nejak takto:
+
+\begin{lstlisting}
+#include <algorithm>
+#include <chrono>
+#include <cstdlib>
+#include <fstream>
+#include <iostream>
+#include <vector>
+#include <sstream>
+
+#include "obrazok.h"
+#include "tabulka.h"
+
+using namespace std;
+using namespace chrono;
+
+double rnd() { return (double)(random() % (1 << 30)) / (double)(1 << 30); }
+
+void zapis(Tabulka<double>& T, const char* fname) {
+  vector<unsigned char> data(T.m * T.n * 4);
+  for (int i = 0; i < T.m; i++)
+    for (int j = 0; j < T.n; j++) {
+      int offs = 4 * ((T.n - j - 1) * T.n + i);
+      for (int k = 0; k < 3; k++)
+        data[offs++] = 255.0 * T(i, j);
+      data[offs++] = 255;
+    }
+  zapis_rgba_png(T.n, T.m, data.data(), fname);
+}
+
+int main(int argc, char** argv) {
+  unsigned long seed =
+      duration_cast<milliseconds>(system_clock::now().time_since_epoch())
+          .count();
+  if (argc > 1) {
+    stringstream ss(argv[1]);
+    ss >> seed;
+  } else {
+    cout << "vygenerovany seed: " << seed << endl;
+  }
+  srandom(seed);
+
+  int n = 1024;
+  Tabulka<double> T(n, n);
+  for (int i = 0; i < n; i++)
+    for (int j = 0; j < n; j++) T(i, j) = rnd();
+
+  zapis(T, "sum.png");
+}
+\end{lstlisting}
+
+\ods
+V tomto programe som si spravil pomocné funkcie {\tt rnd()}, ktorá vráti (pseudo) náhodné číslo
+ako \prg!double! z rozsahu $0\ldots1$ a {\tt zapis()}, ktorá zoberie tabuľku s výškovou mapou
+a zapíše z nej obrázok do súboru tak, že nula je čierna a jednotka je biela. Pri zapisovaní 
+obrázka potrebujem na jeden pixel štyri byty {\tt r,g,b,a}. Keďže chcem vyrobiť odtiene sivej,
+hodnoty {\tt r,g,b} nastavím všetky rovnako, a to na hodnotu {\tt 255 * T(i,j)}.
+
+\ods 
+V hlavnom programe najprv nastavím seed podľa hodiniek ako v predchádzajúcej kapitole. Potom 
+sa pozriem, či nie je na príkazovom riadku parameter a ak je, zoberiem ho ako seed. Ak budem 
+chcieť zopakovať ten istý ostrov, stačí zadať rovnaký seed. Spustím program a výsledok je
+
+
+\ods
+\centerline{\begin{tikzpicture}[scale=0.8]
+
+  \coordinate (A) at (-2mm,-2mm);
+  \coordinate (B) at (4cm, 1cm);
+  \draw[red] (A) -- (B);
+  \filldraw[draw=red, fill=white] (A) circle (1mm) (B) circle (2.5cm);
+
+  \node[anchor=north east] at (0,0) {\includegraphics[width=6cm]{data/sum.png}};
+  \node at (B) {\includegraphics[width=2.6cm]{data/sum_big.png}};
+  \draw[draw=red] (A) circle (1mm) (B) circle (2.5cm);
+\end{tikzpicture}}
+
+\ods
+Ugh. Zväčšený roh vpravo ukazuje, prečo to nefunguje: keďže každý pixel je 
+nezávislé náhodné číslo, nie je medzi nimi žiaden vzťah. Hodnoty medzi jednotlivými
+pixelmi skáču tak, že výsledkom, keď sa naňho pozerám trochu z diaľky, je sivá plocha.
+Potrebujem niečo, čo by síce bolo náhodné, ale zasa nie až tak úplne. Ukážem ti 
+jednu z možností, ako náhodnosť regulovať. Volá sa podľa chlapíka, čo s tým prvý prišiel,
+{\em Perlin noise}. S ním sa dajú generovať rôzne veľké náhodné vzory, ktorých kombináciou
+vznikajú fraktálovité náhodné útvary.
+
+\ods
+\centerline{\begin{tikzpicture}[scale=3.4]
+  \foreach \i in {0,1} {
+    \foreach \j in {0,1,2} {
+      \pgfmathtruncatemacro{\tmp}{1+3*\i+\j}
+      \node at (\j,-\i) {\includegraphics[width=3cm]{data/sample_perlin_\tmp.png}};
+      }}
+
+  \node[draw, single arrow, minimum height=12mm, minimum width=8mm,
+  single arrow head extend=2mm, anchor=center] at (2.75,-0.5) {};
+
+      \node at (3.5,-0.5) {\includegraphics[width=3cm]{data/sample_perlin.png}};
+      
+\end{tikzpicture}}
 
 
 \fi
