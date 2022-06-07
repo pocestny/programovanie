@@ -12664,10 +12664,11 @@ Kombináciu hodnôt urobíme podobne, ako sme robili interpoláciu farieb vo far
 gradiente v projekte o Mandelbrotovej množine,
 až na to, že teraz potrebujeme interpolovať v dvoch rozmeroch (preto sa tomu hovorí {\em bilineárna interpolácia}).
 Predstav si, že máme mriežku gradientov s krokom $d$ a chceme určiť farbu pre bod $P$ so súradnicami $[x,y]$.
+Keď si všetky súradnice vydelím $d$čkom, mriežka bude mať krok $1$.
 $P$ sa nachádza v mriežke medzi štyrmi bodmi $G_{00}$, $G_{10}$, $G_{01}$ a $G_{11}$.
 Pripomeniem, že $\lfloor x\rfloor$ označuje celú časť z $x$, preto $G_{00}$ má súradnice
 $\left\lfloor\frac{x}{d}\right\rfloor,\left\lfloor\frac{y}{d}\right\rfloor$ a ostatné 
-4 body sú vždy o $d$ ďalej.
+4 body sú vždy o $1$ ďalej.
 
 \ods
 \centerline{\begin{tikzpicture}[scale=5.5,
@@ -12694,9 +12695,9 @@ $\left\lfloor\frac{x}{d}\right\rfloor,\left\lfloor\frac{y}{d}\right\rfloor$ a os
     \end{scope}
   }
   \draw[dashed] (0,0-\ofsi) node [below] {$\left\lfloor\frac{x}{d}\right\rfloor$} -- (0,0);
-  \draw[dashed] (1,0-\ofsi) node [below] {$\left\lfloor\frac{x}{d}\right\rfloor+d$} -- (1,0);
+  \draw[dashed] (1,0-\ofsi) node [below] {$\left\lfloor\frac{x}{d}\right\rfloor+1$} -- (1,0);
   \draw[dashed] (1+\ofsi,0) node [right] {$\left\lfloor\frac{y}{d}\right\rfloor$} -- (1,0);
-  \draw[dashed] (1+\ofsi,1) node [right] {$\left\lfloor\frac{y}{d}\right\rfloor+d$} -- (1,1);
+  \draw[dashed] (1+\ofsi,1) node [right] {$\left\lfloor\frac{y}{d}\right\rfloor+1$} -- (1,1);
 
   \draw (0-\ofs,0) -- (1+\ofs,0) (0-\ofs,1) -- (1+\ofs,1) (0,0-\ofs) -- (0,1+\ofs) (1,0-\ofs) -- (1,1+\ofs);
   \node[anchor = north east, inner sep=0.5cm] at (0,0) {$G_{00}$} ;
@@ -12737,7 +12738,7 @@ $\left\lfloor\frac{x}{d}\right\rfloor,\left\lfloor\frac{y}{d}\right\rfloor$ a os
    \draw[blue,brace=1mm/] (Py) -- node[left=2.5ex]{$1-s$} (0-\ofs,1);
 
   \dot(P)[black]
-  \node[anchor=west] at (P){$P\;[x,y]$};
+  \node[anchor=west] at (P){$P\;\left[\frac{x}{d},\frac{y}{d}\right]$};
   \fill ($(0,0)!(P)!(1,0)$) node[anchor = north west]{$C$} circle (0.007)
    ($(0,1)!(P)!(1,1)$) node[anchor = south west]{$D$} circle (0.007);
 \end{tikzpicture}}
@@ -12901,7 +12902,7 @@ Predtým sa ale hodí
 
 \fi
 
-% nahodne cisla: generator terenu (3d?) ;  hasovanie
+%  hasovanie
 
 % projekt breakthrough (rozdelit veci do suborov, dedenie)
 % grafika SDL (GUI - sofistikovanejsei dedenie, virtualne metody)
