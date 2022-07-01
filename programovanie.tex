@@ -64,7 +64,7 @@ brace/.style args = {#1/#2}{
   shapes.multipart,
   shapes.arrows,
   fit, shapes, backgrounds, 
-  svg.path
+  svg.path, angles
 }
 
 
@@ -83,6 +83,31 @@ brace/.style args = {#1/#2}{
 \pgfmathprintnumber{\pgfmathresult}
 }
 
+% geometria
+\def\set#1#2{\pgfmathsetmacro{#1}{#2}}
+\def\len#1#2#3#4{\set{#1}{sqrt(((#2)*(#2))+((#3)*(#3))+((#4)*(#4)))}}
+\def\normalize#1#2#3{
+  \len{\tmp}{#1}{#2}{#3}
+  \set{#1}{#1/\tmp}
+  \set{#2}{#2/\tmp}
+  \set{#3}{#3/\tmp}
+}
+\def\cross#1#2#3#4#5#6#7#8#9{%
+  \set{#1}{#5*#9-#6*#8}
+  \set{#2}{#6*#7-#4*#9}
+  \set{#3}{#4*#8-#5*#7}
+}
+\def\rotz[#1]#2#3#4{
+  \set{\tmp}{#2}
+  \set{#2}{#2*cos(#1)-#3*sin(#1)}
+  \set{#3}{\tmp*sin(#1)+#3*cos(#1)}
+}
+\def\rotx[#1]#2#3#4{
+  \set{\tmp}{#3}
+  \set{#3}{#3*cos(#1)-#4*sin(#1)}
+  \set{#4}{\tmp*sin(#1)+#4*cos(#1)}
+}
+
 
 \def\prg{\lstinline}
 \def\ods{\vspace*{10pt}}
@@ -92,7 +117,6 @@ brace/.style args = {#1/#2}{
 \long\def\cmd#1{{\em\color[rgb]{0.12,0.4,0.3}#1}}
 
 \newtheorem{uloha}{Úloha}
-\setlength{\fboxsep}{0pt}
 \let\angle\measuredangle
 \newsavebox{\TmpBox}
 
@@ -105,7 +129,7 @@ brace/.style args = {#1/#2}{
 % sections on/off
 
 %% ALL ON
-\if11
+\if10
 \def\secti{1}    % rychly uvod
 \def\sectii{1}   % podmienky 
 \def\sectiii{1}  % cykly
@@ -140,7 +164,7 @@ brace/.style args = {#1/#2}{
 \fi
 
 %% ALL OFF
-\if10
+\if11
 \def\secti{0}    % rychly uvod
 \def\sectii{0}   % podmienky 
 \def\sectiii{0}  % cykly
@@ -174,6 +198,9 @@ brace/.style args = {#1/#2}{
 \def\sectxxix{0} % ostrovy
 \fi
 
+\def\sectxxvii{1} % pravdepodobnost a nahoda
+\def\sectxxviii{1} % cas a static
+\def\sectxxix{1} % ostrovy
 
 
 \begin{document}
@@ -1947,8 +1974,10 @@ Na vstupe sú čísla $a$ a $r$. Napíš program, ktorý vyrobí obrázok
 rozmerov $a\times a$, ktorý bude mať v strede kruh s polomerom $r$.
 Napr. pre $a=300$, $r=100$ bude obrázok vyzerať takto:
 
-\ods
+  \ods{
+  \setlength{\fboxsep}{0pt}
 \centerline{\fbox{\includegraphics[width=4cm]{data/kruh.png}}}
+  }
 
 \end{uloha}
 
@@ -2594,7 +2623,10 @@ hovorí, že {\tt N} sa v programe nebude meniť (môžeš si vyskúšať, že t
   v strede obrázka. Napr. pre vstup $40, 30, 20$ bude obrázok vyzerať takto:
 
 \ods
+ {
+\setlength{\fboxsep}{0pt}
 \centerline{\fbox{\includegraphics[width=4cm]{data/tristvorce.png}}}
+  }
 \end{uloha}
 \fi
 
@@ -4294,8 +4326,10 @@ s edit.png
 
 \ep
   \bp\vspace{0pt}
+  {
+\setlength{\fboxsep}{0pt}
 \fbox{\includegraphics[width=\textwidth]{data/edit.png}}
-
+  }
 \ep
 \end{uloha}
 
@@ -4308,8 +4342,10 @@ s edit.png
   zmenšenú o faktor $f$ (a môže mať upravenú farbu). Napríklad pre
   hodnoty {\tt 1000 6 0.45 0.5} by vzorka mohla vyzerať takto:
 
-  \ods
+  \ods{
+\setlength{\fboxsep}{0pt}
   \centerline{\fbox{\includegraphics[width=0.4\textwidth]{data/qq.png}}}
+}
   \ods
 
   Napíš program, ktorý načíta zo vstupu parametre {\tt x d i f} a vypíše postupnosť príkazov,
@@ -4471,12 +4507,15 @@ predchádzajúcej časti.
   Vnútro má byť vyfarbené žlto a vonkajšie cípy červeno. Napr. pre $n=7$, $s=3$ a pre
   $n=23$, $s=9$ sú tieto dva vzory:
 
+  {
+  \setlength{\fboxsep}{0pt}
   \bp\vspace{0pt}
   \centerline{\fbox{\includegraphics[width=0.9\textwidth]{data/m.7.3.png}}}
   \ep\hfill
   \bp\vspace{0pt}
   \centerline{\fbox{\includegraphics[width=0.9\textwidth]{data/m.23.9.png}}}
   \ep
+  }
 \end{uloha}
 
 \vbox{
@@ -4547,8 +4586,10 @@ s logo.png
 \end{verbatim}
 \end{minipage}
 \hfill
-\begin{minipage}[t]{0.7\textwidth}\vspace{0pt}
+\begin{minipage}[t]{0.7\textwidth}\vspace{0pt}{
+  \setlength{\fboxsep}{0pt}
   \centerline{\fbox{\includegraphics[width=\textwidth]{data/logo.png}}}
+}
 \end{minipage}
 
 \ods
@@ -8626,7 +8667,10 @@ ktoré neujdú a biele čísla, ktoré ujdú.
   Napr. pre $x=-0.65$, $y=0$, $m=0.3$ by si mal dostať obrázok
 
   \ods
+  {
+  \setlength{\fboxsep}{0pt}
   \centerline{\fbox{\includegraphics[width=0.5\textwidth]{data/82.png}}}
+}
 \end{uloha}
 
 
@@ -8704,8 +8748,10 @@ je číslo od 0 do 255 zapísané v šestnástkovej sústave\footnote{%
   \hspace*{-5ex}
 \bp
 \vskip 0pt
+  {
+  \setlength{\fboxsep}{0pt}
   \fbox{\includegraphics[width=1.3\textwidth]{data/83.png}}
-\ep
+  }\ep
 \end{uloha}
 
 \ods
@@ -9445,7 +9491,6 @@ leveli 0. Pravidlá pre dobrý AA-strom sú takéto:
 
 \ods
 
-\setlength\fboxsep{1ex}
 \centerline{\fcolorbox{magenta}{magenta!3!white}{\parbox{0.9\textwidth}{
 \begin{enumerate}\itemsep=-1mm
 \item Je to binárny vyhľadávací strom: v každom uzle platí, že všetky uzly v ľavom podstrome
@@ -12222,8 +12267,8 @@ struct Mamut {
 };
 \end{lstlisting}
 
-v ktorom je o mamutovi uložený jeho identifikátor,  dĺžka chobota 
-a dĺžka každého chlpa. Každá premenná typu {\tt Mamut} má vyhradenú
+v ktorom je o mamutovi uložený jeho identifikátor,  dĺžka chobotu 
+a dĺžka každého chlpu. Každá premenná typu {\tt Mamut} má vyhradenú
 pamäť na všetky tri položky. Povedzme, že keď chcem pridať nového mamuta,
 chcem mu dať nový identifikátor tak, aby všetky mamuty mali rôzne
 identifikátory. 
@@ -12436,13 +12481,13 @@ náhodný vektor s $n$ prvkami, odmeria sa čas, ktorý treba na jeho utriedenie
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \if\sectxxix1
-\section{Projekt: generátor ostrovov}
+\section{Projekt: mapy náhodných ostrovov}
 
 Náhodné čísla, okrem toho, že môžu pomôcť niečo efektívnejšie naprogramovať,
 ako sme videli pri porovnávaní súborov, a môžu sa s nimi vyrábať testovacie vstupy 
 pri ladení programov, sa dajú dobre využiť aj pri generovaní rôznych vecí,
 ktoré chceme, aby zakaždým vyzerali inak. Tu sa hodí, že máme pseudonádondé
-čísla: na rozdiel od náhodných totiž môžene použiť seed na to, aby sme
+čísla: na rozdiel od náhodných totiž môžeme použiť seed na to, aby sme
 "náhodné" veci presne zopakovali, ak treba. Určite poznáš rôzne hry, ktoré
 vedia generovať náhodné svety. V tomto projekte predpokladáme,
 že aby sa dej odohrával na hornatom ostrove 
@@ -12491,7 +12536,15 @@ kde budeme mať buď reálne čísla alebo farby, tak je dobré sa na to priprav
   dali ukladať akékoľvek typy (pomocou šablóny).
 \end{uloha}
 
-Prvý pokus o náhodnú výškovú mapu môže vyzerať nejak takto:
+Prvý pokus o náhodnú výškovú mapu môže vyzerať nejak takto\footnote{%
+Tu idem použiť zápis, ktorý sme doteraz nemali a zaslúži si komentár. Ak mám napr. premennú
+\prg!int i!, tak vieš, že \prg!i++! je príkaz, ktorý priráta k \prg!i! jednotku. Doteraz som ti
+nepovedal, že \prg!i++! sa dá použiť aj ako výraz. Keby som mal napr. \prg!vector<int> a!,
+tak \prg!int x = a[i++]! znamená \cmd{Do \prg!x! ulož hodnotu \prg!a[i]! a potom zvýš \prg!i! o jednotku}.
+Je to teda to isté, ako keby som napísal \prg!x = a[i]; i = i+1;!.
+Niekedy si možno zbadal aj zápis \prg!++i!, ktorý sám osebe robí to isté, t.j. pripočíta k \prg!i! jednotku,
+ale urobí to na začiatku. Preto \prg!int y = a[++i]! je to isté ako \prg!i = i+1; y = a[i];!
+}
 
 \begin{lstlisting}
 #include <algorithm>
@@ -12597,7 +12650,7 @@ vznikajú fraktálovité náhodné útvary.
 
 \ods
 Perlin noise najprv popíšeme matematicky a potom sa pozrieme na to, ako ho naprogramovať.
-Zoberme si rovinu. Každému bodu chceme priradiť číslo tak, že čísla mensšie ako $-1$ znamenajú
+Zoberme si rovinu. Každému bodu chceme priradiť číslo tak, že čísla menšie ako $-1$ znamenajú
 čiernu, čísla väčšie ako $1$ bielu a medzi nimi je spojitý prechod. Budeme tak dostávať 
 obrázky ten nasledujúci ako vľavo. Keby sme chceli vzorku ako tá vpravo, môžeme každý bod zaokrúhliť: ak je
 kladný, pixel bude žltý, ak je záporný, pixel bude čierny.
@@ -12617,7 +12670,6 @@ priradí číslo $0.7$ a bodu $B$ číslo $-0.4$.
 
 
 \ods
-
 \centerline{\begin{tikzpicture}[scale=1.5]
   \def\targetfill(#1)[#2]{% 
     \begin{scope}[shift={(#1)},rotate=#2]
@@ -12770,7 +12822,7 @@ Preto hodnotu v bode $C$ vieme interpolovať ako $v_C=v_{00}(1-r)+v_{10}r$.
 Podobne hodnotu v bode $D$ interpolujeme
 $v_D=v_{01}(1-r)+v_{11}r$. 
 Napokon urobíme rovnakým spôsobom interpoláciu medzi $v_C$ a $v_D$ v smere osi $y$, 
-takže výsleok bude $v_C(1-s)+v_Ds$. 
+takže výsledok bude $v_C(1-s)+v_Ds$. 
 
 \ods
 Skoro dobré, ale  je tam stále drobný
@@ -12865,6 +12917,8 @@ najprv vygenerujeme náhodné šípky tak, že zvolíme náhodný uhol {\tt thet
 a šípka bude ukazovať do bodu so súradnicami $[\cos(\theta),\sin(\theta)]$
 (o funkciách $\sin$ a $\cos$ pozri odbočku v kapitole~\ref{sect:editor}).
 Potom už len vyrátam pre každý bod $P=[i,j]$ jeho farbu.
+To znamená, že keď vyrobím premennú typu {\tt Perlin}, konštruktor vyrobí tabuľku {\tt H},
+ku ktorej potom môžem pristupovať.
 
 \ods
 \begin{lstlisting}
@@ -13181,7 +13235,8 @@ $$ap=u_xu_y+v_xv_y$$
 Takže si to zhrňme: ak mám dva vektory $\vec u=[u_x,u_y]$ a $\vec v=[v_x,v_y]$, tak
 
 \ods
-\centerline{\boxed{$$\vec u\cdot\vec v=\nrm{\vec u}\cdot\nrm{\vec v}\cdot\cos(\alpha) = u_xu_y + v_xv_y$$}}
+\centerline{\fbox{
+  $\vec u\cdot\vec v=\nrm{\vec u}\cdot\nrm{\vec v}\cdot\cos(\alpha) = u_xu_y + v_xv_y$}}
 
 \ods
 Toto sa často hodí, lebo $u_xu_y + v_xv_y$ sa dá zrátať ľahko a rýchlo a ak sú $\vec u$ a $\vec v$ normované,
@@ -13293,7 +13348,12 @@ Ich vynásobením dostaneme výsledný (3D) vektor $\vec w = \vec u\times\vec v$
 $\vec w$ mal smer normály na rovinu, v ktorej ležia $\vec u$ a $\vec v$.
 Okrem smeru si treba povedať, či má výsledok ísť "hore", alebo "dolu". Budeme chcieť,
 aby platilo {\em pravidlo pravej ruky}: ak prstami pravej ruky ukážeš na $\vec u$ a 
-vystretým palcom na $\vec v$, tak vrch dlane smeruje v smere $\vec u\times\vec v$:
+vystretým palcom na $\vec v$, tak vrch dlane\footnote{
+Všimni si, že tu 
+na rozdiel od násobenia čísel alebo skalárneho súčinu záleží na poradí: 
+$\vec u\times\vec v = - (\vec v\times\vec u)$.}
+
+smeruje v smere $\vec u\times\vec v$:
 
 
 \ods
@@ -13304,6 +13364,15 @@ vystretým palcom na $\vec v$, tak vrch dlane smeruje v smere $\vec u\times\vec 
   }
 
 
+  \def\dTop[#1]{
+    \begin{scope}[shift={(-0.38,0.5)}, xscale=-0.035, yscale=0.035, rotate=180]
+      \draw[#1] svg {
+    M -222.4252,370.46736 c 0,0 78.09933,-22.17038 100.9605,-16.10231 22.861172,6.06807 29.734046,20.38226 29.734046,20.38226 M 440.64946,-194.35246 c 0,0 5.6006,28.67018 15.53887,33.55993 9.93827,4.88975 29.07667,2.75792 40.11647,-4.71822 11.0398,-7.47613 2.6584,-42.39384 2.6584,-42.39384 M 331.92538,-344.75552 c 0,0 10.5773,31.36565 19.05613,36.27131 8.47883,4.90566 38.66552,1.57788 46.6844,-2.75128 8.01889,-4.32916 13.04957,-28.99798 13.04957,-28.99798 m -168.21416,-65.26014 c 6.17756,6.7793 0.79099,44.79739 13.80913,54.33948 13.01813,9.54209 43.85403,8.04415 55.38827,-0.24686 11.53425,-8.29101 8.84669,-30.10841 13.34782,-48.71803 m -161.1727,37.82961 c 2.11459,15.88406 -7.10301,42.73975 5.15248,51.50172 12.25549,8.76197 44.27784,7.69222 54.09212,2.11102 9.81428,-5.5812 8.32915,-32.96517 14.59136,-47.47943 m 7.79262,386.89534 C 224.20737,-87.455926 247.01408,-223.02691 237.7098,-356.1561 M 340.65006,35.549554 c 20.6969,-129.446566 -3.35315,-251.423144 -9.22294,-391.272874 M 440.83115,40.143094 c 9.16226,-83.966041 5.25395,-154.765284 -1.47033,-253.679384 m 84.6313,985.31679 c 5.14063,-161.34618 -18.47246,-233.61793 12.2561,-384.90278 30.72856,-151.28486 0.10128,-377.4470077 -17.32204,-528.91029 -11.09678,-93.47475 -59.76563,-105.90303 -79.56536,-71.50372 -5.18752,-32.53045 -12.34357,-70.65561 -26.89081,-123.11994 -14.54724,-52.46434 -65.6584,-49.84388 -81.04289,-19.0671 -2.32956,-15.4439 -2.78331,-21.82281 -6.38058,-44.39569 -5.76212,-36.15738 -60.84633,-32.7517 -72.95168,-19.1531 -11.16337,12.54043 -17.71816,44.91631 -14.38506,63.11602 -12.90154,-32.51953 -42.8587,-39.58443 -67.60334,-14.51906 -24.74464,25.06537 -32.79482,122.07217 -38.52995,237.91753 -5.73513,115.845355 -11.6547,247.60428 -1.89143,315.06657 9.29954,64.25795 -61.626269,88.29667 -132.0797675,67.0549 C -82.962511,225.0726 -146.264,240.93281 -199.57633,273.69211 c -53.31233,32.7593 -40.85268,118.55039 9.88565,107.09053 25.36916,-5.72993 121.342795,-14.01058 213.797195,8.97984 92.454405,22.99042 77.496795,73.09061 141.457855,104.09156 59.4688,28.82362 63.58928,198.90556 65.32075,281.53398
+  };
+    \end{scope}
+  }
+
+
   \def\dBot[#1]{
     \begin{scope}[shift={(-1.1,0.35)}, xscale=-0.035, yscale=0.035, rotate=180]
       \draw[#1] svg {
@@ -13311,30 +13380,104 @@ vystretým palcom na $\vec v$, tak vrch dlane smeruje v smere $\vec u\times\vec 
   };
     \end{scope}
 }
-  \def\dTop[#1]{
-    \begin{scope}[shift={(-0.38,0.35)}, xscale=-0.035, yscale=0.035, rotate=180]
-      \draw[#1] svg {
-    M -222.4252,370.46736 c 0,0 78.09933,-22.17038 100.9605,-16.10231 22.861172,6.06807 29.734046,20.38226 29.734046,20.38226 M 440.64946,-194.35246 c 0,0 5.6006,28.67018 15.53887,33.55993 9.93827,4.88975 29.07667,2.75792 40.11647,-4.71822 11.0398,-7.47613 2.6584,-42.39384 2.6584,-42.39384 M 331.92538,-344.75552 c 0,0 10.5773,31.36565 19.05613,36.27131 8.47883,4.90566 38.66552,1.57788 46.6844,-2.75128 8.01889,-4.32916 13.04957,-28.99798 13.04957,-28.99798 m -168.21416,-65.26014 c 6.17756,6.7793 0.79099,44.79739 13.80913,54.33948 13.01813,9.54209 43.85403,8.04415 55.38827,-0.24686 11.53425,-8.29101 8.84669,-30.10841 13.34782,-48.71803 m -161.1727,37.82961 c 2.11459,15.88406 -7.10301,42.73975 5.15248,51.50172 12.25549,8.76197 44.27784,7.69222 54.09212,2.11102 9.81428,-5.5812 8.32915,-32.96517 14.59136,-47.47943 m 7.79262,386.89534 C 224.20737,-87.455926 247.01408,-223.02691 237.7098,-356.1561 M 340.65006,35.549554 c 20.6969,-129.446566 -3.35315,-251.423144 -9.22294,-391.272874 M 440.83115,40.143094 c 9.16226,-83.966041 5.25395,-154.765284 -1.47033,-253.679384 m 84.6313,985.31679 c 5.14063,-161.34618 -18.47246,-233.61793 12.2561,-384.90278 30.72856,-151.28486 0.10128,-377.4470077 -17.32204,-528.91029 -11.09678,-93.47475 -59.76563,-105.90303 -79.56536,-71.50372 -5.18752,-32.53045 -12.34357,-70.65561 -26.89081,-123.11994 -14.54724,-52.46434 -65.6584,-49.84388 -81.04289,-19.0671 -2.32956,-15.4439 -2.78331,-21.82281 -6.38058,-44.39569 -5.76212,-36.15738 -60.84633,-32.7517 -72.95168,-19.1531 -11.16337,12.54043 -17.71816,44.91631 -14.38506,63.11602 -12.90154,-32.51953 -42.8587,-39.58443 -67.60334,-14.51906 -24.74464,25.06537 -32.79482,122.07217 -38.52995,237.91753 -5.73513,115.845355 -11.6547,247.60428 -1.89143,315.06657 9.29954,64.25795 -61.626269,88.29667 -132.0797675,67.0549 C -82.962511,225.0726 -146.264,240.93281 -199.57633,273.69211 c -53.31233,32.7593 -40.85268,118.55039 9.88565,107.09053 25.36916,-5.72993 121.342795,-14.01058 213.797195,8.97984 92.454405,22.99042 77.496795,73.09061 141.457855,104.09156 59.4688,28.82362 63.58928,198.90556 65.32075,281.53398
-  };
-    \end{scope}
-  }
+
+
 \centerline{
-\tikzset{external/force remake}
+%\tikzset{external/force remake}
 \tdplotsetmaincoords{50}{210}
 \begin{tikzpicture}[tdplot_main_coords,scale=3.5]
 \begin{scope}[plane x={(0,-0.9,0)}, plane y={(0.9,0,0)},canvas is plane]
   \dTop[gray,fill=orange!10!white]
+    \draw[->,red] (0,0) -- (0,1.1) node[anchor=east]{$\vec u$};
+    \draw[->,blue] (0,0) -- (160:1) node[anchor=north east]{$\vec v$};
 \end{scope}
-    \draw[->,red] (0,0,0) -- (1,0,0) node[anchor=east]{$\vec u$};
-    \draw[->,blue] (0,0,0) -- (0,1,0) node[anchor=north east]{$\vec v$};
-    \draw[->,teal] (0,0,0) -- (0,0,1) node[above] {$\vec w = \vec u\times\vec v$};
+    \draw[->,teal] (0,0,0) -- (0,0,0.8) node[above] {$ \vec u\times\vec v$};
 \end{tikzpicture}
+\hfill
+\tdplotsetmaincoords{50}{210}
+\begin{tikzpicture}[tdplot_main_coords,scale=3.5]
+    \draw[->,magenta] (0,0,0) -- (0,0,-0.8) node[below] {$ \vec v\times\vec u$};
+\begin{scope}[plane x={(0,-0.9,0)}, plane y={(0.9,0,0)},canvas is plane]
+  \begin{scope}[rotate=80]
+  \dBot[gray,fill=orange!10!white]
+  \end{scope}
+    \draw[->,red] (0,0) -- (0,1.1) node[anchor=east]{$\vec u$};
+    \draw[->,blue] (0,0) -- (160:1) node[anchor=north east]{$\vec v$};
+\end{scope}
+\end{tikzpicture}
+
 }
 
+\ods
+Pri označovaní osí sa zvyčajne používa tzv. pravoruký systém, takže ak si nazvem
+$\vec x=[1,0,0]$, $\vec y=[0,1,0]$ a $\vec z=[0,0,1]$, tak chcem, aby
+$\vec x\times\vec y = \vec z$ a $\vec y\times\vec x=-\vec z$.
+Ak mám vektor $\vec u=[u_x,u_y,u_z]$, tak 
+$\vec u = u_x\vec x+ u_y\vec y+u_z\vec z$ a podobne
+$\vec v = [v_x,v_y,v_z] = v_x\vec x+ v_y\vec y+v_z\vec z$.
+V $z$-ovej súradnici výsledku by preto mohlo byť $u_xv_y$ s kladným znamienkom 
+a $u_yv_x$ so záporným. A rovnako v ostatných dimenziách. To nás nabáda k definícii
 
 \ods
-Podobne ako pri skalárnom súčine, najprv si povieme, čo by sme od výsledku chceli. Keďže je to vektor,
-má smer a veľkosť. Ak mám v priestore dva vektory, ktoré nie sú rovnobežné, definujú mi rovnobežník takto:
+\centerline{\fbox{$
+[u_x,u_y,u_z]\times[v_x,v_y,v_z]=[
+  u_yv_z-u_zv_y, 
+  u_zv_x-u_xv_z, 
+  u_xv_y-u_yv_x
+]
+$}}
+
+\ods
+Teraz si vieme ľahko overiť, že takto vymyslený súčin je to, čo chceme, totiž že
+$\vec u\times\vec v$ je kolmý na $\vec u$ aj $\vec v$. Stačí použiť, čo sme si ukázli
+pred chvíľou, totiž že kolmé vektory majú skalárny súčin $0$.
+Preto rátajme
+
+
+\tikzexternaldisable
+\def\nd#1#2{\tikz[remember picture,baseline=(#1.base)]\node[draw=none, inner sep=0pt, outer sep=0pt](#1){\ensuremath{#2}};}
+
+\begin{align*}
+  (\vec u\times\vec v)\cdot \vec u &= 
+[ u_yv_z-u_zv_y,u_zv_x-u_xv_z, u_xv_y-u_yv_x]\cdot[u_x,u_y,u_z] =\\
+  &= (u_yv_z-u_zv_y)u_x+(u_zv_x-u_xv_z)u_y+( u_xv_y-u_yv_x)u_z = \\
+  &= \nd{a}{u_yv_zu_x} - \nd{b}{u_zv_yu_x} + \nd{c}{u_zv_xu_y} 
+    - \nd{d}{u_xv_zu_y} + \nd{e}{u_xv_yu_z} - \nd{f}{u_yv_xu_z} = \\
+  &=0
+\end{align*}
+\begin{tikzpicture}[remember picture, overlay, draw opacity=0.6]
+  \def\bx[#1]#2{
+  \node[fit=(#2),draw=#1, rounded rectangle,inner xsep=0] {};
+  }
+  \bx[teal]{a}
+  \bx[teal]{d}
+  
+  \bx[blue]{b}
+  \bx[blue]{e}
+
+  \bx[magenta]{c}
+  \bx[magenta]{f}
+\end{tikzpicture}
+\tikzexternalenable
+
+Preto $\vec u\times\vec v$ je kolmý na $\vec u$ a rovnako by sme vyrátali,
+že je kolmý na $\vec v$.
+
+\ods
+Vektorový súčin sa dá, okrem počítania normály v 3D, použiť napr. na počítanie orientácie vektorov v 2D.
+Zoberme vektory $\vec u=[u_x,u_y]$ a $\vec v=[v_x,v_y]$. Doplním ich do troch rozmerov, ako keby ležali v rovine
+so $z=0$: $[u_x,u_y,0]$ a $[v_x,v_y,0]$ a vyrátam vektorový súčin $[0,0,u_xv_y-u_yv_x]$. Ak je $z$-ová súradnica
+kladná, uhol, ktorý vektorý zvierajú je orientovaný proti smeru hodinových ručičiek, ak je záporná, tak v smere.
+
+\ods
+Posledná užitočná vlastnosť vektorového súčinu, ktorú tu spomeniem, je jeho veľkosť. Podobnými počtami, ako 
+pri skalárnom súčine\footnote{iba trochu dlhšími, preto ich tu nebudem písať} sa dá vidieť, že
+
+\ods
+\centerline{\fbox{$\nrm{\vec u\times\vec v}=\nrm{\vec u}\cdot\nrm{\vec v}\cdot\sin(\alpha)$}}
+
+\ods
+Ak mám v priestore dva vektory, ktoré nie sú rovnobežné, definujú mi rovnobežník takto:
 
 \ods
 \centerline{
@@ -13366,14 +13509,636 @@ má smer a veľkosť. Ak mám v priestore dva vektory, ktoré nie sú rovnobežn
 \end{tikzpicture}}
 
 \ods
-Budeme chcieť, aby $\vec u\times\vec v$ bol vektor, ktorého veľkosť je obsah žltého rovnobežníka.
 Ľahko vidíš, že $c=\nrm{\vec v}\cdot\sin(\alpha)$, a že presunutím odstávajúceho trojuholníka vpravo
 dostaneme obdĺžnik s obsahom $\nrm{\vec u}\cdot\nrm{\vec v}\cdot\sin(\alpha)$.
+Preto $\nrm{\vec u\times\vec v}$ je obsah rovnobežníka, ktorý je ohraničený vektormi $\vec u$ a $\vec v$.
 
-\ods Čo sa týka smeru, 
+\begin{uloha}
+  Naprogramuj triedy {\tt Vec} a {\tt Vec3} pre dvoj- a trojrozmerné vektory, s operáciami sčítania, odčítania,
+  násobenia číslom, skalárneho a vektorového súčinu (pre vektorový súčin môžeš použiť napr. \prg!operator^!).
+\end{uloha}
+
+\subsection*{Naspäť k Perlinovi}
+
+Predchádzajúce matematické intermezzo sme začali v situácii, že posledná vec, ktorú sme potrebovali na rátanie Perlinovho
+šumu, bolo vyrátať výšku bodu v gradiente.
+Dajme tomu, že v bode $P$ máme umiestnený gradient, ktorý má smer vektora $\vec u$, pričom
+$\nrm{\vec u}=1$. Chcem vyrátať výšku bodu $A$ v tomto gradiente. Ak si označím vektor
+$\vec v=A-P$, tak výška, ktorú potrebujem, je $\nrm{\vec v}\cdot\cos(\alpha)$:
+
+
+\ods
+\centerline{\begin{tikzpicture}[scale=2]
+
+  \coordinate (P) at (-0.5,0.5);
+  \draw[help lines, color=gray!30, dashed] (-2.1,-1.1) grid (1.1,2.1);
+
+  \begin{scope}[shift={(P)},rotate=30]
+    \def\c{red!70!white}
+    \draw[\c] (0,0) circle (1.1) (-1.5,0) -- (1.5,0);
+    \draw[\c,->] (0,-1.5) -- node[pos=0.95, anchor=west]{$\vec u$} (0,1.5);
+    \fill [\c] (0,0) circle (0.15mm);
+    \node[anchor=north, inner sep = 2ex] at (0,0) {$P$};
+
+    \coordinate (Ax) at (0,0.9);   
+    \fill[teal] (Ax) circle (0.15mm);
+    \draw[teal] (Ax)  -- ++(1.5,0) coordinate (A); 
+    \fill[teal] (A) circle (0.15mm) ;
+    \node[anchor=south] at (A) {$A$};
+    \coordinate (O) at (0,0);
+    \draw [teal,brace=1ex/]  (O) -- node[anchor=north east, inner sep=2.5ex]{$\nrm{\vec v}\cdot\cos(\alpha)$} (Ax);
+
+    \draw [teal] (A) -- node[pos=0.3,anchor=north west]{$\vec v=A-P$} (O) -- 
+    (Ax) pic[draw, angle radius=4ex] {angle = A--O--Ax};
+    \node[above=1.5ex]  at (O) {$\alpha$};
+  \end{scope}
+
+\end{tikzpicture}}
+
+
+\ods
+Viem, že skalárny súčin $\vec u\cdot\vec v=\nrm{\vec u}\cdot\nrm{\vec v}\cdot\cos(\alpha)$.
+Pretože $\nrm{\vec u}=1$, stačí mi zrátať $\vec u\cdot\vec v$ a mám hľadanú výšku.
+
+\begin{uloha}
+  Dokonči triedu {\tt Perlin}.
+\end{uloha}
+
+\ods
+Keď už vieme robiť základný Perlin noise, môžme z neho vytvárať rôzne kombinácie.
+Rôzne rozostupy mriežky s gradientami vyrábajú rôzne hustý šum. Prvých 6 veľkostí by mohlo
+vyzerať ako nasledujúci obrázok (vľavo je celý šum, vpravo je priebeh výšok na reze v 
+červenej čiare):
+
+
+%\tikzset{external/force remake}
+
+\def\plt#1#2{%
+    \begin{scope}[shift={(0,-#2cm)}]
+  \node[anchor=south west, inner sep=0]  at (0,0) {\includegraphics[width=3.2cm]{data/perlin_comb_#1.png}};
+  \begin{scope}[shift={(2.5cm,0.1cm)}]
+  \begin{axis}[
+       axis lines=middle,
+       enlargelimits=false,
+  width=6cm,
+  height=3cm,
+    xtick={},
+    xticklabels={,,},
+    ytick={},
+    yticklabels={,,}, 
+    xmin=0,
+    xmax=2047
+]
+
+  \addplot[red!80!white, 
+  line join=round, mark size=0.5pt] table [y=t#1, x=i]{data/perlin_comb.dat};
+\end{axis}
+  \end{scope}
+    \end{scope}
+}
+
+\centerline{
+\begin{tikzpicture}[scale=2]
+   \foreach \v [count=\i] in {1024,0512,0256,0128,0064,0032} {
+    \plt{\v}{1.7*\i}
+  }
+\end{tikzpicture}
+}
+
+\ods
+Vo výsledku chceme, aby hustý šum bol nízky a naopak riedky šum bol vysoký. Dosiahneme
+to napr. tak, že začneme s najhustejším šumom a postupujeme zakaždým k dvojnásobne redším. V
+každej iterácii 
+najprv výsledok zmenšíme tak, že ho prenásobíme nejakým koeficientom, napr.
+v mojom prípade $0.6$, potom vyrobíme novú premennú typu {\tt Perlin} s redším šumom a jej
+tabuľku {\tt H} (ktorá vznikla v konštruktore) pripočítame k výsledku:
+
+\vbox{
+\begin{lstlisting}
+Tabulka<double> P(n, n);
+for (int t = 2; t < n; t *= 2) {
+  P *= 0.6;
+  P += Perlin(n, t).H;
+}
+\end{lstlisting}
+}
+
+\ods 
+Čím je koeficient väčší, tým rovnomernejšie sú vo výsledku zastúpené
+všetky veľkosti šumu, a tým viac sa blížime k náhodnému šumu. V tomto prípade som dostal
+takýto výsledok:
+
+\ods
+\centerline{
+\begin{tikzpicture}[scale=2]
+  \plt{all}{0}
+\end{tikzpicture}
+}
+
+\ods
+Toto bude nateraz naša základná výšková mapa. Ofarbiť ju je ľahké: zoberiem si 
+nejaký gradient, podobný ako pri Mandelbrotovej množine a podľa výšky priradím farbu. 
+To by si nemal mať problém naprogramovať. Predsalen ale niekoľko poznámok: pretože 
+o chvíľu budeme ešte s farbami pracovať, je lepšie namiesto triedy
+\prg! struct Farba { unsigned char r,g,b,a };! používať pre farebné zložky
+reálne čísla od 0 do 1, napr. ako \prg!Vec3! a do celých čísel ich prekonvertovať
+až pri zápise do súboru, napr. takto:
+
+\ods
+\begin{lstlisting}
+void zapis(Tabulka<Vec3>& T, const char* fname) {
+  vector<unsigned char> data(T.m * T.n * 4);
+  for (int i = 0; i < T.m; i++)
+    for (int j = 0; j < T.n; j++) {
+      int offs = 4 * ((T.n - j - 1) * T.n + i);
+      data[offs++] = min(255 * T(i, j).x, 255.0);
+      data[offs++] = min(255 * T(i, j).y, 255.0);
+      data[offs++] = min(255 * T(i, j).z, 255.0);
+      data[offs++] = 255;
+    }
+  zapis_rgba_png(T.n, T.m, data.data(), fname);
+}
+\end{lstlisting}
+
+\ods
+Pre pekné gradienty som sa inšpiroval zo stránky 
+\link{http://soliton.vm.bytemark.co.uk/pub/cpt-city/}{cpt-city}. Je ich tam veľa a väčšina 
+z nich sa dá voľne použiť\footnote{treba si ale prečítať licenciu}. 
+Formát súboru {\tt gpf} je jednoduchý: v každom riadku sú 4 čísla: prvé udáva pozíciu
+v gradiente (od 0 do 1) a potom nasledujú tri zložky pre {\tt r g b} (každé od 0 do 1).
+Riadok, ktorý sa začína znakom \prg!'#'! je komentár.
+Takže môžeš experimentovať s tým, že si nejaký gradient stiahneš a upravíš si ho, 
+aby sa ti hodil. 
+
+\begin{uloha}
+  Naprogramuj triedu \prg!Gradient!, ktorá funguje podobne ako gradient z Mandelbrotovej
+  množiny, ale vie čítať {\tt .gpf} súbory a pracuje s farbou uloženou vo \prg!Vec3!.
+\end{uloha}
+
+\ods
+Pri ofarbovaní je dobré mať dva gradienty -- {\tt gWater} na vodu a 
+{\tt gLand} na pevninu\footnote{
+  V mojich obrázkoch som použil gradient {\sf afrikakarte-bath} a {\sf afrikakarte-topo}
+  od používateľa {\sf Lilleskut}: 
+  \hbox{\url{http://soliton.vm.bytemark.co.uk/pub/cpt-city/wkp/lilleskut/index.html}}}
+Ak mám v premennej \prg!Tabulka<double> H(n,n)! uloženú výškovú mapu, tak tabuľku
+\prg!Tabulka<Vec3> F(n,n)! s farbami vyrobím tak, že si poviem výšku hladiny
+{\tt wl} (tu som si zobral {\tt -0.22}), 
+všetko pod ňou farbím vodným gradientom a všetko nad ňou pevninovým.
+Keďže gradient má rozsah od 0 do 1, nájdem si maximálnu a minimálnu výšku
+a pri ofarbovaní si rozdiel skutočnej výšky a vodnej hladiny predelím rozdielom
+od maxima, resp. minima tak, aby som dostal\footnote{%
+  Napríklad ak {\tt H(i,j)} je na pevninve, tak {\tt H(i,j)-wl} udáva, ako vysoko je pixel nad vodnou hladinou.
+  Najvyšší bod je {\tt maxl-wl} nad vodnou hladinou, preto {\tt (H(i,j)-wl) / (maxl-wl) }
+  nadobúda hodnoty od 0 keď {\tt H(i,j)} je presne na hladine po 1, ak {\tt H(i,j)} je navyššie možné.
+}číslo od 0 do 1:
+
+\ods
+\begin{lstlisting}
+minl = 1e50, maxl = -1e50;
+for (int i = 0; i < H.m; i++)
+  for (int j = 0; j < H.n; j++)
+    if (H(i, j) < minl)
+      minl = H(i, j);
+    else if (H(i, j) > maxl)
+      maxl = H(i, j);
+
+for (int i = 0; i < H.m; i++)
+  for (int j = 0; j < H.n; j++)
+    if (H(i, j) > wl)
+      F(i,j) = gLand((H(i, j) - wl) / (maxl - wl));
+    else
+      F(i,j) = gWater((H(i, j) - minl) / (wl - minl));
+\end{lstlisting}
+
+\ods
+Z výškovej mapy vľavo som dostal ofarbený obrázok vpravo:
+
+\ods
+\centerline{
+  \includegraphics[width=0.4\textwidth]{data/perlin_comb_render_heightmap.png}
+  \hskip 1cm
+  \includegraphics[width=0.4\textwidth]{data/perlin_comb_render_colored.png}
+}
+
+\ods 
+Teraz bude treba zafarbený obrázok vytieňovať. Na to použijeme jednoduchý osvetľovací model
+(tzv. Lambertov). Predstav si, že máš malú plôšku, ktorá má normálový vektor $\vec n$
+a nejakú základnú farbu. Čím na ňu dopadá menej svetla, tým je tmavšia. Ako viem zistiť,
+koľko svetla na ňu dopadá? Ak svetlo prichádza z nejakého smeru, pozriem sa na uhol
+medzi zdrojom svetla a normálovým vektorom:
+  
+\centerline{
+%\tikzset{external/force remake}
+%\tdplotsetmaincoords{50}{45}
+%\begin{tikzpicture}[tdplot_main_coords]
+\begin{tikzpicture}[x={(1,0)}, z={(0,1)}, y={(0.5,0.5)}]
+  \def\dot[#1](#2){\fill[fill=#1] (#2) circle (1.2pt) ;}
+  \def\sun(#1,#2,#3){
+    \begin{scope}[canvas is xz plane at y=#2]
+      \begin{scope}[shift={(#1,#3)},every path/.style={fill=white,draw=orange,very thick}]
+        \filldraw (0,0) circle (0.2cm);
+      \def\n{20}  
+        \foreach \i in {0,...,\n} {
+          \pgfmathsetmacro{\tmp}{\i*360/\n}
+        \draw (\tmp:0.3cm) -- (\tmp:0.4cm);
+        }
+    \end{scope}
+    \end{scope}
+  }
+
+  \def\ax{2}\def\ay{1}\def\az{2}
+  \def\sx{0}\def\sy{0}\def\sz{5}
+  \def\ux{1}\def\uy{4}\def\uz{0}
+  \def\vx{-1}\set{\vy}{1.0/\uy}\def\vz{0.6}
+
+  \coordinate (Ax) at (\ax,\ay,0);
+  \coordinate (h) at (0,0,\az);
+
+  \coordinate (S) at (\sx,\sy,\sz);
+
+  
+  \normalize{\ux}{\uy}{\uz}
+  \normalize{\vx}{\vy}{\vz}
+  \coordinate (u) at (\ux,\uy,\uz);
+  \coordinate (v) at (\vx,\vy,\vz);
+  \coordinate (A) at ($(Ax)+(h)$);
+  \def\s{1}
+  \coordinate (P) at ($(A)-\s*(u) - \s*(v)$);
+  \cross{\nx}{\ny}{\nz}{\ux}{\uy}{\uz}{\vx}{\vy}{\vz}
+
+  \normalize{\nx}{\ny}{\nz}
+  \coordinate (n) at (\nx,\ny,\nz);
+
+  \begin{scope}[canvas is xy plane at z=0]
+    \draw [gray!20, very thin] (-1,-1) grid (4,4);
+  \end{scope}
+  \draw[orange,thick,dotted] (\sx,\sy,0)  -- (S);
+  \dot[orange](\sx,\sy,0)
+ 
+  \coordinate (u2) at (\ux,\uy,0);
+  \coordinate (v2) at (\vx,\vy,0);
+  \coordinate (P2) at ($(Ax)-\s*(u2)-\s*(v2)$);
+
+
+  \filldraw[fill=green!10] (P) -- ($(P)+2*\s*(u)$) --($(P)+2*\s*(u)+2*\s*(v)$) -- 
+  ($(P)+2*\s*(v)$) -- cycle;
+  \draw[green!50!black,thick,dotted](Ax)--($(A)+(0,0,0)$);
+
+  \coordinate (An) at ($(A)+1.5*(n)$);
+  \draw[draw=none]  pic[draw, angle radius=4ex] {angle = An--A--S};
+
+  \draw[orange,thick,->,shorten >= 3ex] (A)--node[anchor=south west]{$\vec s$}(S);
+  \draw[teal,thick,->] (A)--(An) node[anchor=west]{$\vec n$};
+  \dot[green!50!black](A);
+  \dot[green!50!black](Ax);
+  \sun(\sx,\sy,\sz)
+  \node[above=1ex] at (A) {$\alpha$};
+
+  %\drawaxes
+\end{tikzpicture}}
+
+\ods
+Kosínus tohoto uhla mi vyjadruje množstvo dopadajúceho svetla: ak plôška smeruje presne na zdroj svetla, uhol je $0$,
+$\cos(0)=1$, takže farba je najsilnejšia. Ako uhol rastie, $\cos(\alpha)$ postupne klesá, až keď je uhol $90^\circ$,
+tak nedopadá žiadne svetlo $\cos(90^\circ)=0$.
+Ak $\vec s$ je vektor smerom k svetelnému zdroju, stačí mi znormalizovať ho
+a vyrátať skalárny súčin s $\vec n$ a mám $\cos(\alpha)$, ktorý potrebujem.
+
+\ods
+Posledná otvorená otázka je, ako vyrátať normálový vektor pre nejaký pixel
+vo výškovej mape. Môžem to spraviť napríklad tak, že sa pozriem na 8 okolitých pixelov. Každý z nich mi dáva trojuholník,
+ktorému viem vypočítať normálový vektor pomocou vektorového súčinu. Výsledný vektor potom dostanem ako priemer 
+normálových vektorov trojuholníkov:
+
+
+\centerline{
+%\tikzset{external/force remake}
+%\tdplotsetmaincoords{50}{45}
+%\begin{tikzpicture}[tdplot_main_coords]
+\begin{tikzpicture}[x={(1,0)}, z={(0,1)}, y={(0.25,0.5)}, scale=3]
+  \def\dot[#1](#2){\fill[fill=#1] (#2) circle (0.4pt) ;}
+
+  \begin{scope}[canvas is xy plane at z=0]
+    \draw [gray!20, very thin] (-0.5,-0.5) grid (2.5,2.5);
+  \end{scope}
+
+  \def\vaa{0.9}
+  \def\vab{1.0}
+  \def\vac{1.4}
+
+  \def\vba{1.1}
+  \def\vbb{1.2}
+  \def\vbc{1.3}
+  
+  \def\vca{0.2}
+  \def\vcb{0.6}
+  \def\vcc{0.4}
+
+  \def\chval#1{\if#10a\else\if#11b\else c\fi\fi}
+  \def\w#1#2{\csname v\chval#1\chval#2\endcsname}
+  \def\crd#1#2{#1,#2,\w{#1}{#2}}
+
+  \coordinate (O) at (1,1,\w11);
+
+  \coordinate (N) at (0,0,0);
+
+  \foreach \i/\j/\ii/\jj/\f in {
+    0/2/1/2/0%
+    ,1/2/2/2/0%
+    ,0/1/0/2/0%
+    ,2/2/2/1/0%
+    ,0/0/0/1/0%
+    ,1/0/0/0/1%
+    ,2/1/2/0/0%
+    ,2/0/1/0/0%
+  } {
+    \draw[dotted] (\i,\j,0)--(\crd{\i}{\j}) (\ii,\jj,0) -- (\crd{\ii}{\jj});
+    \filldraw[thin,gray,fill=yellow!10, opacity=0.6](\crd{\i}{\j})--(\crd{\ii}{\jj})--(\crd11)--cycle;
+
+    \coordinate (A) at (\crd{\i}{\j});
+    \coordinate (B) at (\crd{\ii}{\jj});
+    \coordinate (P) at ($0.33*(A)+0.33*(B)+0.33*(O)$);
+    \dot[blue](P)
+    \set{\ux}{\ii-1}
+    \set{\uy}{\jj-1}
+    \set{\uz}{\w{\ii}{\jj}-\w11}
+    \set{\vx}{\i-1}
+    \set{\vy}{\j-1}
+    \set{\vz}{\w{\i}{\j}-\w11}
+    \cross{\nx}{\ny}{\nz}{\ux}{\uy}{\uz}{\vx}{\vy}{\vz}
+    \normalize{\nx}{\ny}{\nz}
+    \typeout{(\ux,\uy,\uz) x (\vx,\vy,\vz) =(nrm) (\nx,\ny,\nz)}
+    \coordinate (n) at (\nx,\ny,\nz);
+    \draw[blue,->](P)--($(P)+0.3*(n)$);
+    \coordinate (N) at ($(N)+(n)$);
+    \if\f1
+      \draw[thick,red,->](O)--node[anchor=east]{$\vec u$}(A);
+      \draw[thick,magenta,->](O)--node[anchor=north west, pos=0.6]{$\vec v$}(B);
+    \fi
+  }
+  \coordinate (O) at (\crd11);
+  \draw[thick,teal,->] (O) -- ($(O)+0.125*(N)$) node[above]{$\vec n$};
+
+  \foreach \i in {0,1,2}{
+    \foreach \j in {0,1,2} {
+      \dot[black](\crd{\i}{\j})
+    }}
+
+    
+  \draw[gray,brace=0.1ex/mirror] (0,0,0)--node[below=1.2ex]{$s$}(1,0,0);
+
+  %\drawaxes
+\end{tikzpicture}}
+
+\ods
+Naprogramovať sa to dá napríklad takto:
+
+\ods
+\begin{lstlisting}
+Vec3 normala(Tabulka<double> &H, int i, int j, double s = 1) {
+  Vec3 res;
+  vector<Vec> dir{{0, 1},   {1, 1},  {1, 0},  {1, -1}, {0, -1},
+                  {-1, -1}, {-1, 0}, {-1, 1}, {0, 1}};
+  for (int t = 0; t < dir.size() - 1; t++) {
+    int i0 = i + dir[t].x,     j0 = j + dir[t].y, 
+        i1 = i + dir[t + 1].x, j1 = j + dir[t + 1].y;
+    res +=
+        -1.0 *
+        (
+         (Vec3{s * dir[t].x, s * dir[t].y, H(i0, j0)} 
+          - Vec3{0, 0, H(i, j)}) 
+          ^ // vektorovy sucin
+         (Vec3{s * dir[t + 1].x, s * dir[t + 1].y, H(i1, j1)} -
+          Vec3{0, 0, H(i, j)})
+        );
+  }
+  return res.normalize();
+}
+\end{lstlisting}
+
+\ods
+Táto funkcia dostane ako parameter tabuľku {\tt H} a pozíciu pixela {\tt i,j}.
+Navyše dostanem parameter {\tt s}, ktorý hovorí, ako ďaleko sú od seba jednotlivé pixely
+(t.j. výškovú mapu si predstavujem ako sieť s krokom {\tt s}).
+
+\ods
+Pre obrázok s rozmermi $2048\times2048$ som si nastavil smer svetla na 
+\prg!Vec3 light{-1, 1, 12};! a \prg!double s=0.004;! a 
+z výškovej mapy {\tt H} som si vyrátal tabuľku \prg!Tabulka<double> N!
+takto:
+
+\begin{lstlisting}
+light.normalize();
+for (int i = 0; i < H.m; i++)
+  for (int j = 0; j < H.n; j++)
+    if (H(i, j) <= wl)
+      N(i, j) = 1;
+    else
+      N(i, j) = light * normala(H, i, j, s);
+\end{lstlisting}
+
+\ods
+Výsledok je na obrázku vľavo. Obrázok vpravo vznikol tak, že som každú farbu pixela na ofarbenej mape
+prenásobil koeficientom \prg!0.6 + 0.4 * max(0.0, N(i, j));!
+
+\ods
+\centerline{
+  \includegraphics[width=0.4\textwidth]{data/perlin_comb_render_normal.png}
+  \hskip 1cm
+  \includegraphics[width=0.4\textwidth]{data/perlin_comb_render_rendered.png}
+}
+
+\ods
+Toto už vyzerá ako mapa terénu, aj keď zrovna ostrov to nie je. To sa dá ale ľahko napraviť pri generovaní
+výškovej mapy: okrem Perlinovho šumu sa navyše každý bod posunie dole úmerne jeho vzdialenosti od stredu 
+obrázka. Okraje klesnú a v strede ostane ostrov. S trochou hrania sa s parametrami som dospel k takémuto
+výsledku:
+
+\ods
+\centerline{
+  \includegraphics[width=0.8\textwidth]{data/86_rendered_dry.png}
+}
+
+\ods
+Úplne posledná vec, ktorá tomu chýba, sú doliny riek a fjordy. Rozhodol som sa preto spraviť jednoduchú
+fyzikálnu simuláciu vodnej erózie. Urobiť realistickú virtuálnu eróziu je téma sama osebe, ale 
+v \link%
+{https://www.firespark.de/resources/downloads/implementation\%20of\%20a\%20methode\%20for\%20hydraulic\%20erosion.pdf}%
+{bakalárskej práci Hansa Beyera}
+je veľmi zjednodušený a ľahko naprogramovateľný prístup, ktorý si tu môžeme vyskúšať.
+Hlavná idea je, že na povrch našej výškovej mapy budeme púšťať kvapky\footnote{
+  Vzhlľadom na mierku, ktorú máme, to bude skôr ako futbalový štadión plný vody, ale
+  volajme to kvapka.}. Kvapka má nejaký objem vody a v nej je rozpusteny nejaky objem 
+bahna. Ak je bahna málo a kvapka ide rýchlo, vymyje kúsok z povrchu: výšková mapa sa trochu 
+zníží a v kvapke bude viac bahna. Naopak, ak je bahna veľa a kvapka ide pomaly, bahno sa bude
+usadzovať: v kvapke ho ostane menej a povrch sa trochu zvýši.
+
+
+\centerline{
+\tikzset{external/force remake}
+%\tdplotsetmaincoords{50}{45}
+%\begin{tikzpicture}[tdplot_main_coords]
+\begin{tikzpicture}[x={(1,0)}, z={(0,1)}, y={(0.5,0.5)}]
+%\begin{tikzpicture}[x={(1,0)}, z={(0,0)}, y={(0,1)}]
+  \def\dot[#1](#2){\fill[fill=#1] (#2) circle (1.2pt) ;}
+
+  \def\rotplane[#1][#2][#3]{ %zxz
+    \def\h{1}
+    \def\d{1}
+    \set{\ax}{-0.5*\d}\set{\ay}{-0.5*\d}\set{\az}{0}
+    \set{\bx}{0.5*\d}\set{\by}{-0.5*\d}\set{\bz}{0}
+    \set{\cx}{0.5*\d}\set{\cy}{0.5*\d}\set{\cz}{0}
+    \set{\dx}{-0.5*\d}\set{\dy}{.5*\d}\set{\dz}{0}
+    \set{\nx}{0}\set{\ny}{0}\set{\nz}{1}
+
+    \rotz[#1]{\ax}{\ay}{\az}
+    \rotz[#1]{\bx}{\by}{\bz}
+    \rotz[#1]{\cx}{\cy}{\cz}
+    \rotz[#1]{\dx}{\dy}{\dz}
+    \rotz[#1]{\nx}{\ny}{\nz}
+
+    \rotx[#2]{\ax}{\ay}{\az}
+    \rotx[#2]{\bx}{\by}{\bz}
+    \rotx[#2]{\cx}{\cy}{\cz}
+    \rotx[#2]{\dx}{\dy}{\dz}
+    \rotx[#2]{\nx}{\ny}{\nz}
+
+    \rotz[#3]{\ax}{\ay}{\az}
+    \rotz[#3]{\bx}{\by}{\bz}
+    \rotz[#3]{\cx}{\cy}{\cz}
+    \rotz[#3]{\dx}{\dy}{\dz}
+    \rotz[#3]{\nx}{\ny}{\nz}
+
+    \begin{scope}[shift={(0,0,\h)}]
+    \draw (\ax,\ay,\az) -- (\bx,\by,\bz) -- (\cx,\cy,\cz) -- (\dx,\dy,\dz) -- cycle;
+    \draw[->] (0,0,0) -- (\nx,\ny,\nz);
+    \dot[black](0,0,0);
+    \end{scope}
+
+    \draw[dashed] (0,0,0) -- (0,0,\h);
+    \draw[green] (0,0,0) -- (\nx,\ny,0);
+
+  }
+
+  \begin{scope}[canvas is xy plane at z=0]
+    \draw [gray!20, very thin] (-1.5,-1.5) grid (1.5,1.5);
+  \end{scope}
+
+  \rotplane[0][45][50]
+  \begin{scope}[shift={(2,0)}]
+    \rotplane[0][0][0]
+  \end{scope}
+
+
+  %\drawaxes
+\end{tikzpicture}}
+
+
+
+
+
+
+\centerline{
+\tikzset{external/force remake}
+\begin{tikzpicture}[x={(1,0)}, z={(0,0.7)}, y={(0.25,0.5)}, scale=3.5]
+%\begin{tikzpicture}[x={(1,0)}, z={(0,0)}, y={(0,1)}, scale=3.5]
+  \def\dot[#1](#2){\fill[fill=#1] (#2) circle (0.4pt) ;}
+
+  \begin{scope}[canvas is xy plane at z=0]
+    \draw [gray!20, very thin] (-0.2,-0.2) grid (1.2,1.2);
+  \end{scope}
+
+  \def\vs{0.5}
+  \def\newv(#1)#2#3#4{
+    \def\tmpx{#2}
+    \def\tmpy{#3}
+    \def\tmpz{#4}
+    \normalize{\tmpx}{\tmpy}{\tmpz}
+    \coordinate (#1) at (\vs*\tmpx,\vs*\tmpy,\vs*\tmpz);
+    \coordinate (#1!0) at (\vs*\tmpx,\vs*\tmpy,0);
+  }
+  \def\chval#1{\if#10a\else\if#11b\else\if#12c\else d\fi\fi\fi}
+  \def\w#1#2{\csname v\chval#1\chval#2\endcsname}
+  \def\crd#1#2{#1,#2,\w{#1}{#2}}
+
+  \def\vaa{1.0} \newv(n00){-0.2}{-0.3}{1}
+  \def\vab{1.3} \newv(n01){-0.2}{-0.7}{1.5}
+
+  \def\vba{0.8} \newv(n10){-0.2}{-0.3}{1}
+  \def\vbb{1.5} \newv(n11){-0.2}{-0.7}{1} 
+  
+  \foreach \i in {0,1}{
+    \foreach \j in {0,1} {
+      \coordinate (A\i\j) at (\crd{\i}{\j});
+      \coordinate (A\i\j!0) at (\i,\j,0);
+    }}
+
+
+  \def\px{0.5} \def\py{0.7}
+
+
+  \coordinate (P!0) at (\px,\py,0);
+  \coordinate (P0!0) at (\px,0,0);
+  \coordinate (P1!0) at (\px,1,0);
+
+  \coordinate (P0) at ($(A00)!\px!(A10)$);
+  \coordinate (P1) at ($(A01)!\px!(A11)$);
+  \coordinate (P) at ($(P0)!\py!(P1)$);
+
+  \foreach \a in {0,1}{
+  \coordinate (nP\a) at ($(n0\a)!\px!(n1\a)$);
+  \coordinate (nP\a!0) at ($(n0\a!0)!\px!(n1\a!0)$);
+  }
+  \coordinate (nP) at ($(nP0)!\py!(nP1)$);
+  \coordinate (nP!0) at ($(nP0!0)!\py!(nP1!0)$);
+
+
+
+  \foreach \a in {0,1}{
+  \draw[green,->] (P\a)--($(P\a)+(nP\a)$);
+  \draw[green,->](P\a!0)--($(P\a!0)+(nP\a!0)$);
+  }
+  \draw[green,->] (P)--($(P)+(nP)$);
+  \draw[green,->](P!0)--($(P!0)+(nP!0)$);
+
+  %\draw let \p1=(nP0!0),\p2=(n00!0),\p3=(n10!0) in (2,0) node{\x1,\y1 :: \x2,\y2 :: \x3,\y3};
+  
+
+  \draw (A00) -- (A10) -- (A11) -- (A01) -- cycle;
+  \foreach \X in {P,P0,P1}{
+  \dot[red](\X!0)
+  \dot[magenta](\X)
+}
+
+
+
+  \foreach \i in {0,1}{
+    \foreach \j in {0,1} {
+      \draw[teal,->] (A\i\j) -- ($(A\i\j)+(n\i\j)$);
+      \draw[cyan,->] (A\i\j!0) -- ($(A\i\j!0)+(n\i\j!0)$);
+
+      \dot[black](A\i\j)
+      \draw[dashed,gray,thin] (A\i\j!0) -- (A\i\j);
+    }}
+
+
+  %\drawaxes
+\end{tikzpicture}}
+
+
+
+
+\ods
+\centerline{
+  \includegraphics[width=0.4\textwidth]{data/86_rendered_droplets.png}
+  \hskip 1cm
+  \includegraphics[width=0.4\textwidth]{data/86_rendered.png}
+}
 
 \fi
 
+% pridat k funkciam - vypisat zarovnanu tabulku n x n
 %  hasovanie
 
 % projekt breakthrough (rozdelit veci do suborov, dedenie)
