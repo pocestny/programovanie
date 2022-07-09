@@ -1,24 +1,23 @@
+#include "obrazok.h"
 #include <iostream>
 using namespace std;
 
-int vyraz() {
-  char c;
-  cin >> c;
-  if (c >= '0' && c <= '9') return c - '0';
-  int v1 = vyraz(); // rekurzivne volanie
-  cin >> c;         // operator
-  int v2 = vyraz(); // druhe rekurzivne volanie
-  int vysledok;
-  if (c == '+')
-    vysledok = v1 + v2;
-  else
-    vysledok = v1 * v2;
-  cin >> c;         // zatvaracia zatvorka
-  return vysledok;
+int obr[100][100];
+
+void stvorec(int r, int s, int d) {
+  int i, j;
+  for (i = r; i < r + d; i++)
+    for (j = s; j < s + d; j++) obr[i][j] = 1;
 }
 
 int main() {
-  cout<<vyraz()<<endl;
+  int a, b, c;
+  for (a = 0; a < 100; a++)
+    for (b = 0; b < 100; b++) obr[a][b] = 0;
+
+  cin >> a >> b >> c;
+  stvorec(100 - a, 50 - a / 2, a);
+  stvorec(100 - a - b, 50 - b / 2, b);
+  stvorec(100 - a - b - c, 50 - c / 2, c);
+  zapis_cb_png(100, 100, obr, "34.png");
 }
-
-

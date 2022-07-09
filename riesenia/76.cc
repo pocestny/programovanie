@@ -1,83 +1,40 @@
+#include <algorithm>
 #include <iostream>
 #include <vector>
 using namespace std;
 
-int c;
+int n, m;
 vector<int> a;
 
-void merge(vector<int> &a, vector<int> &b, vector<int> &p) {
-  int i = 0, j = 0;
-  int n = a.size(), m = b.size();
-  p.resize(n + m);
-  for (int k = 0; k < n + m; k++)
-    if (i < n && (j == m || a[i] < b[j])) {
-      p[k] = a[i];
-      i++;
-    } else {
-      p[k] = b[j];
-      j++;
-    }
+int max(vector<int> &a) {
+  int res = a[0];
+  for (int i = 1; i < a.size(); i++)
+    if (a[i] > res) res = a[i];
+  return res;
 }
 
-void sort(vector<int> &a) {
-  int n = a.size();
-  if (n <= 1) return;
-  int x = n / 2, y = n - x;
-  vector<int> b(x), c(y);
-  for (int i = 0; i < x; i++) b[i] = a[i];
-  for (int i = 0; i < y; i++) c[i] = a[i + x];
-  sort(b);
-  sort(c);
-  merge(b, c, a);
-}
-
-int najdi(vector<int> &a, int x) {
-  int n = a.size();
-  int l = 0, r = n - 1, m;
-  if (a[l] >= x) return l;
-  if (a[r] < x) return -1;
-  while (l < r - 1) {
-    m = (l + r) / 2;
-    if (a[m] >= x)
-      r = m;
-    else
-      l = m;
-  }
-  if (a[l] >= x) return l;
-  return r;
-}
-
-bool test(int d) {
-  int p = a[0];
-
-  for (int i = 0; i < c - 1; i++) {
-    int f = najdi(a, p + d);
-    if (f == -1) return false;
-    p = a[f];
-  }
-  return true;
+bool test(int k) {
+  int sum = 0;
+  for (int i = 0; i < n; i++)
+    if (a[i] > k) sum += a[i] - k;
+  return sum >= m;
 }
 
 int main() {
-  int n;
-  cin >> n >> c;
-
+  cin >> n >> m;
   a.resize(n);
   for (int i = 0; i < n; i++) cin >> a[i];
-  sort(a);
-
-  int u = (a[n - 1] - a[0]) / (c - 1);
-  if (test(u))
-    cout << u << endl;
-  else {
-    int l = 0;
-    while (u > l + 1) {
-      int m = (u + l) / 2;
-      if (test(m))
-        l = m;
-      else
-        u = m;
-    }
-    cout << l << endl;
+  ;
+  int l = 0, x, r = max(a);
+  while (l < r - 1) {
+    x = (l + r) / 2;
+    if (test(x))
+      l = x;
+    else
+      r = x;
   }
+  if (test(r))
+    cout << r << endl;
+  else
+    cout << l << endl;
 }

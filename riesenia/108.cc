@@ -1,8 +1,5 @@
-#include <algorithm>
 #include <chrono>
-#include <cstdlib>
 #include <iostream>
-#include <vector>
 
 using namespace std;
 using namespace chrono;
@@ -16,15 +13,8 @@ int meraj(F f) {
 }
 
 int main() {
-  srandom(system_clock::now().time_since_epoch().count());
-  for (int n = 10000; n < 1000000; n += 10000) {
-    vector<int> a(n);
-    double t = 0;
-    const double rep = 10;
-    for (int cnt = 0; cnt < rep; cnt++) {
-      for (int &x : a) x = random();
-      t += meraj([&a]() { sort(a.begin(), a.end()); });
-    }
-    cout << n << " " << t / rep << endl;
-  }
+  cout << meraj([]() {
+    int x;
+    for (int i = 0; i < 1000000000; i++) x++;
+  }) << endl;
 }

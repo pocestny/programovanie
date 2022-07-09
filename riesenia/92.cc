@@ -1,28 +1,26 @@
 #include <iostream>
-
+#include <string>
 #include "aatree.h"
+
 using namespace std;
-
-void print_node(Node *n, Node *base) {
-  if (n == base) return;
-  print_node(n->left, base);
-  cout << n->key << " ";
-  print_node(n->right, base);
-}
-
-void print(Tree &t) {
-  print_node(t.root, t.base);
-  cout << endl;
-}
 
 int main() {
   Tree t;
-  int n;
-  cin >> n;
-  for (int i = 0; i < n; i++) {
+  while (true) {
+    string s;
     int x;
+    cin >> s;
+    if (s[0] == '#') break;
     cin >> x;
-    t.insert(x);
+    bool jetam = t.find(x);
+    if (s[0] == '?') {
+      if (!jetam) cout << "ne";
+      cout << "svieti" << endl;
+    } else {
+      if (jetam) t.erase(x);
+      else t.insert(x);
+    }
   }
-  print(t);
+
 }
+

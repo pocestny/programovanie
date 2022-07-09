@@ -1,18 +1,33 @@
 #include <iostream>
 using namespace std;
 
-void rot(int x) {
-  if (x < 10)
-    cout << x;
-  else {
-    cout << x % 10;
-    rot(x / 10);
+char c;
+
+int vyraz() {
+  char op;
+  if (c >= '0' && c <= '9') {
+    int val = 0;
+    while (c >= '0' && c <= '9') {
+      val = 10 * val + (c - '0');
+      cin >> c;
+    }
+    return val;
   }
+  cin >> c;
+  int v1 = vyraz();  // rekurzivne volanie
+  op = c;            // operator
+  cin >> c;
+  int v2 = vyraz();  // druhe rekurzivne volanie
+  int vysledok;
+  if (op == '+')
+    vysledok = v1 + v2;
+  else
+    vysledok = v1 * v2;
+  cin >> c;  // zatvaracia zatvorka
+  return vysledok;
 }
 
 int main() {
-  int x;
-  cin >> x;
-  rot(x);
-  cout << endl;
+  cin >> c;
+  cout << vyraz() << endl;
 }

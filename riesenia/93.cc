@@ -1,19 +1,28 @@
 #include <iostream>
-#include <map>
-#include <string>
+
+#include "aatree.h"
 using namespace std;
 
+void print_node(Node *n, Node *base) {
+  if (n == base) return;
+  print_node(n->left, base);
+  cout << n->key << " ";
+  print_node(n->right, base);
+}
+
+void print(Tree &t) {
+  print_node(t.root, t.base);
+  cout << endl;
+}
+
 int main() {
-  map<string, int> m;
+  Tree t;
   int n;
   cin >> n;
-  while (n-- > 0) {
-    string s1, s2;
+  for (int i = 0; i < n; i++) {
     int x;
-    cin >> s1 >> s2 >> x;
-    m[s1] += x;
-    m[s2] -= x;
+    cin >> x;
+    t.insert(x);
   }
-  for (auto it = m.begin(); it != m.end(); it++)
-    cout << it->first << ": " << it->second << endl;
+  print(t);
 }

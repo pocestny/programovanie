@@ -1,7 +1,8 @@
 #include <iostream>
 using namespace std;
 
-void merge(int n, int *a, int m, int *b, int *p) {
+int *merge(int n, int *a, int m, int *b) {
+  int *p = new int[n + m];
   int i = 0, j = 0, k;
   for (k = 0; k < n + m; k++)
     if (i < n && (j == m || a[i] < b[j])) {
@@ -11,29 +12,21 @@ void merge(int n, int *a, int m, int *b, int *p) {
       p[k] = b[j];
       j++;
     }
-}
-
-void sort(int n, int *a) {
-  if (n <= 1) return;
-  int i, x = n / 2, y = n - x;
-  int *b = new int[x];
-  int *c = new int[y];
-  for (i = 0; i < x; i++) b[i] = a[i];
-  for (i = 0; i < y; i++) c[i] = a[i + x];
-  sort(x, b);
-  sort(y, c);
-  merge(x, b, y, c, a);
-  delete[] b;
-  delete[] c;
+  return p;
 }
 
 int main() {
-  int n, *a;
+  int n, m, *a, *b, i;
   cin >> n;
   a = new int[n];
-  for (int i = 0; i < n; i++) cin >> a[i];
-  sort(n, a);
-  for (int i = 0; i < n; i++) cout << a[i] << " ";
+  for (i = 0; i < n; i++) cin >> a[i];
+  cin >> m;
+  b = new int[m];
+  for (i = 0; i < m; i++) cin >> b[i];
+  int *p = merge(n, a, m, b);
+  for (i = 0; i < n + m; i++) cout << p[i] << " ";
   cout << endl;
   delete[] a;
+  delete[] b;
+  delete[] p;
 }

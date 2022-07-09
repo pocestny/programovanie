@@ -1,41 +1,48 @@
+#include <algorithm>
 #include <iostream>
 #include <set>
+#include <sstream>
+#include <string>
+
 using namespace std;
 
-int n, k, a;
-
-int val(int d) {
-  if (d < a) return 0;
-  return (d + 1) / (a + 1);
-}
-
 int main() {
-  cin >> n >> k >> a;
+  int w, h, n;
+  string line;
 
-  int m, cnt = 0;
-  cin >> m;
+  getline(cin, line);
+  stringstream ss(line);
+  ss >> w >> h >> n;
 
-  set<int> hits;
-  int avail = val(n);
-  hits.insert(0);
-  hits.insert(n + 1);
+  multiset<int> d[2];
+  set<int> x[2];
+  // 0 - x, 1 - y
 
-  while (m-- >= 0) {
-    int x;
-    cin >> x;
-    cnt++;
-    auto tmp = hits.lower_bound(x);
+  d[0].insert(w);
+  d[1].insert(h);
+  x[0].insert(0);
+  x[0].insert(w);
+  x[1].insert(0);
+  x[1].insert(h);
+
+  while (n-- > 0) {
+    getline(cin, line);
+    int j = 0;
+    if (line[0] == 'H') j = 1;
+    stringstream ss(line.substr(2));
+    int i;
+    ss >> i;
+    auto tmp = x[j].lower_bound(i);
     int i2 = *tmp;
     tmp--;
     int i1 = *tmp;
-    avail -= val(i2 - i1 - 1);
-    avail += val(x - i1 - 1) + val(i2 - x - 1);
-    hits.insert(x);
-
-    if (avail < k) {
-      cout << cnt << endl;
-      exit(0);
-    }
+    d[j].erase(d[j].find(i2 - i1));
+    d[j].insert(i - i1);
+    d[j].insert(i2 - i);
+    x[j].insert(i);
+    auto xx = d[0].end(), yy = d[1].end();
+    xx--;
+    yy--;
+    cout << (*xx) * (*yy) << endl;
   }
-  cout << "-1\n";
 }

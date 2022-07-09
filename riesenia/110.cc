@@ -1,129 +1,113 @@
-#ifndef __VEKTOR_H__
-#define __VEKTOR_H__
-#include <cmath>
-#include <ostream>
+#ifndef __TABULKA_H__
+#define __TABULKA_H__
 
-// 2D
-struct Vec {
-  double x = 0, y = 0;
-  double length() { return sqrt(x * x + y * y); }
-  Vec& normalize() {
-    double l = length();
-    if (l >= 1e-30) {
-      x /= l;
-      y /= l;
-    }
+template <typename T>
+struct Tabulka {
+  Tabulka() : m{0}, n{0}, data{nullptr} {}
+
+  Tabulka(int _m, int _n) : m{_m}, n{_n}, data{nullptr} {
+    realokuj(m, n);
+    zmen([](int, int) { return T(); });
+  }
+
+  Tabulka(const Tabulka& x) : data{nullptr} {
+    realokuj(x.m, x.n);
+    zmen([&x](int i, int j) { return x(i, j); });
+  }
+
+  Tabulka& operator=(const Tabulka& x) {
+    realokuj(x.m, x.n);
+    zmen([&x](int i, int j) { return x(i, j); });
     return *this;
   }
-  Vec& operator+=(const Vec& v) {
-    x += v.x;
-    y += v.y;
+
+  Tabulka& operator=(Tabulka&& x) {
+    m = x.m;
+    n = x.n;
+    data = x.data;
+    x.data = nullptr;
     return *this;
   }
-  Vec& operator-=(const Vec& v) {
-    x -= v.x;
-    y -= v.y;
+
+  ~Tabulka() {
+    if (data != nullptr) delete[] data;
+  }
+
+  T& operator()(int r, int s) {
+    sentinel = T{};
+    if (r >= 0 && r < m && s >= 0 && s < n)
+      return data[r * n + s];
+    else
+      return sentinel;
+  }
+
+  T operator()(int r, int s) const {
+    if (r >= 0 && r < m && s >= 0 && s < n)
+      return data[r * n + s];
+    else
+      return T{};
+  }
+
+  Tabulka& operator+=(const Tabulka& t) {
+    zmen([&t, this](int i, int j) { return (*this)(i, j) + t(i, j); });
     return *this;
   }
-  Vec& operator*=(const double v) {
-    x *= v;
-    y *= v;
+
+  Tabulka& operator-=(const Tabulka& t) {
+    zmen([&t, this](int i, int j) { return (*this)(i, j) - t(i, j); });
     return *this;
   }
-  void clip(double lo = 0, double hi = 1) {
-    if (x < lo) x = lo;
-    if (x > hi) x = hi;
-    if (y < lo) y = lo;
-    if (y > hi) y = hi;
+
+  Tabulka& operator*=(double v) {
+    zmen([v, this](int i, int j) { return (*this)(i, j) * v; });
+    return *this;
+  }
+
+  int m, n;
+  T* data;
+  T sentinel;
+
+  template <typename F>
+  void zmen(F f) {
+    for (int i = 0; i < m; i++)
+      for (int j = 0; j < n; j++) data[i * n + j] = f(i, j);
+  }
+
+ private:
+  void realokuj(int _m, int _n) {
+    m = _m;
+    n = _n;
+    if (data != nullptr) delete[] data;
+    data = new T[m * n];
   }
 };
 
-bool operator== (const Vec&a, const Vec&b) {
-  return a.x==b.x && a.y==b.y;
+template <typename T>
+Tabulka<T> operator+(const Tabulka<T>& a, const Tabulka<T>& b) {
+  Tabulka<T> res{a};
+  res += b;
+  return res;
 }
 
-Vec operator+(const Vec& a, const Vec& b) { return Vec{a.x + b.x, a.y + b.y}; }
-Vec operator-(const Vec& a, const Vec& b) { return Vec{a.x - b.x, a.y - b.y}; }
-Vec operator*(const Vec& a, const double v) { return Vec{a.x * v, a.y * v}; }
-Vec operator*(const double v, const Vec& a) { return Vec{a.x * v, a.y * v}; }
-// skalarny sucin
-double operator*(const Vec& a, const Vec& b) { return a.x * b.x + a.y * b.y; }
-
-std::ostream &operator<<(std::ostream &s, const Vec &v) {
-  s << "[ " << v.x << ", " << v.y << " ]";
-  return s;
+template <typename T>
+Tabulka<T> operator-(const Tabulka<T>& a, const Tabulka<T>& b) {
+  Tabulka<T> res{a};
+  res -= b;
+  return res;
 }
 
-// 3D
-struct Vec3 {
-  double x = 0, y = 0, z = 0;
-  double length() { return sqrt(x * x + y * y + z * z); }
-  Vec3& normalize() {
-    double l = length();
-    if (l >= 1e-30) {
-      x /= l;
-      y /= l;
-      z /= l;
-    }
-    return *this;
-  }
-  Vec3& operator+=(const Vec3& v) {
-    x += v.x;
-    y += v.y;
-    z += v.z;
-    return *this;
-  }
-  Vec3& operator-=(const Vec3& v) {
-    x -= v.x;
-    y -= v.y;
-    z -= v.z;
-    return *this;
-  }
-  Vec3& operator*=(const double v) {
-    x *= v;
-    y *= v;
-    z *= v;
-    return *this;
-  }
-  void clip(double lo = 0, double hi = 1) {
-    if (x < lo) x = lo;
-    if (x > hi) x = hi;
-    if (y < lo) y = lo;
-    if (y > hi) y = hi;
-    if (z < lo) z = lo;
-    if (z > hi) z = hi;
-  }
-};
-
-bool operator== (const Vec3&a, const Vec3&b) {
-  return a.x==b.x && a.y==b.y && a.z==b.z;
+template <typename T>
+Tabulka<T> operator*(const Tabulka<T>& a, double b) {
+  Tabulka<T> res{a};
+  res *= b;
+  return res;
 }
 
-Vec3 operator+(const Vec3& a, const Vec3& b) {
-  return Vec3{a.x + b.x, a.y + b.y, a.z + b.z};
-}
-Vec3 operator-(const Vec3& a, const Vec3& b) {
-  return Vec3{a.x - b.x, a.y - b.y, a.z - b.z};
-}
-Vec3 operator*(const Vec3& a, const double v) {
-  return Vec3{a.x * v, a.y * v, a.z * v};
-}
-Vec3 operator*(const double v, const Vec3& a) {
-  return Vec3{a.x * v, a.y * v, a.z * v};
-}
-// skalarny sucin
-double operator*(const Vec3& a, const Vec3& b) {
-  return a.x * b.x + a.y * b.y + a.z * b.z;
-}
-// vektorovy sucin
-Vec3 operator^(const Vec3& a, const Vec3& b) {
-  return Vec3{a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z,
-              a.x * b.y - a.y * b.x};
-}
-
-std::ostream &operator<<(std::ostream &s, const Vec3 &v) {
-  s << "[ " << v.x << ", " << v.y << ", " << v.z << " ]";
-  return s;
+template <typename T>
+Tabulka<T> operator*(double b, const Tabulka<T>& a) {
+  Tabulka<T> res{a};
+  res *= b;
+  return res;
 }
 
 #endif

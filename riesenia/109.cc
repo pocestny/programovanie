@@ -1,113 +1,30 @@
-#ifndef __TABULKA_H__
-#define __TABULKA_H__
+#include <algorithm>
+#include <chrono>
+#include <cstdlib>
+#include <iostream>
+#include <vector>
 
-template <typename T>
-struct Tabulka {
-  Tabulka() : m{0}, n{0}, data{nullptr} {}
+using namespace std;
+using namespace chrono;
 
-  Tabulka(int _m, int _n) : m{_m}, n{_n}, data{nullptr} {
-    realokuj(m, n);
-    zmen([](int, int) { return T(); });
-  }
-
-  Tabulka(const Tabulka& x) : data{nullptr} {
-    realokuj(x.m, x.n);
-    zmen([&x](int i, int j) { return x(i, j); });
-  }
-
-  Tabulka& operator=(const Tabulka& x) {
-    realokuj(x.m, x.n);
-    zmen([&x](int i, int j) { return x(i, j); });
-    return *this;
-  }
-
-  Tabulka& operator=(Tabulka&& x) {
-    m = x.m;
-    n = x.n;
-    data = x.data;
-    x.data = nullptr;
-    return *this;
-  }
-
-  ~Tabulka() {
-    if (data != nullptr) delete[] data;
-  }
-
-  T& operator()(int r, int s) {
-    sentinel = T{};
-    if (r >= 0 && r < m && s >= 0 && s < n)
-      return data[r * n + s];
-    else
-      return sentinel;
-  }
-
-  T operator()(int r, int s) const {
-    if (r >= 0 && r < m && s >= 0 && s < n)
-      return data[r * n + s];
-    else
-      return T{};
-  }
-
-  Tabulka& operator+=(const Tabulka& t) {
-    zmen([&t, this](int i, int j) { return (*this)(i, j) + t(i, j); });
-    return *this;
-  }
-
-  Tabulka& operator-=(const Tabulka& t) {
-    zmen([&t, this](int i, int j) { return (*this)(i, j) - t(i, j); });
-    return *this;
-  }
-
-  Tabulka& operator*=(double v) {
-    zmen([v, this](int i, int j) { return (*this)(i, j) * v; });
-    return *this;
-  }
-
-  int m, n;
-  T* data;
-  T sentinel;
-
-  template <typename F>
-  void zmen(F f) {
-    for (int i = 0; i < m; i++)
-      for (int j = 0; j < n; j++) data[i * n + j] = f(i, j);
-  }
-
- private:
-  void realokuj(int _m, int _n) {
-    m = _m;
-    n = _n;
-    if (data != nullptr) delete[] data;
-    data = new T[m * n];
-  }
-};
-
-template <typename T>
-Tabulka<T> operator+(const Tabulka<T>& a, const Tabulka<T>& b) {
-  Tabulka<T> res{a};
-  res += b;
-  return res;
+template <typename F>
+int meraj(F f) {
+  auto start = system_clock::now();
+  f();
+  auto end = system_clock::now();
+  return duration_cast<milliseconds>(end - start).count();
 }
 
-template <typename T>
-Tabulka<T> operator-(const Tabulka<T>& a, const Tabulka<T>& b) {
-  Tabulka<T> res{a};
-  res -= b;
-  return res;
+int main() {
+  srandom(system_clock::now().time_since_epoch().count());
+  for (int n = 10000; n < 1000000; n += 10000) {
+    vector<int> a(n);
+    double t = 0;
+    const double rep = 10;
+    for (int cnt = 0; cnt < rep; cnt++) {
+      for (int &x : a) x = random();
+      t += meraj([&a]() { sort(a.begin(), a.end()); });
+    }
+    cout << n << " " << t / rep << endl;
+  }
 }
-
-template <typename T>
-Tabulka<T> operator*(const Tabulka<T>& a, double b) {
-  Tabulka<T> res{a};
-  res *= b;
-  return res;
-}
-
-template <typename T>
-Tabulka<T> operator*(double b, const Tabulka<T>& a) {
-  Tabulka<T> res{a};
-  res *= b;
-  return res;
-}
-
-#endif

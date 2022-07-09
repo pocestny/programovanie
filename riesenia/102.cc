@@ -6,9 +6,6 @@
 #include <iomanip>
 using namespace std;
 
-/*
- * modifikovany strom z predchadzajucej ulohy
- */
 struct Node {
   int level, key, size;
   Node *left, *right;
@@ -174,18 +171,6 @@ struct Tree {
   void dump() { root->dump(0, base); }
 };
 
-// (x+1)-ve nepouzite cislo pocnuc od s
-// invariant: vsetky prvky su aspon s
-int volne(int x, int s, Node *v, Node *base) {
-  if (v == base) return x + s;
-  int l = v->key - v->left->size - s;
-  if (l > x) return volne(x, s, v->left, base);
-  x -= l;
-  if (v->right == base) return v->key + x + 1;
-  return volne(x, v->key + 1, v->right, base);
-}
-
-
 int main() { 
   Tree t; 
   string s;
@@ -199,7 +184,7 @@ int main() {
 
     if (s[0]=='p') t.insert(x);
     else if (s[0]=='u') t.erase(x);
-    else  cout<<volne(x,0,t.root,t.base)<<endl;
+    else  cout<<t.rank(x)<<endl;
   }
 
 }

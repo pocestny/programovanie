@@ -1,36 +1,26 @@
 #include <iostream>
-#include <string>
 #include <map>
-#include <set>
+#include <string>
 
 using namespace std;
 
 int main() {
-  map<string,set<string>> m;
-  while(true) {
-    string podmet;
-    cin>>podmet;
-    if (podmet[0]=='!') break;
-    string in;
-    cin>>in;
-    if (in=="nie") {
-      cin>>in>>in;
-    } else {
-      cin>>in;
-      m[podmet].insert(in.substr(0,in.find('.')));
-    }
-  }
-  for(auto &x:m) {
-    cout<<x.first<<" je ";
-    int i=0;
-    for(auto &s:x.second) {
-      if (i>0) {
-        if (i<x.second.size()-1) cout<<", ";
-        else cout<<" a ";
-      }
-      cout<<s;
-      i++;
-    }
-    cout<<"."<<endl;
+  map<string, int> s;
+  while (true) {
+    string typ, in;
+    cin >> typ;
+    if (typ[0] == '!') break;
+    cin >> in;
+    if (typ[0] == '?') cout << s[in] << endl;
+    else if (typ[0] == '*') {
+      int v = stoi(in.substr(in.find("-") + 1));
+      in=in.substr(0,in.find("-"));
+      if (v<=s[in])
+      cout << "ano" << endl;
+      else
+      cout << "nie" << endl;
+    } else 
+      s[in]++;
+    
   }
 }

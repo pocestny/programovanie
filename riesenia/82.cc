@@ -5,16 +5,23 @@ using namespace std;
 
 int main() {
   int n;
-  vector<int> a, x;
   cin >> n;
-  a.resize(n);
-  x.resize(n);
-  for (int i = 0; i < n; i++) {
-    cin >> a[i];
-    x[i] = i;
+  vector<int> a(n);
+  for (int i = 0; i < n; i++) cin >> a[i];
+  sort(a.begin(), a.end());
+  a.push_back(a[a.size() - 1] + 10);  // zarazka
+  n++;
+  int max_pocet = 0, max_cislo;
+  for (int i = 0; i < n;) {
+    int j;
+    for (j = i; j < n && a[j] == a[i]; j++)
+      ;
+    int cnt = j - i;
+    if (cnt > max_pocet) {
+      max_pocet = cnt;
+      max_cislo = a[i];
+    }
+    i = j + 1;
   }
-  sort(x.begin(), x.end(), [&a](int i, int j) { return a[i] < a[j]; });
-  for (int i = 0; i < n; i++) a[x[i]] = i + 1;
-  for (int i = 0; i < n; i++) cout << a[i] << " ";
-  cout << endl;
+  cout << max_cislo << endl;
 }

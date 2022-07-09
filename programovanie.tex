@@ -129,7 +129,7 @@ brace/.style args = {#1/#2}{
 % sections on/off
 
 %% ALL ON
-\if10
+\if11
 \def\secti{1}    % rychly uvod
 \def\sectii{1}   % podmienky 
 \def\sectiii{1}  % cykly
@@ -164,7 +164,7 @@ brace/.style args = {#1/#2}{
 \fi
 
 %% ALL OFF
-\if11
+\if10
 \def\secti{0}    % rychly uvod
 \def\sectii{0}   % podmienky 
 \def\sectiii{0}  % cykly
@@ -198,9 +198,6 @@ brace/.style args = {#1/#2}{
 \def\sectxxix{0} % ostrovy
 \fi
 
-\def\sectxxvii{1} % pravdepodobnost a nahoda
-\def\sectxxviii{1} % cas a static
-\def\sectxxix{1} % ostrovy
 
 
 \begin{document}
@@ -2479,6 +2476,21 @@ Polia sa tiež dajú ako parametre použiť, ale o tom až neskôr.
 
 \begin{uloha}
   Napíš funkciu {\tt max} s tromi parametrami, ktorá vráti najväčší z nich.
+\end{uloha}
+
+\begin{uloha}
+  Napíš funkciu \prg! int dlzka(int n) {...}!, ktorá pre zadané číslo $n$
+  vráti počet cifier (napr. {\tt dlzka(546)} je 3). Pomocou nej napíš program,
+  ktorý prečíta zo vstupu číslo {\tt n} a vypíše zarovnanú tabuľku s 
+  mocninami čísel $2$ až $n$. Napr. pre $n=7$ by výstup vyzeral
+\begin{verbatim}
+      1      2      4      8     16     32     64
+      1      3      9     27     81    243    729
+      1      4     16     64    256   1024   4096
+      1      5     25    125    625   3125  15625
+      1      6     36    216   1296   7776  46656
+      1      7     49    343   2401  16807 117649
+\end{verbatim}
 \end{uloha}
 
 \ods
@@ -12652,7 +12664,7 @@ vznikajú fraktálovité náhodné útvary.
 Perlin noise najprv popíšeme matematicky a potom sa pozrieme na to, ako ho naprogramovať.
 Zoberme si rovinu. Každému bodu chceme priradiť číslo tak, že čísla menšie ako $-1$ znamenajú
 čiernu, čísla väčšie ako $1$ bielu a medzi nimi je spojitý prechod. Budeme tak dostávať 
-obrázky ten nasledujúci ako vľavo. Keby sme chceli vzorku ako tá vpravo, môžeme každý bod zaokrúhliť: ak je
+obrázky ako ten nasledujúci ako vľavo. Keby sme chceli vzorku ako tá vpravo, môžeme každý bod zaokrúhliť: ak je
 kladný, pixel bude žltý, ak je záporný, pixel bude čierny.
 
 \centerline{
@@ -13573,9 +13585,9 @@ vyzerať ako nasledujúci obrázok (vľavo je celý šum, vpravo je priebeh vý�
 
 %\tikzset{external/force remake}
 
-\def\plt#1#2{%
+\def\plt#1#2#3{%
     \begin{scope}[shift={(0,-#2cm)}]
-  \node[anchor=south west, inner sep=0]  at (0,0) {\includegraphics[width=3.2cm]{data/perlin_comb_#1.png}};
+  \node[anchor=south west, inner sep=0]  at (0,0) {\includegraphics[width=3.2cm]{data/perlin_comb#3_#1.png}};
   \begin{scope}[shift={(2.5cm,0.1cm)}]
   \begin{axis}[
        axis lines=middle,
@@ -13591,7 +13603,7 @@ vyzerať ako nasledujúci obrázok (vľavo je celý šum, vpravo je priebeh vý�
 ]
 
   \addplot[red!80!white, 
-  line join=round, mark size=0.5pt] table [y=t#1, x=i]{data/perlin_comb.dat};
+  line join=round, mark size=0.5pt] table [y=t#1, x=i]{data/perlin_comb#3.dat};
 \end{axis}
   \end{scope}
     \end{scope}
@@ -13600,7 +13612,7 @@ vyzerať ako nasledujúci obrázok (vľavo je celý šum, vpravo je priebeh vý�
 \centerline{
 \begin{tikzpicture}[scale=2]
    \foreach \v [count=\i] in {1024,0512,0256,0128,0064,0032} {
-    \plt{\v}{1.7*\i}
+     \plt{\v}{1.7*\i}{}
   }
 \end{tikzpicture}
 }
@@ -13617,21 +13629,45 @@ tabuľku {\tt H} (ktorá vznikla v konštruktore) pripočítame k výsledku:
 \begin{lstlisting}
 Tabulka<double> P(n, n);
 for (int t = 2; t < n; t *= 2) {
-  P *= 0.6;
+  P *= coeff;
   P += Perlin(n, t).H;
 }
 \end{lstlisting}
 }
 
 \ods 
-Čím je koeficient väčší, tým rovnomernejšie sú vo výsledku zastúpené
-všetky veľkosti šumu, a tým viac sa blížime k náhodnému šumu. V tomto prípade som dostal
+Čím je koeficient {\tt coeff} väčší, tým rovnomernejšie sú vo výsledku zastúpené
+všetky veľkosti šumu, a tým viac sa blížime k náhodnému šumu. 
+Pre \prg!coeff = 0.3! by som dostal
+
+\ods
+\centerline{
+\begin{tikzpicture}[scale=2]
+  \plt{all}{0}{03}
+\end{tikzpicture}
+}
+
+\ods
+a pre \prg!coeff = 0.8! 
+
+\ods
+\centerline{
+\begin{tikzpicture}[scale=2]
+  \plt{all}{0}{08}
+\end{tikzpicture}
+}
+
+\ods
+
+V mojom obrázku som 
+zobral \prg!coeff = 0.6! a 
+dostal som
 takýto výsledok:
 
 \ods
 \centerline{
 \begin{tikzpicture}[scale=2]
-  \plt{all}{0}
+  \plt{all}{0}{}
 \end{tikzpicture}
 }
 
@@ -13940,7 +13976,10 @@ for (int i = 0; i < H.m; i++)
 
 \ods
 Výsledok je na obrázku vľavo. Obrázok vpravo vznikol tak, že som každú farbu pixela na ofarbenej mape
-prenásobil koeficientom \prg!0.6 + 0.4 * max(0.0, N(i, j));!
+prenásobil koeficientom\footnote{%
+t.j. zobral som $60\%$ pôvodnej farby a $40\%$ som rozdelil od čiernej po pôvodnú farbu
+podľa normály. Nie je to úplne ideálne, ale môže nám to postačiť.
+}  \prg!0.6 + 0.4 * max(0.0, N(i, j));!
 
 \ods
 \centerline{
@@ -13952,7 +13991,8 @@ prenásobil koeficientom \prg!0.6 + 0.4 * max(0.0, N(i, j));!
 \ods
 Toto už vyzerá ako mapa terénu, aj keď zrovna ostrov to nie je. To sa dá ale ľahko napraviť pri generovaní
 výškovej mapy: okrem Perlinovho šumu sa navyše každý bod posunie dole úmerne jeho vzdialenosti od stredu 
-obrázka. Okraje klesnú a v strede ostane ostrov. S trochou hrania sa s parametrami som dospel k takémuto
+obrázka. Okraje klesnú a v strede ostane ostrov. S trochou hrania sa s klesaním okrajov
+a zvýraznením hôr som dospel k takémuto
 výsledku:
 
 \ods
@@ -13968,15 +14008,20 @@ v \link%
 {bakalárskej práci Hansa Beyera}
 je veľmi zjednodušený a ľahko naprogramovateľný prístup, ktorý si tu môžeme vyskúšať.
 Hlavná idea je, že na povrch našej výškovej mapy budeme púšťať kvapky\footnote{
-  Vzhlľadom na mierku, ktorú máme, to bude skôr ako futbalový štadión plný vody, ale
-  volajme to kvapka.}. Kvapka má nejaký objem vody a v nej je rozpusteny nejaky objem 
+  Vzhľadom na mierku, ktorú máme, to bude skôr ako futbalový štadión plný vody, ale
+  volajme to kvapka.}. Kvapka má nejaký objem vody a v nej je rozpustený nejaký objem 
 bahna. Ak je bahna málo a kvapka ide rýchlo, vymyje kúsok z povrchu: výšková mapa sa trochu 
 zníží a v kvapke bude viac bahna. Naopak, ak je bahna veľa a kvapka ide pomaly, bahno sa bude
 usadzovať: v kvapke ho ostane menej a povrch sa trochu zvýši.
+Ako zistíme, ktorým smerom sa bude kvapka pohybovať? Krátka odpoveď je, že v smere, ktorým
+ukazuje normálový vektor. Dalo by sa to pomerne jednoducho spočítať, ale nateraz sa uspokojme
+s intuitívnou predstavou podľa obrázka
+
+\ods
 
 
 \centerline{
-\tikzset{external/force remake}
+%\tikzset{external/force remake}
 %\tdplotsetmaincoords{50}{45}
 %\begin{tikzpicture}[tdplot_main_coords]
 \begin{tikzpicture}[x={(1,0)}, z={(0,1)}, y={(0.5,0.5)}]
@@ -13984,6 +14029,9 @@ usadzovať: v kvapke ho ostane menej a povrch sa trochu zvýši.
   \def\dot[#1](#2){\fill[fill=#1] (#2) circle (1.2pt) ;}
 
   \def\rotplane[#1][#2][#3]{ %zxz
+  \begin{scope}[canvas is xy plane at z=0]
+    \draw [gray!20, very thin] (-1.5,-1.5) grid (1.5,1.5);
+  \end{scope}
     \def\h{1}
     \def\d{1}
     \set{\ax}{-0.5*\d}\set{\ay}{-0.5*\d}\set{\az}{0}
@@ -14011,37 +14059,51 @@ usadzovať: v kvapke ho ostane menej a povrch sa trochu zvýši.
     \rotz[#3]{\nx}{\ny}{\nz}
 
     \begin{scope}[shift={(0,0,\h)}]
-    \draw (\ax,\ay,\az) -- (\bx,\by,\bz) -- (\cx,\cy,\cz) -- (\dx,\dy,\dz) -- cycle;
+      \filldraw[fill=teal!20, opacity=0.6]  (\ax,\ay,\az) -- (\bx,\by,\bz) -- (\cx,\cy,\cz) -- (\dx,\dy,\dz) -- cycle;
     \draw[->] (0,0,0) -- (\nx,\ny,\nz);
     \dot[black](0,0,0);
     \end{scope}
 
     \draw[dashed] (0,0,0) -- (0,0,\h);
-    \draw[green] (0,0,0) -- (\nx,\ny,0);
+    \draw[->,magenta] (0,0,0) -- (\nx,\ny,0);
 
   }
 
-  \begin{scope}[canvas is xy plane at z=0]
-    \draw [gray!20, very thin] (-1.5,-1.5) grid (1.5,1.5);
-  \end{scope}
 
-  \rotplane[0][45][50]
+  \rotplane[0][45][0]
   \begin{scope}[shift={(2,0)}]
-    \rotplane[0][0][0]
+    \rotplane[0][45][90]
+  \end{scope}
+  \begin{scope}[shift={(4,0)}]
+    \rotplane[30][40][60]
+  \end{scope}
+  \begin{scope}[shift={(6,0)}]
+    \rotplane[210][320][45]
   \end{scope}
 
 
   %\drawaxes
 \end{tikzpicture}}
 
+\ods
+Predstav si malú plôšku, z ktorej trčí normálový vektor ako klinec. Ktorým smerom klincom
+pohneš, tým smerom sa plôška nakloní, a tade bude aj kvapka padať. Takže stačí nám
+zrátať normálový vektor v 3D a pozrieť sa na jeho priemet, t.j. na zložky v smere $x$
+a $y$. Výsledný 2D vektor sa volá {\em gradient} a udáva smer, ktorým plôška klesá. 
 
+\ods
+Pre účely simulácie si budeme pozíciu kvapky pamätať v reálnych číslach ako
+premennú \prg!Vec pos!. Výšková mapa mi bude udávať výšku v bodoch s celočíselnými
+súradnicami (tieto budem volať {\em mrežové body}).
+Pre danú pozíciu si skutočnú výšku vyrátame bilineárnou interpoláciou zo 
+štyroch susedných mrežových bodov. Normálu vyrátam podobne -- najprv vyrátam normálové 
+vektory v štyroch susedných mrežových bodoch a výsledok zrátam bilineárnou interpoláciou.
 
-
-
+\ods
 
 \centerline{
-\tikzset{external/force remake}
-\begin{tikzpicture}[x={(1,0)}, z={(0,0.7)}, y={(0.25,0.5)}, scale=3.5]
+%\tikzset{external/force remake}
+\begin{tikzpicture}[x={(1,0)}, z={(0,0.7)}, y={(0.25,0.5)}, scale=4]
 %\begin{tikzpicture}[x={(1,0)}, z={(0,0)}, y={(0,1)}, scale=3.5]
   \def\dot[#1](#2){\fill[fill=#1] (#2) circle (0.4pt) ;}
 
@@ -14093,23 +14155,22 @@ usadzovať: v kvapke ho ostane menej a povrch sa trochu zvýši.
   \coordinate (nP) at ($(nP0)!\py!(nP1)$);
   \coordinate (nP!0) at ($(nP0!0)!\py!(nP1!0)$);
 
+  \filldraw[fill=yellow!10, opacity=0.3] (A00) -- (A10) -- (A11) -- (A01) -- cycle;
 
+  \draw[thin,dashed,gray] (P) -- (P!0);
 
   \foreach \a in {0,1}{
-  \draw[green,->] (P\a)--($(P\a)+(nP\a)$);
-  \draw[green,->](P\a!0)--($(P\a!0)+(nP\a!0)$);
+  \draw[magenta,->] (P\a)--($(P\a)+(nP\a)$);
+  \draw[magenta!30,->](P\a!0)--($(P\a!0)+(nP\a!0)$);
   }
-  \draw[green,->] (P)--($(P)+(nP)$);
-  \draw[green,->](P!0)--($(P!0)+(nP!0)$);
+  \draw[magenta, dotted] (P0)--(P1);
+  \draw[magenta!30, dotted] (P0!0)--(P1!0);
+  \draw[magenta,thick, ->] (P)--($(P)+(nP)$) node[above] {{\tt norm}};
+  \draw[magenta,thick,->](P!0)--($(P!0)+(nP!0)$) node[anchor = north east]  {{\tt g}};
 
   %\draw let \p1=(nP0!0),\p2=(n00!0),\p3=(n10!0) in (2,0) node{\x1,\y1 :: \x2,\y2 :: \x3,\y3};
   
 
-  \draw (A00) -- (A10) -- (A11) -- (A01) -- cycle;
-  \foreach \X in {P,P0,P1}{
-  \dot[red](\X!0)
-  \dot[magenta](\X)
-}
 
 
 
@@ -14122,12 +14183,203 @@ usadzovať: v kvapke ho ostane menej a povrch sa trochu zvýši.
       \draw[dashed,gray,thin] (A\i\j!0) -- (A\i\j);
     }}
 
+    \dot[black](P!0);
+    \node[anchor=north west] at (P!0) {{\tt pos}};
+    
+  \foreach \p in {P,A00!0,A11!0} {
+  \dot[black](\p)
+  }
+
+  \node[anchor=north west] at (P) {{\tt vyska(pos)}};
+
+
+  \node[anchor = south east] at (A00!0) {{\tt (ix, iy)}};   
+  \node[anchor = north west ] at (A11!0) {{\tt (ix + 1, iy + 1)}};   
 
   %\drawaxes
 \end{tikzpicture}}
 
 
+\ods
+Simulácia jednej kvapky bude vyzerať takto. Kvapka sa na začiatku zajví na náhodnej pozícii
+\prg!Vec pos{rnd() * n, rnd() * n};!. Budeme simulovať niekoľko krokov, na
+to budeme mať konštantu {\tt lifetime}. V každom kroku vyrátame gradient \prg!Vec g;!
+tak, ako sme to práve opísali. Nový smer kvapky \prg!dir! získame tak, že interpolujeme
+gradient a predchádzajúci smer s parametrom {\tt zotrvacnost}, t.j. budeme robiť
+\prg!dir = lerp(g, dir, zotrvacnost);!. Výsledný smer normalizujeme tak, aby sa 
+kvapka pohla o vzdialenosť jedna. 
+Vyrátame pôvodnú výšku a novú výšku a 
+ich rozdiel označíme {\tt delta}.
 
+\ods
+O kvapke si navyše pamätáme rýchlosť\footnote{%
+  Rýchlosť používam iba pri výpočte erózie. Pri určovaní smeru sa vždy pohnem o jednotku.
+  To je kvôli tomu, aby rýchle kvapky nepreskakovali mrežové body a pomalé kvapky sa zbytočne
+  nesimulovali veľakrát na tom istom mieste.},
+  objem vody (číslo od 0 do 1) a množstvo rozpusteného bahna.
+ Koľko bahna sa z kvapky môže usadiť závisí od sklonu, rýchlosti a množstva vody:
+
+ \ods
+ \centerline{
+   \prg!double dasausadit =  max(-delta, min_sklon) * rychlost * voda * rozpustnost;!} 
+\ods
+
+Pričom \prg!min_sklon! a \prg!rozpustnost! sú konštanty, ktoré si na začiatku nejak nastavíme.
+Teraz môžu nastať dva prípady: ak kvapka tečie dokopca, alebo nesie viac bahna, ako 
+\prg!dasauasdit!, bahno sa bude usádzať. Ak tečie dokopca (t.j. ${\tt delta}>0$)
+bahno sa snaží vyplniť rozdiel výšok, t.j. usadí sa \prg!min(delta, bahno)!. V opačnom
+prípade sa usadí \prg!(bahno - dasausadit) * usadzanie;!, kde {\tt usadzanie} je opäť
+ďalší parameter z rozsahu 0 až 1. 
+Usadené bahno odrátame z bahna v kvapke a prirátame ho k výškovej mape.
+Pri tom použijeme zase bilineárnu interpoláciu, t.j. ak množstvo usadeného mahna máme 
+v premennej {\tt usadit}, 
+tak do výškovej mapy {\tt H} rozdelíme usadeninu 
+podľa pozície kvapky medzi meržovými bodmi tak,
+že bližšie mrežové body dostanú viac a vzdialenejšie menej\footnote{
+Nasledovný program je možno trochu neprehľadný, ale vyskúšaj si, čo znamená pre konkrétne 
+mrežové body. Napr. pre {\tt dx=0}, {\tt dy=0} vyplynie, že {\tt H(ix,iy)}
+dostane časť {\tt (1 - p.x) * (1 - p.y)}. Ak napr. {\tt p} je na pozícii {\tt (ix,iy)},
+tak {\tt p.x} aj {\tt p.y} je 0 a všetok materiál ide do {\tt H(ix,iy)}. Ak by 
+{\tt pos} bolo na opačnom konci na pozícii {\tt (ix+1, iy+1)}, tak do {\tt H(ix,iy)}
+nejde nič. 
+}:
+
+
+\vbox{
+\begin{lstlisting}
+int ix = pos.x, iy = pos.y;     // mrezovy bod po zaokruhleni pozicie
+Vec p{pos.x - ix, pos.y - iy};  // pozicia v ramci gridu
+
+for (int dx = 0; dx < 2; dx++)
+  for (int dy = 0; dy < 2; dy++) {
+    H(ix + dx, iy + dy) += usadit * (dx * p.x + (1 - dx) * (1 - p.x)) *
+                           (dy * p.y + (1 - dy) * (1 - p.y));
+  }
+\end{lstlisting}
+}
+
+\ods
+Ak sa bahno neusádza, tak nastáva erózia: časť materiálu z výškovej mapy sa presunie
+do kvapky. Aká veľká časť sa uberie, kontroluje ďalší parameter {\tt erozia}.
+Materiál budeme uberať nielen zo susedných mrežových bodov, ale
+zo širšieho okolia, aby nevznikali príilš úzke a strmé kaňony:
+
+\begin{lstlisting}
+double urvat = min((dasausadit - bahno) * erozia, -delta);
+
+// odoberie zo sirsieho okolia podla toho, ako su nastavene vahy
+for (int dx = 0; dx < 2 * r + 1; dx++)
+  for (int dy = 0; dy < 2 * r + 1; dy++) {
+    int i = ix - r + dx, j = iy - r + dy;
+    double kusok = urvat * vahy[dx][dy];
+    H(i, j) -= kusok;
+    bahno += kusok;
+  }
+\end{lstlisting}
+
+
+\ods
+Pole {\tt vahy} bude ako ''štetec'' rozmerov $2{\tt r}+1\times2{\tt r}+1$, ktorý 
+si doredu pripravíme tak, aby pokrýval okolie do vzdialenosti {\tt r}, 
+v strede mal väčšie hodnoty ako na krajoch a dokopy mal súčet 1 takto (číslo 
+v políčku je váha v percentách):
+
+\ods
+
+\centerline{\begin{tikzpicture}[scale=0.7]
+  \def\r{4}
+  
+  \pgfmathtruncatemacro{\n}{2*\r}
+  \foreach \dx [
+    remember=\suma (initially 0),    
+  ]in {0,...,\n}{
+    \foreach\dy[
+      remember=\sumb (initially \suma),
+    ] in {0,...,\n}{
+      \pgfmathsetmacro{\dist}{sqrt((\r-\dx)*(\r-\dx)+(\r-\dy)*(\r-\dy))/(\r+1)}
+       \ifdim\dist pt<1.0pt\pgfmathsetmacro{\w}{1-\dist}\else\pgfmathsetmacro{\w}{0}\fi
+       \pgfmathsetmacro{\sumb}{\sumb+\w}
+       \xdef\suma{\sumb}
+    }
+    \xdef\pako{\suma}
+  }
+
+  \foreach \dx in {0,...,\n} {
+    \foreach \dy in {0,...,\n} {
+      \pgfmathsetmacro{\dist}{sqrt((\r-\dx)*(\r-\dx)+(\r-\dy)*(\r-\dy))/(\r+1)}
+       \ifdim\dist pt<1.0pt\pgfmathsetmacro{\w}{1-\dist}\else\pgfmathsetmacro{\w}{0}\fi
+       \pgfmathsetmacro{\tmp}{100*\w/\pako}
+       \pgfmathtruncatemacro{\c}{\tmp/6*90}
+       \fill[teal!\c](\dx,\dy) rectangle ++(1,1);
+       \ifnum\c<50\def\c{100}\else\def\c{0}\fi
+       \ifdim\tmp pt>0pt\node[black!\c] at (0.5+\dx,0.5+\dy) {{\scriptsize 
+         \calc[precision=1]{\tmp}}};\fi
+     }
+   }
+
+  \draw[teal] (0,0) grid (\n+1,\n+1);
+\end{tikzpicture}}
+
+\ods
+To sa dá naprogramovať napr. takto:
+
+\ods
+\begin{lstlisting}
+double sum = 0;
+for (int dx = 0; dx < 2 * r + 1; dx++)
+  for (int dy = 0; dy < 2 * r + 1; dy++) {
+    // vzdialenost od stredu
+    double dist = sqrt((r - dx) * (r - dx) + (r - dy) * (r - dy)) / (r + 1);
+    double w = 0;
+    if (dist < 1) w = (1 - dist);
+    vahy[dx][dy] = w;
+    sum += w;
+  }
+for (int dx = 0; dx < 2 * r + 1; dx++)
+  for (int dy = 0; dy < 2 * r + 1; dy++) vahy[dx][dy] /= sum;
+\end{lstlisting}
+
+\ods
+Pozícia \prg![r][r]! je  presne v strede poľa, preto 
+$\sqrt{({\tt r}-{\tt dx})^2+({\tt r}-{\tt dy})^2}$ je vzdialenosť políčka 
+\prg![dx][dy]! od stredu. Vzdialenosť predelíme {\tt r + 1}, aby sme dostali kruh s 
+polomerom 1. Pozície mimo kruhu budú mať hodnotu 0, pozície v kruhu hodnotu 
+úmernú vzdialenosti od stredu. Nakoniec každú hodnotu vydelíme súčtom\footnote{
+  To je typická finta ako zaručiť, že celkový súčet je 1. Ak mám čísla
+  $a_1, a_2,\ldots a_n$ a označím $s=a_1+a_2+\cdots+a_n$, tak keď zoberiem čísla
+  $b_1=\frac{a_1}{s}$, $b_2=\frac{a_2}{s}$, \ldots, $b_n=\frac{a_n}{s}$, tak 
+  ich vzájomné relatívne veľkosti sa nezmenia, lebo som všetky vydelil rovnakým číslom,
+  a ich súčet bude $b_1+\cdots+b_n=\frac{a_1}{s}+\cdots+\frac{a_n}{s}=
+  \frac{1}{s}(a_1+\cdots+a_n)=\frac{s}{s}=1$.
+}.
+
+\ods
+Nakoniec upravíme rýchlosť podľa fyzikou inšpirovaného vzťahu
+
+\begin{lstlisting}
+if (delta < 0) delta *= -1;
+rychlost = sqrt(rychlost * rychlost + delta * gravitacia);
+\end{lstlisting}
+
+kde {\tt gravitacia} je parameter, a odparíme časť vody 
+\prg!voda *= (1 - odparovanie)! kde {\tt odparovanie} je ešte iný parameter.
+
+\begin{uloha}
+  Naprogramuj triedu {\tt Eroder}, ktorá v konštruktore dostane referenciu na 
+  výškovú mapu a má funkciu {\tt kvap}, ktorá na nej odsimuluje jednu kvapku.
+\end{uloha}
+
+Výhodou tejto metódy je, že je jednoduchá, nevýhodou je, že má strašne veľa parametrov,
+ktoré treba správne nastaviť, ak má výsledok vyzerať dobre\footnote{
+  V pôvodnej práci je ešte jedno odporúčanie: keďže pri úpravách výškovej mapy sú zmeny
+  pri jednej kvapke veľmi malé, kvôli reprezentácii reálnych čísel môže prísť
+  k podtečeniu: číslo, ktoré prirátavame je tak malé, že sa v mantise neprejaví.
+  Preto je lepšie udržovať
+  si zmeny v separátnej tabuľke a až nakoniec ich prirátať k výškovej mape.}.
+
+\ods
+Po troche hrania sa s parametrami som dostal výsledok, s ktorým som bol viac-menej spokoný.
+Na obrázku vľavo sú dráhy kvapiek, vpravo je ostrov po erózii.
 
 \ods
 \centerline{
@@ -14135,6 +14387,28 @@ usadzovať: v kvapke ho ostane menej a povrch sa trochu zvýši.
   \hskip 1cm
   \includegraphics[width=0.4\textwidth]{data/86_rendered.png}
 }
+
+\ods
+Tu je niekoľko ďalších ostrovov, ktoré sa vygenerovali s rôznym seedom:
+
+\def\tmp#1{
+  \centerline{
+\foreach\n in {#1}{
+  \includegraphics[width=0.33\textwidth]{data/ostrovy/\n_rendered.png}
+}}}
+
+\tmp{100,263,264}
+
+\ods
+\tmp{265,266,267}
+
+\ods
+\tmp{26,273,53}
+
+\ods
+Samozrejme, v tomto projekte by sa dalo pokračovať k realistickejším výsledkom, ale chcel
+som ti len ukázať, ako sa náhodné čísla dajú použiť na vytváranie vecí, ktoré sú 
+''len trochu'' náhodné. 
 
 \fi
 

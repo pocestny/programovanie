@@ -1,26 +1,24 @@
 #include <iostream>
-#include <map>
-#include <string>
-
+#include <set>
 using namespace std;
 
 int main() {
-  map<string, int> s;
-  while (true) {
-    string typ, in;
-    cin >> typ;
-    if (typ[0] == '!') break;
-    cin >> in;
-    if (typ[0] == '?') cout << s[in] << endl;
-    else if (typ[0] == '*') {
-      int v = stoi(in.substr(in.find("-") + 1));
-      in=in.substr(0,in.find("-"));
-      if (v<=s[in])
-      cout << "ano" << endl;
-      else
-      cout << "nie" << endl;
-    } else 
-      s[in]++;
-    
+  multiset<int> s;
+  int n;
+  cin >> n;
+  while (n-- > 0) {
+    int x;
+    cin >> x;
+    s.insert(x);
   }
+  int sum = 0;
+  while (s.size() > 1) {
+    int a = *s.begin();
+    s.erase(s.begin());
+    int b = *s.begin();
+    s.erase(s.begin());
+    sum += a + b;
+    s.insert(a + b);
+  }
+  cout << sum << endl;
 }

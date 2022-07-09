@@ -1,27 +1,18 @@
 #include <iostream>
 using namespace std;
-
 int main() {
-  int n, i, j, cnt = 0, k;
+  int n, i, j;
   cin >> n;
-  int a[n];
-  for (i = 0; i < n; i++) cin >> a[i];
-  cin >> k;
-
-  i = 0;
-  j = 0;
-
-  while (true) {
-    while (j < n && a[j] - a[i] < k) j++;
-    if (j == n) break;
-    if (a[j] - a[i] == k) cnt++;
-    while (j < n && a[j] - a[i] == k) j++;
-    if (j == n) break;
-    while (i < j && a[j] - a[i] > k) i++;
-    if (i == j) continue;
-    if (a[j] - a[i] == k) cnt++;
-    while (i < j && a[j] - a[i] == k) i++;
+  int a[n + 1];
+  a[0] = 0;
+  cin >> a[1];
+  for (i = 2; i <= n; i++) {
+    cin >> a[i];
+    a[i] = a[i] + a[i - 1];
   }
-
-  cout << cnt << endl;
+  while (n > 0) {
+    cin >> i >> j;
+    cout << a[j+1] - a[i] << endl;
+    n--;
+  }
 }
