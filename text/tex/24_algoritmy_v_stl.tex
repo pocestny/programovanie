@@ -1,0 +1,285 @@
+\chapter{Algoritmy v STL}
+\label{sect:algstl}
+
+Pri riešení úloh si si isto všimol, že sú niektoré užitočné funkcie, ktoré sa
+často opakujú: utriediť pole, nájsť maximum alebo minimum, vymeniť dve premenné,
+vyhľadať hodnotu v utriedenom poli a podobné. STL obsahuje knižnicu \vb{<algorithm>},
+kde sú rôzne šikovné algoritmy, ktoré ti pomôžu písať programy rýchlejšie. Napríklad
+ak máš premennú \prg!vector<int> a;! tak ju vieš utriediť pomocou
+\prg!sort(a.begin(), a.end());! V tejto kapitole by som ti chcel vysvetliť, ako 
+a prečo to 
+funguje.
+
+ Cieľom návrhárov STL bolo, aby algoritmy boli čo najvšeobecnejšie a dali 
+sa používať v rôznych situáciách. Preto sa ich snažia oddeliť od tzv. {\em kontajnerov},
+čo sú typy, ktoré uchovávajú dáta.
+Napr. typ \vb{vector}
+má dáta uložené v jednom dynamicky alokovanom poli, ale mohol by ich mať napr. v piatich
+rôznych poliach, alebo hocijako inak.
+Ak chceš napr. utriediť
+pole, nepotrebuješ na to presne vedieť, ako sú prvky uložené, ale potrebuješ sa v nich vedieť
+prehŕňať: nejaký konkrétny prvok si zapamätať, vedieť prejsť na ďalší prvok, prejsť
+na začiatok, povedať, či dva zapamätané prvky sú ten istý a tak podobne. \indexItem{Prg}{iterátory}
+Na to slúžia  tzv. {\em iterátory}. Iterátor nie je súčasť jazyka (ako 
+napr. príkazy a výrazy), je to len označenie: iterátor je hocijaká trieda, ktorá sa
+vie správnym spôsobom prehŕňať v dátach inej triedy.
+
+
+Každý kontajner, ktorý chce používať algoritmy STL, musí mať dve metódy \prg!begin()!
+a \prg!end()!, ktoré vracajú iterátor. Dajme tomu, že máš triedu 
+\prg!struct Puch{ int a,b,c; };! a chceš tie tri čísla vedieť utriediť volaním funkcie
+\prg!sort(p.begin(), p.end());! z STL. Potreboval by si spraviť niečo ako \indexItem{Prg}{vnorené typy}
+
+\begin{lstlisting}
+struct IteratorPuchu {
+  ...
+};
+
+struct Puch {
+  int a,b,c;
+  IteratorPuchu begin() { ... }
+  IteratorPuchu end() { ... }
+};
+\end{lstlisting}
+
+ Pretože \vb{IteratorPuchu} logicky patrí triede \vb{Puch}, využíva sa možnosť C++
+definovať typy vovnútri iných typov takto:
+
+\begin{lstlisting}
+struct Puch {
+
+  struct iterator {
+    ...
+  };
+
+  int a,b,c;
+  iterator begin() { ... }
+  iterator end() { ... }
+};
+\end{lstlisting}
+
+Teraz je \vb{iterator} súčasťou typu \vb{Puch} a celým menom sa volá 
+\prg!Puch::iterator! (dve dvojbodky znamenajú \cmd{patriaci}).
+Typ \vb{vector} to má urobené rovnako, môžeš skompilovať
+
+\begin{lstlisting}
+vector<int> a;
+vector<int>::iterator b = a.begin();
+\end{lstlisting}
+
+ Funkcie, ako napr. \vb{sort} sú v skutočnosti šablóny, ktoré vyrobia príslušnú
+funkciu pre hocijaký typ iterátora. Napr. \vb{sort} je definovaná ako\footnote{%
+  to, že parameter v šablóne sa volá \prg!class! a nie \prg!typename! si  nevšímaj,
+  znamená to skoro to isté}
+
+\begin{lstlisting}
+template<class RandomIt>
+void sort(RandomIt first, RandomIt last);
+\end{lstlisting}
+
+Pre triedenie poľa by si mal preto zavolať
+\prg!sort<vector<int>::iterator>(a.begin(), a.end());!
+To tiež funguje, ale stačí zavolať \prg!sort(a.begin(), a.end());! Je to preto, 
+že ak si kompilátor vie odvodiť typ, dosadí ho do šablóny sám. V tomto prípade vidí,
+že funkcia \vb{begin()} triedy \prg!vector<int>! vracia typ \prg!vector<int>::iterator!,
+takže je jasné, že toto je typ, ktorý treba použiť do šablóny.
+Toto odvodzovanie typov, ktoré kompilátor robí sa dá využiť aj pri definovaní premenných:
+ak namiesto mena typu použiješ špeciálne meno \prg!auto!, kompilátor sa pokúsi odvodoť typ;\indexItem{Prg}{\vb{auto}}
+napr. namiesto \prg!vector<int>::iterator b = a.begin();! môžeš
+napísať \prg!auto b = a.begin();!
+
+ Každá funkcia z knižnice \vb{algorithm} má povedané, čo presne očakáva od iterátora.
+Ale vždy treba, aby iterátor vedel vrátiť hodnotu operátorom \vb{*}, aby sa mal operátor
+\vb{++}, prípadne operátor \vb{+} na posuntie o \vb{i} prvkov ďalej
+a pod. K iterátoru sa preto môžeš správať ako k pointru (a napr. pre typ 
+\prg!vector<int>! to skutočne aj pointer na \prg!int! je). Všetky funkcie STL pracujú na
+{\em polouzavertých intervaloch}: začiatočný iterátor je na prvý prvok, koncový iterátor
+je na prvok za posledným. 
+
+
+\def\var(#1)#2#3{%
+  \draw (0.2,-#1) rectangle node[align=center](v#1) {\vb{#3}} (1.2,1-#1);
+  \draw (0,0.5-#1) node[anchor=east]{\textcolor{magenta}{\vb{#2}}};
+}
+
+\def\ptr(#1,#2)[#3] {
+  \draw[blue,-{>[length=4pt,width=2.5pt]}] (1.7,0.5-#1) to[out=#3,in=-#3] (1.7,0.5-#2);
+}
+
+\def\world(#1)#2#3{
+  \draw[thick,#3](-1,-#1) -- (1.5,-#1) node[anchor=west]{\vb{#2}};
+}
+
+\def\kon(#1){ 
+  \draw[draw=none] (0.2,-#1) rectangle node[align=center]{\vb{\ldots}} (1.2,1-#1);
+}
+  
+\def\godot#1{\filldraw[blue,scale=0.6](#1) circle (0.4ex and 1.4ex);}
+
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){a.data}{}
+  \var(1){a.size}{10}
+  \var(2){a.capacity}{15}
+  \world(-1){\vb{vector<T> a;}}{orange}
+  \kon(3)
+
+  \godot{v0}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (v0) to [out=0,in=180] (3,-2);
+
+  \begin{scope}[shift={(3,-2.5)},xscale=0.285]
+    \foreach \i in {10,...,14} {
+      \draw[thin,gray](\i,0) rectangle (\i+1,1);
+    \node[thin,gray,anchor=south] at (\i+0.5,1){{\scriptsize$\i$}};
+    }
+    \foreach \i in {0,...,9} {
+      \draw[magenta](\i,0) rectangle (\i+1,1);
+    \node[magenta,anchor=south] at (\i+0.5,1){$\i$};
+    }
+    \draw[blue,-{>[length=8pt,width=5pt]}] (0.5,-2) 
+    node[magenta,anchor=north] {\vb{a.begin()}}-- (0.5,-0.2);
+    \draw[blue,-{>[length=8pt,width=5pt]}] (10.5,-2) 
+    node[magenta,anchor=north] {\vb{a.end()}}-- (10.5,-0.2);
+  \end{scope}
+
+\end{tikzpicture}
+
+ Takže tieto programy robia to isté
+
+\begin{lstlisting}
+for (int i = 0; i < a.size(); i++) 
+  cout << a[i] << endl;
+
+for (int *p = a.data(); p < a.data() + a.size(); ++p) 
+  cout << *p << endl;
+
+for (vector<int>::iterator it = a.begin(); it < a.end(); it++)
+  cout << *it << endl;
+
+for (auto it = a.begin(); it < a.end(); it++)
+  cout << *it << endl;
+\end{lstlisting}
+
+Len pripomeniem, že iterátory spravidla obsahujú pointre do príslušnej dátovej štruktúry, 
+a preto, rovnako ako pointre, môžu prestať byť aktuálne:
+ak napr. urobíš \prg!auto it = a.end();! a potom \prg!a.push_back(3);! tak
+\vb{it} bude ukazovať stále na to isté miesto a nie za koniec vektora \vb{a}.
+V dokumentácii k jednotlivým kontajnerom sa píše, ktoré iterátory sú pri ktorých operáciách
+{\em zneplatnené} (invalidated). Napr. pri \prg!push_back! sa píše: {\em ak pri operácii
+bolo nutné realokovať pole, zneplatnia sa všetky iterátory, inak iba posledný}.
+To treba mať na pamäti: častá chyba je, že sa v cykle 
+\prg!for (auto it = a.begin(); it < a.end(); it++)! prechádza nejaký kontajner
+a vnútri cyklu sa robia operácie, ktoré môžu iterátory zneplatniť. 
+
+ Ak ťa zaujíma, čo od iterátora potrebuje napr. funkcia \vb{sort}, v súbore
+\link{\rootpath/puch.h}{puch.h}
+je dorobený \vb{Puch::iterator} zo začiatku kapitoly. Program
+
+\begin{lstlisting}
+#include <algorithm>
+#include <iostream>
+
+#include "puch.h"
+using namespace std;
+
+int main() { 
+  Puch p(12, 11, 9);
+  sort(p.begin(), p.end()); 
+  for (auto it = p.begin(); it < p.end(); ++it) cout << *it << " ";
+  cout << endl;
+} 
+\end{lstlisting}
+
+
+\begin{lrbox}{\TmpBox}
+\begin{lstlisting}[basicstyle=\scriptsize\roboto]
+namespace Kacka {
+  int zobak;
+  void kvak() { cout << "kvak" << endl; }
+} 
+\end{lstlisting}
+\end{lrbox}
+
+
+vypíše \vb{9 11 12}. Ak sa pozrieš dovnútra, je tam jedna konštrukcia, ktorú som ti zatiaľ\indexItem{Prg}{type alias \vb{using}}
+neukazoval: tzv. {\em type alias}. Ak napíšeš\footnote{\indexItem{Prg}{\vb{namespace}}
+Podobný alias používame, keď v každom programe píšeme \prg!using namespace std;! na to, aby sme si ušetrili písanie dvojbodiek.
+Zápis s dvojbodkou  sme už videli pri vnorených typoch, napr. \prg!vector<int>::iterator! je typ \vb{iterator} definovaný vovnútri typu 
+\prg!vector<int>!. Podobne je to aj s funkciami, \vb{Puch::begin()} je celé meno funkcie \vb{begin()} definovanej v type \vb{Puch}. Ak
+píšeme metódy typu \vb{Puch}, môžeme ju volať jednoducho iba \vb{begin()}, ale pri volaní zvonka by sme potrebovali písať celé meno.
+Konštrukcia \vb{namespace} umožňuje schovať viacero typov, premenných a funkcií do jedného celku so spoločným menom. Je to hlavne kvôli tomu, aby 
+sa vo veľkých programoch zabránilo konfliktom, keby sa vyskytlo to isté meno na viacerých miestach. Keby si napísal
+
+\usebox{\TmpBox}
+
+tak v programe bude premenná \prg!Kacka::zobak! a funkcia \prg!Kacka::kvak()!. Nie je to ale typ ako pri \vb{struct} (ani na konci definície nie je bodkočiarka),
+takže nemôžeš mať premennú \prg!Kacka c;!
+
+Všetky typy z STL sú v \vb{namespace std}, takže by sme mali písať \vb{std::vector}, \vb{std::cout}, \vb{std::endl} a pod. Ak napíšeš \hbox{\vb{using namespace X}} znamená to,
+že všetky veci z \vb{X} chceš vedieť používať aj ich skrátenými menami.
+} \prg!using INT = unsigned long int;!
+tak \vb{INT} bude všade v programe skratka za \prg!unsigned long int!. 
+
+ Tu je niekoľko užitočných funkcií z knižnice \vb{algorithm} 
+
+
+\def\xx#1{\textcolor{magenta}{\prg!#1!}}
+\begin{tabularx}{\textwidth}{lX}\toprule
+  \xx{find} & \prg!it find( it first, it last, const T\& val )! \newline
+              Vráti iterátor na prvý výskyt
+              hodnoty \prg!val! v intervale 
+              \prg![first, last)! alebo \prg!last! ak sa tam \prg!val! nenachádza.\\\midrule
+  \xx{search}&\prg!it search( it first, it last, it s_first, it s_last )! \newline
+  vráti iterátor na prvý výskyt 
+  postupnosti \prg![s_first, s_last)! v intervale \prg![first, last)!
+  \\\midrule
+  \xx{min_element}&\prg!it min_element(it first, it last)!\newline
+  vráti iterátor na najmenší prvok z rozsahu \prg![first, last)!\\
+  \xx{max_element}&\prg!it max_element(it first, it last)!\newline
+  vráti iterátor na najväčší prvok z rozsahu \prg![first, last)!\\\midrule
+  \xx{min}&\prg!T min(T a, T b)! alebo \prg!T min(\{T a1, ... , T an\})!\newline
+  Vráti  najmenší prvok  (napr. \prg!min(2, 3)! alebo \prg!min(\{2, 3, 4, 5\})!)\\
+  \xx{max}&\prg!T max(T a, T b)! alebo \prg!T max(\{T a1, ... , T an\})!\newline
+  Vráti najväčší prvok.\\\midrule
+  \xx{fill}&\prg!void fill(it first, it last, t val)!\newline
+  Vyplní interval \prg![first, last)! hodnotou \vb{val}\\\midrule
+  \xx{copy}&\prg!it copy(it first, it last, it out)!\newline
+  Skopíruje interval \prg![first, last)! od iterátora \prg!out! (musí tam byť miesto).
+  \newline
+  \prg!vector<int> b(a.size());!\newline
+  \prg!copy(a.begin(), a.end(), b.begin());!
+  \\
+  \xx{copy_backward} & to isté, ale skopíruje interval tak, že končí za iterátorom
+  \vb{out}\newline
+  \prg!vector<int> b(a.size());!\newline
+  \prg!copy(a.begin(), a.end(), b.end());!
+  \\\midrule
+  \xx{merge}&\prg!it merge(it first1, it last1,
+                it first2, it last2,
+                it out)!\newline
+  Urobí operáciu \vb{merge} na dvoch utriedených intervaloch a výsledok
+  uloží od iterátora \vb{out} (musí tam byť miesto). 
+  Vráti iterátor za posledný vložený prvok.
+  \newline
+  \prg!vector<int> c(a.size() + b.size());!\newline
+  \prg!merge(a.begin(), a.end(), b.begin(), b.end(), c.begin());!
+   \\\midrule
+   \xx{replace}&\prg!it replace(it first, it last, T\& old_value, T\& new_value)!\newline
+   Nahradí všetky výskyty hosnoty \prg!old_value! hodnotou \prg!new_value!\\\midrule
+   \xx{swap}&\prg!void swap(T\& a, T\& b)!\newline
+   Vymení hodnoty v premenných \vb{a}, \vb{b}.\\\midrule
+   \xx{reverse}&\prg!void reverse(it first, it last)!\newline
+   Otočí interval \prg![first, last)!\\\midrule
+   \xx{sort}&\prg!void sort(it first, it last)!\newline
+   Utriedi interval \prg![first, last)!\\\midrule
+   \xx{binary_search}&\prg!bool binary_search(it first, it last, const T\& val)!\newline
+   Zistí, či sa v utriedenom poli v rozsahu \prg![first, last)! vyskytuje hodnota \prg!val!\\
+   \xx{lower_bound}&\prg!it lower_bound(it first, it last, const T\& val)!\newline
+   Vráti iterátor na prvú hodnotu v rozsahu \prg![first, last)!, ktorá je väčšia alebo
+   rovná ako \prg!val!\\
+   \xx{upper_bound}&\prg!it upper_bound(it first, it last, const T\& val)!\newline
+   Vráti iterátor na prvú hodnotu v rozsahu \prg![first, last)!, ktorá je väčšia 
+   ako \prg!val!\\
+  \bottomrule
+\end{tabularx}
+

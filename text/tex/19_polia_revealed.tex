@@ -1,0 +1,372 @@
+\chapter{Polia revealed}
+
+Hovoril som ti, že pole nie je premenná, ale veľa premenných, a preto sa
+správa zvláštne (napr. si nesmel posielať pole ako parameter do funkcie,
+nesmel si priraďovať a pod.). V skutočnosti je pole konštantný\footnote{%
+S označením \prg!const! sme sa už stretli v tvare \prg!const int n = 100;!: 
+ak ho napíšeš pred definíciu premennej,
+znamená to, že premenná sa už potom nesmie meniť. 
+Podobne môže byť \prg!const int *a = &x;!
+}pointer.
+Keď napíšeš \prg!int a[10];! vyrobí sa v pamäti 10 premenných typu \prg!int!
+a \vb{a} je \prg!const! pointer na prvú z nich. Označenie indexu \vb{[ ]}
+je v skutočnosti iba skratka za výraz s hviezdičkou: \prg!a[i]! znamená
+\prg!*(a+i)! pre hocijaký pointer \vb{a}. Rôzne spôsoby prístupu k
+prvkom poľa sú v nasledujúcom programe:
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+int main() {
+  int a[10];
+  int *b, *c;
+  int i;
+  a = b; // <-- !! chyba, a je const
+  c = a + 1;  // c ukazuje na a[1]
+
+  b = a;  // b ukazuje na a[0]
+  for (i = 0; i < 10; i++) {
+    *b = i + 1;  // *b zapisuje do poľa a
+    b = b + 1;   // presuň b na ďalší prvok poľa
+  }
+
+  cout << a[0] << endl;
+  for (i = 0; i < 9; i++)
+    cout << c[i] << endl;  // c ukazuje na a[1], preto
+                           // c[i] je a[i+1]
+
+  *(a + 5) = 14;                // *(a+5) je a[5]
+  for (b = a; b < a + 10; b++)  // k b sa dá pripočítavať číslo aj takto
+    cout << *b << " ";
+  cout << endl;
+}
+\end{lstlisting}
+}
+
+
+Teraz by malo byť jasné, ako sa dá posielať pole ako parameter do funkcie: stačí,
+aby bol typu pointer. Treba si ale vždy poslať aj veľkosť poľa ako samostatný parameter:
+
+\begin{lstlisting}[] 
+void napln_pole(int n, int *a) {
+  int i;
+  for (i = 0; i < n; i++)
+    a[i] = i * i;
+}
+
+int main() {
+  int a[10];
+  napln_pole(10, a);
+  int i;
+  for (i = 0; i < 10; i++)
+    cout << a[i] << " ";
+  cout << endl;
+}
+\end{lstlisting}
+
+Tento program vypíše \vb{0 1 4 9 16 25 36 49 64 81}. Len pripomeniem: ak by si v tomto
+programe zmenil riadok \prg!int a[10];! na \prg!int a[3];!, program by fungoval rovnako,
+akurát, že vo funkcii \vb{napln\_pole} by sa zapisovalo aj do pamäte, ktorá nebola
+rezervovaná poľom \vb{a}. Ak sú tam nejaké premenné tvojho programu (napr. \vb{i}), 
+prepíšu sa. Ak tá
+pamäť tvojmu programu nepatrí, príde náš priateľ \vb{segfault}.
+
+
+
+Dvojrozmerné pole je pole, ktorého prvkami sú polia. Preto ak máš \prg!int a[2][3]!,
+tak \vb{a} je (konštantný) pointer na trojprvkové pole typu \prg!int!. Preto 
+\prg!*(a+1)! je to isté, čo \prg!a[1]!, čiže trojprvkové pole typu \prg!int!
+(t.j. môžeš napísať \prg!int *q = *(a+1);! a potom \prg!q! bude ukazovať na
+prvý prvok poľa \prg!a[1]!, čiže na druhý riadok poľa \prg!a!).
+Z toho celého vyplýva, že dvojrozmerné pole je v pamäti vlastne jednorozmerné
+pole uložené rovnako, ako sme to mali v kapitole~\ref{sect:2dpolia}.
+Na to, aby si k nemu tak mohol pristupovať, treba ho pretypovať, takže môžeš
+napísať \prg!int *p = (int *)a;!. To je zároveň aj najjednoduchší spôsob, ako
+posielať dvojrozmerné pole ako parameter do funkcie.\\
+
+\vbox{
+\begin{lstlisting}[] 
+int main() {
+  int a[2][3];
+  int i, j, k = 1;
+
+  for (i = 0; i < 2; i++)      // naplníme pole po riadkoch 
+    for (j = 0; j < 3; j++) {
+      a[i][j] = k;
+      k++;
+    }
+
+  int *q = *(a + 1);           // q ukazuje na druhý riadok
+  for (int i = 0; i < 3; i++) 
+    cout << q[i] << endl;
+
+  int *p = (int *)a;          // pohľad na a ako na 1D pole 
+  for (i = 0; i < 6; i++) 
+    cout << p[i] << " ";
+  cout << endl;
+} 
+\end{lstlisting}
+}
+
+
+ Malá odbočka: mechanizmus posielania parametrov pointrami sa používa aj v iných 
+programovacích jazykoch, ale častokrát ``pod kapotou''. Napríklad Python posiela
+základné typy ako parametre (tzv. {\em volanie hodnotou}), ale na zoznamy a iné zložité
+typy posiela pointer (tzv. {\em volanie referenciou}). Pythonovský program\\
+
+\vbox{
+\begin{lstlisting}[language=python] 
+def zelena(x):
+    x = 42
+
+def modra(x):
+    x[0] = 42
+
+a = 1
+zelena(a)
+print(a)
+
+b = [1, 2, 3]
+modra(b)
+print(b)
+\end{lstlisting}
+}
+
+vypíše
+
+\begin{outputBox}
+1
+[42, 2, 3]
+\end{outputBox}
+
+Do funkcie \vb{zelena} sa poslalo číslo, preto sa menila hodnota lokálnej premennej
+vo svete funkcie \vb{zelena} (ktorá spolu s jej svetom zanikla), do funkcie \vb{modra}
+sa poslal pointer na zoznam \vb{b}. Tento spôsob volania dáva zmysel, lebo väčšinou je to
+presne to, čo chceš, ale pre začínajúcich programátorov to niekedy môže byť mätúce.
+Koniec malej odbočky.
+
+ Vyriešili sme, ako posielať polia ako parametre, ale stále nám ostáva problém 
+s globálnymi poľami. Pamätáš sa, že keď sme pri kreslení obrázkov chceli mať globálne
+pole, museli sme ho vyrobiť tak, aby už v čase kompilácie bola známa jeho veľkosť. 
+Riešili sme to tak, že sme pole spravili dostatočne veľké a používali z neho iba 
+tak veľký kus, ako sme potrebovali. Toto evidentne nie je najlepší prístup.\indexItem{Prg}{dynamická alokácia: \vb{new[]} a \vb{delete[]}} 
+Lepšie riešenie je tzv. {\em dynamická alokácia}: príkaz \prg!new int[100];! 
+vyhradí v odľahlom kúte pamäte miesto na 100 premenných typu \prg!int! a vráti pointer
+naň. Toto miesto je vyhradené pre tvoj program, ale vrátený pointer je jediný spôsob,
+ako sa k tej pamäti dostať: ak si ho neuložíš do premennej (alebo ju neskôr zabudneš),
+pamäť stále ostane vyhradená pre tvoj program, ale ten sa k nej už nikdy nebude môcť dostať.
+Ak už alokovanú pamäť nepotrebuješ, treba ju vrátiť systému príkazom \prg!delete[]!. Treba
+byť opatrný, lebo to, či je pamäť vyhradená, alebo nie, nijak nevidno. Dobrý zvyk 
+je hneď po volaní \prg!delete[]! priradiť do odalokovanej premennej \prg!nullptr!.\\
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+int *a = (int *)12345;
+
+void rob_nieco() {
+  int i;
+  for (i = 0; i < 100; i++) a[i] = 42;
+}   
+
+void vypis(int x) { cout << x << ": " << (unsigned long)a << endl; }
+  
+int main() {
+  vypis(1);
+  a = new int[100];
+  vypis(2);     // a ukazuje na pridelenú pamäť
+  rob_nieco();  // v poriadku, píšem do svojej pamäte
+  delete[] a;   // pridelená pamäť sa označila ako voľná
+  vypis(3);     // hodnota a sa nezmenila, stále ukazuje na to isté miesto,
+                // ale tá pamäť mi už nepatrí
+  rob_nieco();  // <-- !! toto by bol problém - systém medzitým mohol 
+                // tú pamäť dať niekomu inému
+}
+\end{lstlisting}
+}
+
+Tento program vypíše napr.
+
+\begin{outputBox}
+1: 12345
+2: 94751025169088
+3: 94751025169088
+\end{outputBox}
+
+ Pri priraďovaní si treba dávať pozor, 
+hlavne ak je pointer na dynamicky alokovanú pamäť súčasť zloženého typu, napr.
+
+\vskip 2ex
+\vbox{
+\begin{lstlisting}[] 
+struct Kvak {
+  int *a, b, c[2];
+};
+\end{lstlisting}
+}
+
+Ak napíšeš
+
+\begin{lstlisting}[] 
+Kvak x, y;
+x.a = new int[100];
+y.a = new int[100];
+\end{lstlisting}
+
+a ešte ponastavuješ ďalšie hodnoty, môže to v pamäti vyzerať takto:
+
+
+\def\var(#1)#2#3{%
+  \draw (0.2,-#1) rectangle node[align=center](v#1) {\vb{#3}} (1.2,1-#1);
+  \draw (0,0.5-#1) node[anchor=east]{\textcolor{magenta}{\vb{#2}}};
+}
+
+\def\ptr(#1,#2)[#3] {
+  \draw[blue,-{>[length=4pt,width=2.5pt]}] (1.7,0.5-#1) to[out=#3,in=-#3] (1.7,0.5-#2);
+}
+
+\def\world(#1)#2#3{
+  \draw[thick,#3](-1,-#1) -- (2,-#1) node[anchor=west]{\vb{#2}};
+}
+
+\def\kon(#1){ 
+  \draw[draw=none] (0.2,-#1) rectangle node[align=center]{\vb{\ldots}} (1.2,1-#1);
+}
+  
+\def\godot#1{\filldraw[blue,scale=0.6](#1) circle (0.4ex and 1.4ex);}
+
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){x.a}{}
+  \var(1){x.b}{1}
+  \var(2){x.c[0]}{2}
+  \var(3){x.c[1]}{3}
+  \var(4){y.a}{}
+  \var(5){y.b}{4}
+  \var(6){y.c[0]}{5}
+  \var(7){y.c[1]}{6}
+  \world(-1){x}{orange}
+  \world(3){y}{olive}
+  \kon(8)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-4.5);
+
+  \foreach \f/\t/\l in {v0/a1/{},v4/a2/{inde\ }}{
+  \godot{\f}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (\f) to [out=0,in=180] (\t);
+  \draw (\t)++(0,-0.5) rectangle node[align=center]{400 bytov niekde \l v pamäti} ++(5,1);
+  }
+\end{tikzpicture}
+
+keď potom napíšeš \prg!y=x!, stane sa toto:
+
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){x.a}{}
+  \var(1){x.b}{1}
+  \var(2){x.c[0]}{2}
+  \var(3){x.c[1]}{3}
+  \var(4){y.a}{}
+  \var(5){y.b}{1}
+  \var(6){y.c[0]}{2}
+  \var(7){y.c[1]}{3}
+  \world(-1){x}{orange}
+  \world(3){y}{olive}
+  \kon(8)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-4.5);
+
+  \foreach \f/\t/\l in {v0/a1/{},v4/a2/{inde\ }}{
+  \godot{\f}
+  \draw (\t)++(0,-0.5) rectangle node[align=center]{400 bytov niekde \l v pamäti} ++(5,1);
+  }
+
+  \draw[blue,-{>[length=8pt,width=5pt]}] (v0) to [out=0,in=180] (3,-0.35);
+  \draw[blue,-{>[length=8pt,width=5pt]}] (v4) to [out=0,in=180] (3,-0.65);
+\end{tikzpicture}
+
+Navždy si stratil 400 bytov pamäte a navyše ak napíšeš \prg!delete[] x.a; delete[] y.a;!
+program zhavaruje s chybou
+
+\begin{outputBox}
+free(): double free detected in tcache 2
+Aborted
+\end{outputBox}
+
+lebo si dvakrát odalokovával tú istú pamäť (aj keď si sa k nej dostal z iných pointrov).
+
+\begin{uloha}
+  Npaíš funkciu, kotrá ako parametre dostane číslo $n$ a pointer na  pole $n$
+  čísel a toto pole v pamäti otočí. Napr. ak pred volaním bolo $n=5$
+  a v poli boli čísla \vb{1 2 3 4 5} po volaní tam bude \vb{5 4 3 2 1}.
+\end{uloha}
+
+\begin{uloha}
+  \label{uloha:arraycopy}
+  Napíš funkciu, ktorá ako parametre dostane číslo $n$ a pointer na pole $n$
+  čísel a toto pole skopíruje (t.j. vráti pointer na iné pole, v ktorom budú
+  tie isté prvky).
+\end{uloha}
+
+\begin{uloha}
+  Napíš funkciu, ktorá ako parametre dostane číslo $n$, pointer na  pole $n$
+  čísel a číslo $k$ a pole v pamäti cyklicky posunie o $k$ miest.
+  Napr. ak $n=5$, $k=2$ a pole bolo \vb{1 2 3 4 5}, tak po volaní funkcie
+  pole bude \vb{3 4 5 1 2}.
+\end{uloha}
+
+\begin{uloha}
+  \label{uloha:primetest}
+  Napíš funkciu, ktorá dostane parameter $n$ a vráti pointer na dynamicky alokované
+  pole, v ktorom bude prvých $n$ prvočísel\footnote{%
+    \indexItem{Mat}{prvočíslo}
+    Prvočíslo je číslo $p$, ktoré nemá iných deliteľov ako 1 a $p$. Inými slovami
+    \prg~p%i != 0~ pre všetky $i<p$. Ak to chceš jemne vylepšiť, premysli si,
+    že ak má číslo $a$ nejakého deliteľa, tak má aj deliteľa veľkosti 
+    nanajvýš $\sqrt{a}$. Ak na začiatku napíšeš \prg!#include<cmath>!, môžeš
+    použiť funkciu \prg!sqrt(x)! na výpočet $\sqrt{x}$ (vracia typ double).
+    }.
+\end{uloha}
+
+\begin{uloha}
+  \label{uloha:merge}
+  Napíš funkciu, ktorá dostane ako parametre dve utriedené polia veľkostí $n$ a $m$
+  (t.j. dostane $n$, $m$ a dva pointre) a vyrobí utriedené pole dĺžky $n+m$, 
+  ktoré obsahuje prvky z oboch vstupných polí.
+\end{uloha}
+
+\begin{uloha}
+  \label{uloha:mergesort}\indexItem{Alg}{MergeSort}
+  Napíš funkciu, ktorá dostane ako parameter $n$ a dynamicky alokované pole
+  dľžky $n$ a utriedi ho pomocou algoritmu {\em Merge Sort}. Algoritmus {\em Merge
+  Sort} je rekurzívny algoritmus, ktorý funguje takto: pole dĺžky $1$ je utriedené,
+  netreba nič robiť. Ak má pole dĺžku aspoň 2, rozdeľ ho na dve polovice (t.j.
+  vyrob si nové polia správnej dĺžky, prekopíruj do nich prvky z pôvodného poľa)
+  a rekurzívne obe utrieď. Potom použi algoritmus z úlohy~\ref{uloha:merge} na to,
+  aby si vyrobil výsledné pole (nezabudni vrátiť pamäť z pomocných polí).
+\end{uloha}
+
+\begin{uloha}
+  \label{uloha:sortbody}
+  Majme typ \prg!struct Bod{float x,y;};! Napíš funkciu, ktorá ako parameter
+  dostane pole bodov a utriedi ho\footnote{napr. pomocou algoritmu {\em Insertion Sort}
+  z kapitoly~\ref{sect:zlozitost}} podľa $x$-ovej súradnice.
+\end{uloha}
+
+\begin{uloha}
+  Na vstupe je číslo $n$, a pole $n$ čísel \vb{t[0]},\ldots,\vb{t[n-1]}, ktoré 
+  predstavujú časované bomby: \vb{i}-ta bomba vybuchne po \vb{t[i]} sekundách.
+  Pyrotechnik vie každú sekundu zneškodniť jednu bombu. Napíš program, ktorý
+  zistí, či sa mu podarí zneškodniť všetky bomby. Napr. pre vstup \vb{9 3 2 5 2} 
+  sa mu to podarí: v prvej sekunde zneškodní poslednú bombu, preto v druhej sekunde
+  budú časovače na bombách ukazovať \vb{8 2 1 4 $\times$}. Pyrotechnik akurát včas zneškodní
+  bombu číslo $2$, takže bude stav \vb{7 1 $\times$ 3 $\times$}, opäť v poslednej
+  sekunde zneškodní bombu č.1: \vb{6 $\times$ $\times$ 2 $\times$} a posledné dve bomby
+  zneškodní s prehľadom. Pre vstup \vb{3 4 3 7 1 3} sa mu to ale nepodarí.
+\end{uloha}

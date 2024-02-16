@@ -1,0 +1,553 @@
+\documentclass[a4paper,10pt, openany]{memoir}
+%\def\rootpath{https://beda.dcs.fmph.uniba.sk/programovanie}
+\def\rootpath{https://github.com/pocestny/programovanie/raw/master/materialy}
+
+\usepackage[slovak]{babel}
+\usepackage{amsmath,amsthm,amssymb,derivative}
+\usepackage{tabularray}
+
+\def\arraystretch{1.2}
+\newsavebox{\TmpBox}
+
+\long\def\IGNORE#1{}
+\usepackage{lipsum}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% page layout
+
+\settrimmedsize{297mm}{210mm}{*}
+\setlength{\trimtop}{0pt}
+\setlength{\trimedge}{\stockwidth}
+\addtolength{\trimedge}{-\paperwidth}
+\settypeblocksize{634pt}{448.13pt}{*}
+\setulmargins{4cm}{*}{*}
+\setlrmargins{*}{*}{1.5}
+\setmarginnotes{17pt}{51pt}{\onelineskip}
+\setheadfoot{\onelineskip}{3\onelineskip}
+\setheaderspaces{*}{2\onelineskip}{*}
+\addtolength{\headsep}{-3ex}
+\checkandfixthelayout
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% text layout
+
+\abnormalparskip{0.5\baselineskip}
+\setlength{\parindent}{0pt}
+\midsloppy
+\setlength{\topskip}{1.6\topskip}
+\checkandfixthelayout
+\sloppybottom
+\clubpenalty=9996
+\widowpenalty=9999
+\brokenpenalty=4991
+\predisplaypenalty=10000
+\postdisplaypenalty=1549
+\displaywidowpenalty=1602
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% PDF settings
+
+\usepackage[final,pageanchor]{hyperref}
+\usepackage{etoolbox}
+
+\hypersetup{colorlinks=true}
+\hypersetup{pdftitle={Programovanie v C++}}
+\hypersetup{urlcolor=teal!80!black}
+\hypersetup{linkcolor=teal!80!black}
+\def\dlink#1{\hbox{\href[pdfnewwindow=true]{#1}{\nolinkurl{#1}}}}
+\def\link#1#2{\href[pdfnewwindow=true]{#1}{#2\footnote{\nolinkurl{#1}}}}
+\def\linkk#1#2#3{\href[pdfnewwindow=true]{#1}{#2\footnote{\nolinkurl{#1}, #3}}}
+
+\makeatletter
+ \AtBeginDocument{%
+    \patchcmd{\Hy@colorlink}{\begingroup}{\begingroup\sffamily}{}{}%
+    \patchcmd{\@makefnmark}{\normalfont}{\selectfont}{}{}%
+}
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Fonts
+\usepackage{utfsym}
+\usepackage{fontspec}
+\newfontfamily\yanone[
+  Ligatures=TeX,
+  UprightFont={* Regular}, 
+  BoldFont={* Medium}]
+{YanoneKaffeesatz-}[NFSSFamily=yanone]
+
+\newfontfamily\roboto[
+   Ligatures=TeX, 
+   UprightFont={* Regular},  
+   BoldFont={* Medium}]
+{Roboto}[NFSSFamily=roboto]
+
+\newfontfamily\robotomono[
+   Ligatures=TeX,
+   UprightFont={* Regular},  %Light
+   BoldFont={* Medium}]
+{RobotoMono}[NFSSFamily=robotomono,Scale=0.85]
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% TikZ
+
+\usepackage{pgf,pgffor,pgfmath,pgfplots,pgfplotstable,pgfornament}
+\usepackage{tikz,tikz-3dplot}
+\pgfplotsset{compat=1.6}
+
+\usepgflibrary{fpu}
+\usepgfplotslibrary{external}
+
+\usetikzlibrary{
+  arrows,matrix,
+  arrows.meta,
+  positioning,decorations,
+  decorations.pathreplacing,
+  decorations.pathmorphing,
+  decorations.markings,decorations.text,
+  decorations.shapes,intersections,
+  patterns,calligraphy,calc,
+  shapes.multipart,
+  shapes.arrows,
+  fit, shapes, backgrounds, 
+  svg.path, angles, snakes,
+  decorations, 
+penrose % for cover
+}
+\tikzexternalize
+
+\tikzset{scale line widths/.style={%
+/utils/exec=\def\tikz@semiaddlinewidth##1{%
+\pgfgettransformentries{\tmpa}{\tmpb}{\tmpc}{\tmpd}{\tmp}{\tmp}%
+\pgfmathsetmacro{\myJacobian}{sqrt(abs(\tmpa*\tmpd-\tmpb*\tmpc))}%
+\pgfmathsetlength\pgflinewidth{\myJacobian*0.4pt}%
+\pgfmathsetmacro{\my@lw}{\myJacobian*##1}%
+\tikz@addoption{\pgfsetlinewidth{\my@lw pt}}\pgfmathsetlength\pgflinewidth{\my@lw pt}},%
+thin}}
+
+\tikzset{
+brace/.style args = {#1/#2}{
+            decorate,
+            decoration={brace, amplitude=5pt,
+                        pre=moveto,pre length=1pt,post=moveto,post length=1pt,
+                        raise=#1,
+                        #2,% for mirroring of brace
+                        }
+                      , thin}}
+
+
+
+\NewDocumentCommand{\calc}{O{} m}{%
+\pgfkeys{
+    /pgf/fpu = true,
+    /pgf/number format/.cd,
+    precision=0,
+    fixed,
+    %fixed zerofill,
+    %use comma,
+    1000 sep={},
+    #1
+}
+\pgfmathparse{#2}
+\pgfmathprintnumber{\pgfmathresult}
+}                  
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% helper: condition on odd pages
+%% \ifthispageodd{first}{second}
+
+\strictpagecheck
+\makeatletter
+\newcommand*\ifthispageodd{%
+  \checkoddpage
+  \ifoddpage
+    \expandafter\@firstoftwo
+  \else
+    \expandafter\@secondoftwo
+  \fi
+}
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% page style
+
+\makeevenfoot{plain}{}{\roboto\thepage}{}
+\makeoddfoot{plain}{}{\roboto\thepage}{}
+\pagestyle{ruled}
+\makeevenhead{ruled}{\leftmark}{}{}
+\makeevenfoot{ruled}{\roboto\thepage}{}{}
+\makeoddfoot{ruled}{}{}{\roboto\thepage}{}
+
+\def\setMark#1#2{
+  \expandafter\gdef\csname #1mark\endcsname{{\roboto #2}}
+}
+\def\chaptermark#1{\setMark{left}{#1}\setMark{right}{#1}}
+\def\sectionmark#1{\setMark{right}{#1}}
+
+\renewcommand*{\footfudgefiddle}{70}
+\def\footmarkwidth{0pt}
+\def\footmarksep{0pt}
+\def\footparindent{0em}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% listings
+\usepackage{listings}
+
+% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% VS2017 style from https://gist.github.com/pezcode
+\definecolor{clr-background}{RGB}{255,255,255}
+\definecolor{clr-text}{RGB}{0,0,0}
+\definecolor{clr-string}{RGB}{163,21,21}
+\definecolor{clr-namespace}{RGB}{0,0,0}
+\definecolor{clr-preprocessor}{RGB}{128,128,128}
+\definecolor{clr-keyword}{RGB}{0,0,255}
+\definecolor{clr-type}{RGB}{43,145,175}
+\definecolor{clr-variable}{RGB}{0,0,0}
+\definecolor{clr-constant}{RGB}{111,0,138} % macro color
+\definecolor{clr-comment}{RGB}{0,128,0}
+
+\lstdefinestyle{VS2017}{
+	backgroundcolor=\color{clr-background},
+	basicstyle=\color{clr-text}, % any text
+	stringstyle=\color{clr-string},
+	identifierstyle=\color{clr-variable}, % just about anything that isn't a directive, comment, string or known type
+	commentstyle=\color{clr-comment},
+	directivestyle=\color{clr-preprocessor}, % preprocessor commands
+	% listings doesn't differentiate between types and keywords (e.g. int vs return)
+	% use the user types color
+	keywordstyle=\color{clr-type},
+	keywordstyle={[2]\color{clr-constant}}, % you'll need to define these or use a custom language
+	tabsize=4
+}
+% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% Solarized colour scheme for listings
+% from https://marcusmo.co.uk/blog/latex-syntax-highlighting/
+\definecolor{solarized@base03}{HTML}{002B36}
+\definecolor{solarized@base02}{HTML}{073642}
+\definecolor{solarized@base01}{HTML}{586e75}
+\definecolor{solarized@base00}{HTML}{657b83}
+\definecolor{solarized@base0}{HTML}{839496}
+\definecolor{solarized@base1}{HTML}{93a1a1}
+\definecolor{solarized@base2}{HTML}{EEE8D5}
+\definecolor{solarized@base3}{HTML}{FDF6E3}
+\definecolor{solarized@yellow}{HTML}{B58900}
+\definecolor{solarized@orange}{HTML}{CB4B16}
+\definecolor{solarized@red}{HTML}{DC322F}
+\definecolor{solarized@magenta}{HTML}{D33682}
+\definecolor{solarized@violet}{HTML}{6C71C4}
+\definecolor{solarized@blue}{HTML}{268BD2}
+\definecolor{solarized@cyan}{HTML}{2AA198}
+\definecolor{solarized@green}{HTML}{859900}
+
+% Define C++ syntax highlighting colour scheme
+\lstdefinestyle{solarized}{
+        %basicstyle=\footnotesize\ttfamily,
+        numbers=left,
+        %numberstyle=\footnotesize,
+        tabsize=2,
+        breaklines=true,
+        escapeinside={@}{@},
+        numberstyle=\tiny\color{solarized@base01},
+        keywordstyle=\color{solarized@green},
+        stringstyle=\color{solarized@cyan},
+        identifierstyle=\color{solarized@blue},
+        commentstyle=\color{solarized@base01},
+        emphstyle=\color{solarized@red},
+        frame=single,
+        rulecolor=\color{solarized@base2},
+        rulesepcolor=\color{solarized@base2},
+        showstringspaces=false
+}
+% ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+\usepackage{accsupp}
+\newcommand{\noncopynumber}[1]{%
+    \BeginAccSupp{method=escape,ActualText={}}%
+    #1%
+    \EndAccSupp{}%
+}
+
+\makeatletter
+\def\lst@outputspace{{\ifx\lst@bkgcolor\empty\color{white}\else\lst@bkgcolor\fi\lst@visiblespace}}
+\makeatother
+
+
+\lstset{language=C++,style=VS2017,
+                basicstyle=\robotomono,
+                lineskip=-1pt,
+                texcl=true,
+                numbers=left,
+                numberstyle=\tiny\color{solarized@base01},
+                 frame=single,
+        rulecolor=\color{solarized@base2},
+        rulesepcolor=\color{solarized@base2},
+        literate={*}{*}{1},
+        escapeinside={@}{@},
+        columns=flexible,
+        keepspaces=true,
+        numberstyle=\noncopynumber
+}
+
+\makeatletter
+\def\ll#1{\label{\lst@label-#1}}
+\makeatother
+
+\def\prg{\lstinline}
+\def\vb#1{{\textcolor{solarized@blue!80!black}{\robotomono #1}}}
+\long\def\cmd#1{{\em\textcolor{clr-comment}{#1}}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% index
+\newcounter{IndexRefCnt}
+\def\indexFileName{index}
+\newwrite\indexFile
+\immediate\openout\indexFile=\indexFileName.tex
+
+
+\def\PrgColor{violet!70!black}
+\def\MatColor{orange!60!black}
+\def\AlgColor{teal!70!black}
+\def\parseIndexLine#1#2#3#4{{\em\textcolor{\csname #1Color\endcsname}{#2}\dotfill%
+\hyperref[#4]{#3}}\\}
+
+\def\indexItem#1#2{%
+\stepcounter{IndexRefCnt}\phantomsection\label{indexRef.\theIndexRefCnt}%
+\immediate\write\indexFile{\unexpanded{\parseIndexLine}{#1}{#2}{\thepage}{indexRef.\theIndexRefCnt}}%
+}
+
+\def\indexChapterLine#1#2#3{%
+\immediate\write\indexFile{\unexpanded{\parseChapterLine}{#1}{#2}{#3}{\thepage}}
+}
+
+\def\parseChapterLine#1#2#3#4{%
+
+  \tikz[anchor=base,baseline]{
+    \node[minimum height=2ex, minimum width=4ex, draw=none, fill=teal!#1!violet]
+      {\textcolor{black!10}{\roboto\bfseries#2}};
+    }~{\roboto #3 \hfill \hyperlink{page.#4}{#4}}\\[2ex]
+}
+
+%\def\typesetIndexTextPrg#1{\textcolor{teal!70!black}{#1}}
+%\def\typesetIndexTextMat#1{\textcolor{solarized@green!80!black}{#1}}
+%\def\typesetIndexTextAlg#1{\textcolor{orange}{#1}}
+%\def\typesetIndexTextStl#1{\textcolor{violet}{#1}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% chapter style
+
+\makechapterstyle{myChapterStyle}{
+\def\chapterheadstart{}
+\def\printchaptername{}
+\def\chapternamenum{}
+\def\printchapternum{}
+\def\afterchapternum{}
+\setlength{\afterchapskip}{10pt}
+\def\chapnumfont{\fontsize{16pt}{30pt}\roboto\bfseries}
+\def\chaptitlefont{\fontsize{16pt}{30pt}\roboto}
+\def\printchaptertitle##1{
+  \typeout{..... chapter \thechapter: ##1}
+  \tikzexternaldisable
+  \def\numBox{
+    \tikz[anchor=base,baseline]{
+      \pgfmathtruncatemacro{\tint}{100-(\thechapter-1)*(100/\numChapters)}
+      \indexChapterLine{\tint}{\thechapter}{##1}
+      \node [minimum height=1cm, minimum width=1cm, draw=none, fill=teal!\tint!violet]
+      {\textcolor{black!10}{\chapnumfont\thechapter}};
+    }
+  }
+  \ifthispageodd{\hfill\chaptitlefont ##1\hspace{0.5em}\numBox}{\numBox\hspace{0.5em}\chaptitlefont ##1}
+  \tikzexternalenable
+}
+}
+\chapterstyle{myChapterStyle}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% output box
+\usepackage[skins]{tcolorbox}
+\usepackage{fancyvrb}
+\VerbatimFootnotes
+\fvset{fontfamily=robotomono,commandchars=\\\{\}}
+
+\newenvironment{outputBox}{%
+\VerbatimEnvironment  
+\begin{tcolorbox}[colback=black,arc=1pt,outer arc=1pt,boxrule=0pt,
+  left=2pt,top=2pt,bottom=-2ex,before={\vspace{0.8ex}}]%
+\begin{Verbatim}[formatcom=\color{white!80!black}]}{%
+\end{Verbatim}
+\end{tcolorbox}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% geometric stuff
+
+\def\len#1#2#3#4{\pgfmathsetmacro{#1}{sqrt(((#2)*(#2))+((#3)*(#3))+((#4)*(#4)))}}
+\def\normalize#1#2#3{
+  \len{\tmp}{#1}{#2}{#3}
+  \pgfmathsetmacro{#1}{#1/\tmp}
+  \pgfmathsetmacro{#2}{#2/\tmp}
+  \pgfmathsetmacro{#3}{#3/\tmp}
+}
+\def\cross#1#2#3#4#5#6#7#8#9{%
+  \pgfmathsetmacro{#1}{#5*#9-#6*#8}
+  \pgfmathsetmacro{#2}{#6*#7-#4*#9}
+  \pgfmathsetmacro{#3}{#4*#8-#5*#7}
+}
+\def\rotz[#1]#2#3#4{
+  \pgfmathsetmacro{\tmp}{#2}
+  \pgfmathsetmacro{#2}{#2*cos(#1)-#3*sin(#1)}
+  \pgfmathsetmacro{#3}{\tmp*sin(#1)+#3*cos(#1)}
+}
+\def\rotx[#1]#2#3#4{
+  \pgfmathsetmacro{\tmp}{#3}
+  \pgfmathsetmacro{#3}{#3*cos(#1)-#4*sin(#1)}
+  \pgfmathsetmacro{#4}{\tmp*sin(#1)+#4*cos(#1)}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% circled numbers
+
+\usepackage{libertine}
+\newcommand{\libcirc}[1]{\pgfmathparse{
+    ifthenelse(#1 > 0 && #1 < 21, Hex(9311+#1), Hex(9450)
+    }\libertineGlyph{uni\pgfmathresult}}
+\newcommand{\libcircdbl}[1]{\pgfmathparse{Hex(9460+#1)}\libertineGlyph{uni\pgfmathresult}}
+\newcommand{\libcircblk}[1]{\pgfmathparse{
+    ifthenelse(#1 > 0 && #1 < 11, Hex(10101+#1),
+        ifthenelse(#1 > 10 && #1 < 21, Hex(9450-10+#1),
+            Hex(9471)
+        )
+    )
+    }\libertineGlyph{uni\pgfmathresult}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% helpers
+\usepackage{stringstrings}
+\usepackage{multirow}
+\usepackage{xspace}
+\def\pr#1{\ensuremath{\text{Pr}[#1]}}
+\def\ev#1{\ensuremath{\text{E}[#1]}}
+\let\angle\measuredangle
+\newcommand*{\tran}{^{\mkern-1.5mu\mathsf{T}}}
+
+
+\def\setUlohaFile#1{\href{https://github.com/pocestny/programovanie/blob/master/riesenia/#1.cc}{Úloha}}
+\def\setUlohaDir#1{\href{https://github.com/pocestny/programovanie/tree/master/riesenia/#1}{Úloha}}
+\def\setUlohaNone#1{Úloha}
+
+\def\ulohaTarget{File}
+\newtheorem{uloha}{\csname setUloha\ulohaTarget\endcsname{\arabic{uloha}}}
+
+\newenvironment{column}[1]{\begin{minipage}[t]{#1\textwidth}\vspace*{0pt}}{\end{minipage}}
+\def\nrm#1{\Vert{#1}\Vert}
+\def\kocka#1{\ifcase#1\relax\or2680\or2681\or2682\or2683\or2684\or2685\fi} %dice
+\def\btr{\hbox{\roboto Breakthrough}\xspace}
+
+\AtBeginDocument{\shorthandoff{-}}
+
+\input{rect}
+\usepackage{ltablex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% fix missing from roboto
+\def\textvisiblespace{%
+   \mbox{\kern.06em\vrule height.3ex}%
+   \vbox{\hrule width.3em}%
+   \hbox{\vrule height.3ex}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\def\UrlFont{\robotomono}
+\def\coverLevel{2} % recursion depth for Penrose decomposition; should be 6 for final document
+\input{cover}
+
+
+\def\numChapters{40}  
+\include{01_rychly_uvod}
+\include{02_podmienky}
+\include{03_cykly}
+\include{04_polia}
+\include{05_dalsie_cykly}
+\include{06_algoritmicke_ulohy}
+\include{07_cisla_znaky_retazce}
+\include{08_dvojrozmerne_polia}
+\include{09_ciernobiele_obrazky.tex}
+\include{10_funkcie.tex}
+\include{11_rekurzia.tex}
+\include{12_zlozitost.tex}
+\include{13_zasobnik.tex}
+\include{14_memoizacia.tex}
+\include{15_vlastne_typy.tex}
+\include{16_realne_cisla.tex}
+\include{17_graficky_editor.tex}
+\include{18_smerniky_a_pointre.tex}
+\include{19_polia_revealed.tex}
+\include{20_trieda_stack.tex}
+\include{21_stl_vector_string.tex}
+\include{22_konstruktory_a_spol.tex}
+\include{23_binary_search.tex}
+\include{24_algoritmy_v_stl.tex}
+\include{25_funkcie_ako_parametre.tex}
+\include{26_komplexne_cisla.tex}
+\include{27_set_a_map.tex}
+\include{28_binarne_subory_a_kompresia.tex}
+\include{29_nahoda_a_pravdepodobnost.tex}
+\include{30_meranie_casu_staticke_privatne_metody.tex}
+\include{31_nahodne_ostrovy.tex}
+\include{32_hesovanie.tex}
+\include{33_breakthrough.tex}
+\include{34_makefile.tex}
+\include{35_pocitacovy_hrac.tex}
+\include{36_sdl.tex}
+\include{37_thready.tex}
+\include{38_dedicnost.tex}
+%\include{39_nnetwork.tex}
+
+\immediate\closeout\indexFile
+
+
+\chapter{Kde je čo}
+\tikzexternaldisable
+
+\def\itemLineClr{\AlgColor}
+\def\itemLine#1#2{%
+
+\noindent
+\hspace*{3mm}\textcolor{\itemLineClr}{\roboto #1}\dotfill\hyperref[#2]{\pageref{#2}}}
+
+Programátorské projekty s otvoreným koncom, s ktorými sa dá hrať ďalej:
+
+\itemLine{Celulárny automat}{projekt.automat}
+\itemLine{Offline grafický editor}{sect:editor}
+\itemLine{Mandelbrotova množina}{projekt.mandelbrot}
+\itemLine{Kompresia textu}{projekt.pakovac}
+\itemLine{Mapy náhodných ostrovov}{sect:ostrovy}
+\itemLine{Hra \btr}{projekt.breakthrough}
+\itemLine{Rozpoznávanie číslic}{projekt.cislice}
+
+
+\vskip 2ex
+\def\itemLineClr{\MatColor}
+Matematické odbočky:
+
+\itemLine{Pytagorova veta, Euklidova vzdialenosť a kruhy}{mat.pytagoras}
+\itemLine{Goniometrické funkcie $\sin$ a $\cos$}{sect:sin_cos}
+\itemLine{Komplexné čísla}{mat.komplex}
+\itemLine{Body, vektory a počítanie s nimi}{mat.body}
+\itemLine{Stredná (očakávaná) hodnota}{mat.expectation}
+\itemLine{Matice a vektory}{mat.matice}
+\itemLine{Derviácie}{mat.derivacie}  
+
+\vskip 2ex
+Tu je zoznam kapitol a pojmov, čo sa v nich nachádzajú. Farebne sú odlíšené pojmy týkajúce sa 
+\textcolor{\PrgColor}{jazyka C++}, \textcolor{\AlgColor}{všeobecne programovania} a \textcolor{\MatColor}{matematiky}.
+
+\vskip 2ex
+
+\input{\indexFileName}
+\end{document}  
+

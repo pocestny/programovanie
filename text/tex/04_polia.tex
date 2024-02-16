@@ -1,0 +1,181 @@
+\chapter{Polia}
+
+Chceme napísať takýto program: najprv napíšeš číslo $n$ a potom $n$ prirodzených 
+čísel. Nakoniec napíšeš ešte jedno číslo $a$. Program má vypísať najmenšie zo zadaných čísel,
+ktoré je väčšie ako $a$ (alebo vypíše $a$, ak žiadne z čísel nie je väčšie). 
+Napríklad:
+
+\vspace*{-2ex}
+\begin{column}{0.45}
+Vstup\\
+\begin{outputBox}
+5
+1 10 100 1000 10000
+427
+\end{outputBox}
+\end{column}
+\hfill
+\begin{column}{0.45}
+Výstup\\
+\begin{outputBox}
+1000
+\end{outputBox}
+\end{column}
+
+
+Problém je v tom, že keď načítavame čísla zo vstupu, ešte nevieme, ako ich bude treba 
+spracovať, takže by sme si ich potrebovali uložiť do premenných. Keby sme počet čísel
+poznali v čase písania programu (napr. by bolo povedané, že vždy bude presne päť čísel),
+mohli by sme si vyrobiť premennú pre každé číslo. Počet čísel je ale známy až počas behu 
+programu. 
+\indexItem{Prg}{pole}
+Použijeme preto {\em pole} premenných. Pole je vlastne veľa premenných, ktoré
+majú spoločné meno a rozlišujú sa číslom (tzv. {\em indexom}). Pole sa vyrobí podobne,
+ako jedna premenná, ale v hranatých zátvorkách je uvedený počet premenných.
+Tak napr. \prg!int x[10];! vyrobí pole premenných \prg!x[0]!, \prg!x[1]!, až
+\prg!x[9]!, z ktorých každá vie mať uložené celé číslo\footnote{Všimni si, že prvá premenná
+má číslo 0, preto ak vyrobíme 10 premenných, posledná má číslo 9.}.
+Výhoda je, že keď chceme použiť nejakú premennú z poľa, nemusíme písať jej meno priamo,
+napr. \prg!x[5]!, ale na mieste indexu môžeme použiť hocijaký výraz. Takže môžeme
+napísať \prg!x[2+3]! a tiež dostaneme hodnotu z premennej \prg!x[5]!. A samozrejme,
+výraz môže obsahovať aj mená premenných, takže \prg!x[i+3]! znamená \cmd{Pozri sa,
+čo je práve teraz uložené v premennej \prg!i!, pripočítaj k tomu 3, výsledok zober ako
+číslo premennej z poľa a vráť hodnotu, ktorá je v nej uložená.} Ak by v \prg!i! bola uložená dvojka, tak \prg!x[i+3]! vráti hodnotu
+uloženú v premennej \prg!x[5]!. 
+Pole nie je premenná, ale veľa premenných. Preto aj príkaz priradenia funguje
+na jednotlivých premenných, ale nie na celom poli. Ak by sme mali premenné
+\prg!int a[10], b, c[10], d;! môžeme napísať \prg!b=d;! aj \prg!a[d+3]=b;! aj
+\prg!c[b+a[d]]=a[d]+c[3];! ale nemôžeme napísať \prg!a=c;! a už vôbec nie
+\prg!a=b;! Rovnako, keďže pole nie je premenná, tak nemôžeme používať ani
+operácie ako \prg!a+c! alebo \prg!a==c!, ale musíme ich robiť na jednotlivých premenných 
+poľa.
+
+Predpokladajme, že máme pole \prg!int a[10];! a premennú \prg!int x!. Čo spraví príkaz
+\prg!x=a[22]!? Kompilátor by mal hádam vyhlásiť chybu, ale on nie. 
+Premenné sú totiž krabičky, ktoré sú v pamäti uložené jedna za druhou.
+Príkazom \prg!int a[10];! kompilátor
+vyhradí v pamäti miesto na 10 premenných typu \prg!int! a zapamätá si, kde je prvá z nich,
+\prg!a[0]!. Ich počet sa nikde nezapamätá.
+Keď napíšeš \prg!a[5]!, znamená to \cmd{piata premenná typu \vb{int} za premennou \prg!a[0]!}. Ak napíšeš
+\prg!a[22]!, program sa pozrie do pamäte, kde by bola 23. premenná z poľa, keby to 
+pole bolo dosť dlhé. Ak je kratšie, môže na tom mieste byť hocičo (napríklad nejaká
+iná premenná) a program sa
+začne správať veľmi podivne. Chyby tohto typu sa v programe veľmi ťažko hľadajú.
+Preto je dobré dávať veľký pozor, na aké miesta poľa pristupuješ.
+
+\indexItem{Prg}{lenivé vyhodnocovanie podmienok}
+Pri pristupovaní do poľa je príjemné, že výrazy typu \prg!bool! sa vyhodnocujú len dovtedy, kým
+nie je jasný výsledok, potom sa s počítaním prestane. Napr. pri výraze
+\prg!false  && ( zlozita_vec )! je hneď po vyhodnotení prvého \prg!false! jasné, že výsledok bude
+\prg!false!, preto sa \prg!zlozita_vec! ani nevykoná. To umožňuje napísať do jednej podmienky 
+kontrolu, či je index do poľa správny
+napr. napíšem
+\prg!if (i>=0 && i<10 && a[i]==5)! a viem, že z poľa sa bude čítať iba vtedy, ak je premenná
+\prg!i! zo správneho rozsahu.
+
+Vráťme sa k nášmu príkladu. S pomocou poľa a cyklu si vieme zapamätať všetky zadané čísla:
+
+\vskip 2ex
+\vbox{
+\begin{lstlisting} 
+int i, n;
+cin >> n;       // prečítam počet čísel 
+int x[n];       // vyrobíme pole potrebnej veľkosti
+i = 0;         
+while (i < n) { // v cykle prečítame všetky prvky poľa
+  cin >> a[i];
+  i = i + 1;
+}
+\end{lstlisting}
+}
+
+Keď už budeme mať všetky čísla uložené v poli, prečítame zo vstupu číslo $a$. Ak chceme
+zistiť najmenšie číslo, ktoré je väčšie ako $a$, urobíme si ďalšiu premennú \prg!min!,
+v ktorej si budeme pamätať doteraz nájdené číslo. V cykle sa pozrieme na každú premennú z 
+poľa a zistíme, či je jej hodnota väčšia ako $a$. Ak áno a je zároveň menšia ako
+\prg!min!, aktualizujeme \prg!min!. Posledná vec: na začiatku potrebujeme do \prg!min!
+dať vhodnú zarážku. Môžeme použiť najväčšie číslo, ktoré si môžeme zistiť priebežne
+pri ukladaní vstupného poľa. Celý program by vyzeral takto:\\
+
+\vbox{
+\begin{lstlisting}
+#include <iostream>
+using namespace std;
+int main() {
+  int n, i, a, min;
+  cin >> n;
+  int x[n];       // vyrobíme pole správnej dĺžky        
+  i = 0;
+  min = 0;
+  while (i < n) { // načítavame vstup a zároveň počítame maximum
+    cin >> x[i];
+    if (x[i] > min) min = x[i];
+    i = i + 1;
+  }
+  cin >> a;       // prečítame a
+  i = 0;
+  while (i < n) { // v cykle nájdeme hľadané číslo
+    if (x[i] > a && x[i] < min) min = x[i];
+    i = i + 1;
+  }
+  cout << min << endl;
+}
+\end{lstlisting}
+}
+
+\begin{uloha}
+  Používateľ zadá číslo $n$, potom $n$ čísel a nakoniec číslo $a$. Napíš
+  program, ktorý zistí, koľkokrát bolo zadané číslo $a$. Napríklad
+
+\begin{column}{0.45}
+Vstup\\
+\begin{outputBox}
+9 3 9 3 1 3 2 3 4 5 3
+\end{outputBox}
+\end{column}
+\hfill
+\begin{column}{0.45}
+Výstup\\
+\begin{outputBox}
+4
+\end{outputBox}
+\end{column}
+\end{uloha}
+
+\begin{uloha}
+  Používateľ zadá číslo $n$, potom $n$ čísel a nakoniec číslo $a$. Napíš
+  program, ktorý vypíše všetkých $n$ čísel, ale zväčšených o $a$.
+\end{uloha}
+
+\begin{uloha}
+   Používateľ zadá číslo $n$ a potom zoznam $n$ kariet s číslami. 
+   Dvaja hráči, $A$ a $B$ hrajú takúto hru. V každom kole sa $A$ pozrie
+   na prvú kartu a $B$ na poslednú kartu (ak je v zozname iba jedna karta,
+   je zároveň prvá aj posledná; ak je zoznam prázdny, hra sa skončila).
+   Ak $A$ vidí väčšie číslo, výsledok kola je $1$ a $B$ zahodí kartu z konca, 
+   ak $A$ vidí menšie číslo, výsledok
+   je $-1$ a $A$ zahodí kartu zo začiatku, a ak vidia rovnaké, výsledok je $0$
+   a zahodí sa karta z konca aj zo začiatku.
+   Napíš program, ktorý prečíta začiatočný zoznam a vypíše postupne výsledky
+   všetkých kôl. Napr. pre $n=3$ a vstup \vb{1 2 3} sú výsledky
+   kôl \vb{-1 -1 0}.
+\end{uloha}
+
+\begin{uloha}
+  \label{uloha:sort1}
+  Používateľ zadá číslo $n$ a potom $n$ rôznych čísel. Napíš program, ktorý
+  najprv vypíše najmenšie číslo a potom vždy najmenšie číslo, ktoré
+  je väčšie, ako posledné vypísané. (Všimni si, že program vlastne
+  vypíše všetky zadané čísla v utriedenom poradí.)
+\end{uloha}
+
+\begin{uloha}
+  Používateľ zadá číslo $n$ a potom pole $n$ prirodzených čísel. Napíš program,
+  ktorý zistí najväčšie také číslo $k$, že sa v poli nachádza aspoň $k$
+  čísel veľkosti aspoň $k$. Napr. pre vstup \prg!9 3 9 1 1 2 2 3 4 5! 
+  %(prvá deviatka znamená 9 čísel, potom nasleduje pole) 
+  je odpoveď \prg!3!, lebo
+  sú tam aspoň tri čísla väčšie alebo rovné $3$ (je tam $5$ takých: $3, 9, 3, 4, 5$),
+  ale nie sú tam štyri čísla väčšie alebo rovné $4$ (sú tam len tri: $9, 4, 5$).
+\end{uloha}
+

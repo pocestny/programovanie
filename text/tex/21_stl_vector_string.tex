@@ -1,0 +1,344 @@
+\chapter{STL: typ \vb{vector} a \vb{string}}
+
+V predchádzajúcej kapitole sme si navrhli typ \vb{Stack}, ktorý spravoval
+zásobník čísel typu \prg!int!. Čo keby si chcel zásobník typu \prg!float!, alebo
+\vb{Farba}? Jedna možnosť by bola vyrobiť zakaždým nový typ, napr. \vb{StackInt},
+\vb{StackFloat} a pod. Dalo by sa to tak, že skopíruješ \vb{Stack} a na vhodných miestach
+prepíšeš \prg!int! na nový typ. Ale to nie je dobrý prístup, lebo keď niekedy v budúcnosti
+budeš chcieť niečo zmeniť, musíš to meniť rovnako na veľa miestach \ldots oštara.\indexItem{Prg}{šablóna (template)}
+V C++ je na to pohodlný mechanizmus, ktorý sa volá {\em šablóny} (templates).
+Sú podobné preprocesoru v tom, že sa spracovávajú predtým, ako sa vôbec program
+začne kompilovať a nahradzujú nejaký symbol iným textom. Ale zároveň ich spracováva 
+už kompilátor, takže vie, kde sa v programe očakáva meno typu, kde premenná a pod.
+Najjednoduchšie je to vidno na príklade:
+
+\vskip 2ex
+\vbox{
+\begin{lstlisting}[] 
+template <typename T>
+struct Stack {
+  T *a;
+  int n, max;
+
+  Stack() {...}
+  ~Stack() {...}
+  void resize(int _max){...}
+  bool push(T x) {...}
+  void discard() {...}
+};
+\end{lstlisting}
+}
+
+Týmto hovoríš predpis (šablónu), ako vyrobiť typ zásobník, v ktorom sa budú ukladať prvky 
+hocijakého typu \vb{T} (ľahko doplníš, čo treba do vybodkovaných častí; na vhodných
+miestach treba nahradiť \prg!int! za \vb{T}). Keď potom v programe napíšeš
+\prg!Stack<int> s;! kompilátor zoberie šablónu, dosadí za \vb{T} typ \prg!int!
+čím dostane definíciu typu \prg!Stack<int>! a vyrobí premennú príslušného typu. 
+Ak neskôr napíšeš \prg!Stack<Farba> sf;! kompilátor zoberie šablónu, vyrobí príslušný typ
+a premennú.
+
+
+Šablóna sa to volá preto, lebo \vb{Stack} sám osebe nie je typ. Je to len predpis,
+ktorým hovoríš kompilátoru, ako si má vyrobiť typy \prg!Stack<int>! alebo
+\prg!Stack<Farba>!
+a pod., ak ich časom bude potrebovať použiť. Jendotlivé typy \prg!Stack<int>!, \prg!Stack<Farba>! a
+pod. sú preto nezávislé typy, ktoré sa vyrobia až vtedy, keď sa v programe vyskytnú.
+A, samozrejme, šablóna môže mať viacero parametrov,
+napr.
+
+\begin{lstlisting}
+template <typename S, typename T>
+struct Dvojica {
+  S s;
+  T* t;
+};
+\end{lstlisting}
+
+a potom môžeš mať premennú \prg!Dvojica<int, Farba> d;!, ktorá bude obsahovať
+\prg!int d.s! a \prg!Farba* d.t!. Alebo 
+môžeš mať aj premennú \prg!Dvojica<int, Dvojica<int, int>> x;! a potom
+\vb{x.t} bude pointer na typ \prg!Dvojica<int, int>!, takže napr.
+\prg!x.t->s! je typu \prg!int!.
+
+
+Podobne môže byť šablóna na funkcie. Ak napíšeš
+
+\begin{lstlisting}
+template<typename T>
+T lama(T z) { return z;}
+\end{lstlisting}
+
+v programe sa nepridá nič, ale hovoríš kompilátoru, ako si vyrobiť (inak celkom
+zbytočné) funkcie 
+
+\begin{lstlisting}
+int lama<int>(int z){return z;}
+Farba lama<Farba>(Farba z){return z;}
+\end{lstlisting}
+
+a tak podobne, ak ich niekedy v programe bude potrebovať zavolať.
+Kompilátor navyše niekedy vie odvodiť parametre šablóny, a vtedy ich 
+netreba písať. Ak napíšeš \prg!lama(42)!, kompilátor pochopí, že tým myslíš
+funkciu \prg!lama<int>(42)! a vyrobí si ju podľa šablóny. Pravidlá, čo a ako si má
+domyslieť, sú pomerne zložité, nateraz stačí o tom vedieť, aby ťa to neprekvapilo.
+
+ 
+\indexItem{Prg}{Standard Template Library (STL)}
+Súčasťou definície jazyka C++ je {\em Standard Template Library} (STL) -- knižnica, ktorá
+obsahuje šablóny na veľa užitočných dátových štruktúr a algoritmov. Jedným z nich je typ\indexItem{Prg}{typ \vb{vector}}
+\prg!vector!, ktorý sa veľmi podobá nášmu typu \vb{Stack}: obsahuje v sebe pole prvkov,
+vie mu rezervovať veľkosť, vie pridať prvok na koniec a pod. Keď ho chceš použiť,
+treba na začiatku programu pridať \prg!#include <vector>!.
+
+ Pre hocijaký typ \prg!T!, premenná typu \prg!vector<T>! obsahuje pointer \prg!T*!,
+ktorý ukazuje na dynamicky alokovanú pamäť. Vektor obsahuje \vb{size} prvkov a
+má alokovanú pamät na \vb{capacity} prvkov:
+
+
+\def\var(#1)#2#3{%
+  \draw (0.2,-#1) rectangle node[align=center](v#1) {\vb{#3}} (1.2,1-#1);
+  \draw (0,0.5-#1) node[anchor=east]{\textcolor{magenta}{\vb{#2}}};
+}
+
+\def\ptr(#1,#2)[#3] {
+  \draw[blue,-{>[length=4pt,width=2.5pt]}] (1.7,0.5-#1) to[out=#3,in=-#3] (1.7,0.5-#2);
+}
+
+\def\world(#1)#2#3{
+  \draw[thick,#3](-1,-#1) -- (1.5,-#1) node[anchor=west]{\vb{#2}};
+}
+
+\def\kon(#1){ 
+  \draw[draw=none] (0.2,-#1) rectangle node[align=center]{\vb{\ldots}} (1.2,1-#1);
+}
+  
+\def\godot#1{\filldraw[blue,scale=0.6](#1) circle (0.4ex and 1.4ex);}
+
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){a.data}{}
+  \var(1){a.size}{10}
+  \var(2){a.capacity}{15}
+  \world(-1){\vb{vector<T> a;}}{orange}
+  \kon(3)
+
+  \godot{v0}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (v0) to [out=0,in=180] (3,-2);
+
+  \begin{scope}[shift={(3,-2.5)},xscale=0.285]
+    \foreach \i in {10,...,14} {
+      \draw[thin,gray](\i,0) rectangle (\i+1,1);
+    \node[thin,gray,anchor=south] at (\i+0.5,1){{\scriptsize$\i$}};
+    }
+    \foreach \i in {0,...,9} {
+      \draw[magenta](\i,0) rectangle (\i+1,1);
+    \node[magenta,anchor=south] at (\i+0.5,1){$\i$};
+    }
+  \end{scope}
+
+\end{tikzpicture}
+
+
+
+Tu je niekoľko\footnote{%
+  Na stránkach ako je napr. 
+  \href{https://www.cppreference.com}{\nolinkurl{www.cppreference.com}}
+  sa dá nájsť kompletná referencia na všetky funkcie tried z STL.
+}užitočných funkcií:
+
+
+
+\def\xx#1{\textcolor{magenta}{\prg!#1!}}
+\begin{tabularx}{\textwidth}{lX}\toprule
+  \xx{vector<T> a;} & vyrobí vektor \vb{a}\\
+  \xx{vector<T> a(n);} & vyrobí vektor \vb{a} a alokuje $n$ prvkov\\
+  \xx{vector<T> a(n,v);}& vyrobí vektor \vb{a}, alokuje $n$ prvkov a 
+              nastaví ich na $v$ (napr. \prg!vector<int> a(5,42);!\\\midrule
+  \xx{a[i]} & $i$-ty prvok\footnote{Podobne ako pri prístupe do poľa, je to tzv. {\em referencia}, takže sa dá priraďovať \prg!a[i]=16;!. Ako také niečo urobiť ti poviem neskôr.}\\\midrule 
+  \xx{b = a} & 
+  kopíruje celý vektor\footnote{Opäť, neskôr sa dozvieš, ako také niečo urobiť}, t.j.
+   podobné ako riešenie úlohy~\ref{uloha:arraycopy}\\\midrule
+  \xx{a.data()} & pointer (\prg!T*!) na dynamicky alokované pole\\\midrule
+  \xx{a.size()} & počet prvkov aktuálne uložených v poli\\
+  \xx{a.capacity()} & počet prvkov, na ktoré je rezervovaná pamäť\\\midrule
+  \xx{a.reserve(n)} & realokuje pole (podobne ako náš \vb{Stack}), aby malo 
+        kapacitu $n$\\\midrule
+  \xx{a.shrink_to_fit()} & realokuje pole, aby kapacita
+  presne zodpovedala počtu prvkov \\\midrule
+  \xx{a.clear()} & vymaže všetky prvky, kapacita sa nezmení \\\midrule
+  \xx{a.resize(n)} & zmení počet alokovaných prvkov na $n$; ak sa veľkosť zmenší,
+   prvky, ktoré sa do poľa nezmestia, sa vymažú \\ 
+   \xx{a.resize(n,v)} & to isté, ale ak sa dopĺňajú prvky, ich hodnota je \vb{v}\\\midrule
+  \xx{a.push_back(x)} & pridá \vb{x} na koniec; ak by nestačila kapacita, realokuje 
+  pole na väčšie\\
+  \xx{a.pop_back()} & odstráni posledný prvok\\\bottomrule
+\end{tabularx}
+
+\begin{uloha}
+  \label{uloha:faktorial}\indexItem{Mat}{faktoriál}
+  Faktoriál z čísla $n$ (zapisuje sa $n!$) je číslo $2\cdot3\cdot4\cdots n$. Napr.
+$4!=2\cdot3\cdot4=24$, $6!=4!\cdot5\cdot6=720$. Napíš program, ktorý
+na vstupe dostane číslo $n$ a vypíše $n!$. Pozor, $n$ môže byť tak veľké,
+že výsledok sa nezmestí ani do premennej typu \prg!unsigned long long int!.
+  Napríklad pre vstup \vb{123} má program vypísať \vb{
+  1214630436702532967576624324188129585545421708848338231532891816182\\
+  923589236216766883115696061264020217073583522129404778259109157041165147218602951\\
+  9906261646730733907419814952960000000000000000000000000000} (do jedného riadku).
+\end{uloha}
+
+
+\indexItem{Prg}{typ \vb{string}}
+ Veľmi podobný typu \vb{vector} je typ \vb{string} (
+\prg!#include <string>!): má rovnaké funkcie
+ako \prg!vector<char>! a aj niečo navyše. Napríklad má operátor \prg!>>!
+pre načítanie zo vstupu: program \prg!string s; cin >> s;! prečíta zo vstupu
+znaky (až po prvý whitespace), alokuje pamäť v reťazci \vb{s} a uloží ich tam.
+Užitočná je aj funkcia \vb{getline(cin, s)}, ktorá do reťazca \vb{s}
+prečíta riadok zo vstupu (aj s medzerami). Občas sa hodí použiť aj 
+verzia s troma parametrami \vb{getline(cin, s, delim)} ktorá za ukončovač
+riadku považuje znak \vb{delim} (napr. \prg!getline(cin, s, ',')! uloží do \vb{s} reťazec zo vstupu po
+prvú čiarku). K reťazcu sa dá pripojiť ďalší reťazec,
+jeho časť, alebo pole znakov pomocou metódy \vb{append}, napr.
+\prg!s.append("kuk").append(t,2,4)! do \vb{s} najprv\footnote{%
+  Všimni si, ako sa dajú volania \prg!append! reťaziť. Je to preto, že metóda 
+  \prg!append! vracia {\em referenciu} na daný \prg!string!; viac sa o tom
+  dozvieš v ďalšej kapitole.
+}pripojí (pole znakov) 
+\prg!"kuk"! a potom úsek 4 znakov z reťazca \vb{t} počnúc od pozície \prg!t[2]!.
+Podreťazec (substring) sa dá vyrobiť \prg!t=s.substr(2,4);! Metóda \vb{find} 
+vráti prvý výskyt podreťazca od danej pozície: ak \prg!s="barbakan"!, tak
+\prg!s.find("ba")! vráti 0 (rovnako ako \prg!s.find("ba",0)!)
+a \prg!s.find("ba",1)! vráti 3. Ak sa podreťazec v reťazci nenachádza, vráti 
+sa špeciálna hodnota \vb{string::npos}. 
+
+
+\begin{uloha}
+  Predpokladajme, že máme premennú typu \prg!string!, v ktorej je uložený
+  zápis čísla (napr. reťazec \prg!"4247"!). Napíš funkciu, ktorá vráti premennú
+  typu \prg!int!, v ktorej bude hodnota tohoto čísla.
+\end{uloha}
+
+ 
+Takáto funkcia je už v knižnici \prg!string! naprogramovaná a volá sa \prg!stoi!
+\footnote{{\em string-to-integer}, podobná funkcia je \prg!stol!
+ktorá vracia \prg!long!.}; dá sa napísať \prg!int x = stoi(s);!. 
+V kombinácii s \prg!find! a \prg!substr! sa \prg!stoi! dá použiť na čítanie
+čísel z reťazca. Keď treba čítať zložitejšie vstupy,\indexItem{Prg}{\vb{stringstream}}\phantomsection\label{here.stringstream}
+hodí sa  trieda \prg!stringstream! (\prg!#include <sstream>!).
+Premenná typu \vb{stringstream} funguje podobne ako \prg!cin! a \prg!cout!, ale
+namiesto štandardného vstupu a výstupu vie čítať a zapisovať do reťazca. Má špeciálnu metódu \vb{str()}, ktorou sa dá zistiť aj nastaviť
+reťazec, nad ktorým práve pracuje. Ukážme si to na príklade:
+
+\begin{uloha}
+  Na vstupe je viacero riadkov, ktoré obsahujú rôzne znaky (okrem \vb{\#}).  
+  Medzi nimi sú rôzne povkladané aktívne úseky ohraničené \vb{\#}, ktoré obsahujú 
+  iba čísla a medzery. Vstup je taký, že ak napíšeme čísla z aktívnych
+  úsekov za sebou dostaneme číslice čísla $\pi$, t.j. \vb{31415926535....}.
+  Napíšte porgram, ktorý vyberie čísla z aktívnych úsekov a v premennej typu \prg!double!
+  uloží číslo $\pi$.
+
+ Príklad vstupu
+
+\begin{outputBox}
+1 K3d s0m 1s13l # 3 14 # c3z h0ru#1 5#
+2
+3 str3t0l  #    9#s0m t4m
+4 p0tv0ru#2##65#!!
+  \end{outputBox}
+\end{uloha}
+
+Príklad riešenia je tu:
+
+\begin{lstlisting}[label=sstream]
+#include <iostream>
+#include <sstream>
+#include <string>
+using namespace std;
+
+int main() {
+  string s;
+  stringstream out;
+  double pi;
+
+  out << "0.";
+  while (cin.good()) {@\ll1@
+    getline(cin, s);
+    int i = 0, j;
+    while ((i = s.find("#", i)) != string::npos) { @\ll2@
+      j = s.find("#", i + 1);
+      stringstream in;
+      in.str(s.substr(i + 1, j - i - 1));
+      int n;
+      for (in >> n; !in.fail(); in >> n) @\ll4@
+        out << n;
+      i = j + 1; @\ll3@
+    }
+  }
+  out >> pi;
+  pi = 10 * pi;
+  cout << out.str() << endl;
+  cout << pi << endl;
+}
+\end{lstlisting}
+
+Urobil som si  premennú typu \vb{stringstream}
+na pozliepanie úsekov zo vstupu. Streamy (\prg!cin!, \prg!cout! aj premenné typu 
+\vb{stringstream}) majú metódy \prg!bool good()! a \prg!bool fail()!, ktoré
+hovoria, či je stream pripravený čítať a či sa posledné čítanie z neho podarilo.
+Preto hlavný \prg!while! cyklus na riadku~\ref{sstream-1} číta zo vstupu riadky, kým tam nejaké sú
+a volanie \vb{getline(cin,s)} ich ukladá do reťazca \vb{s}.
+Vo vnútornom cykle na riadku \ref{sstream-2}  nastavím 
+\vb{i}  a \vb{j}  na pozície 
+\footnote{\indexItem{Prg}{priradenie ako výraz}
+Tu som použil čudný zápis \hbox{\vb{while ((i=x) == y) ...}}
+Priradenie je predsa príkaz. Áno, ale dá sa použiť aj ako výraz a vtedy ako výsledok vracia priradenú hodnotu.
+V predchádzajúcom zápise to znamená \cmd{Do i priraď x a ak priradená hodnota bola y, pokračuj vo vykonávaní cyklu}.
+}
+dvoch po sebe idúcich znakov \vb{\#} (všimni si \vb{i = j + 1;} na konci
+cyklu na riadku \ref{sstream-3}). Potom
+si vyrobím \vb{stringstream}, ktorém nastavím podreťazec
+\vb{s} medzi \vb{i} a \vb{j} ako vstupný reťazec 
+volaním \vb{in.str(...)}. V najvnútornejšom cykle na riadku \ref{sstream-4}
+čítam z \vb{in} čísla
+a zapisujem ich do \vb{out} bez medzier. Po dočítaní vstupu
+bude reťazec \vb{out.str()} obsahovať \prg!"0.31415..."!,
+preto z \vb{out} môžem prečítať premennú typu \prg!double!.
+Všimni si, že \vb{out.str()} aj po načítaní obsahuje celý buffer, znaky
+z neho sa pri čítaní nestrácajú. Keby som ho chcel vyprázdiť, mohol by som použiť \prg!out.str("")!.
+
+Streamy sú urobené tak\footnote{%
+  Ako je to presne urobené ti poviem v kapitole~\ref{sect:kompresia}.
+}, že sa vedia tváriť ako typ \vb{bool}, takže kratšia verzia vyzerá takto:
+
+\begin{lstlisting}
+#include <iostream>
+#include <sstream>
+#include <string>
+using namespace std;
+int main() {
+  string s;
+  stringstream out;
+  double pi;
+  out << "0.";
+  while (getline(cin, s)) {
+    int i = 0, j;
+    while ((i = s.find("#", i)) != string::npos) {
+      j = s.find("#", i + 1);
+      stringstream in(s.substr(i + 1, j - i - 1));
+      int n;
+      while (in >> n) out << n;
+      i = j + 1;
+    }
+  }
+  out >> pi;
+  pi = 10 * pi;
+  cout << out.str() << endl;
+  cout << pi << endl;
+}
+\end{lstlisting}
+
+\begin{uloha}
+  Na vstupe sú dve čísla. Napíš program, ktorý vypíše ich súčin. Pozor, čísla 
+  môžu byť ľubovoľne veľké.
+\end{uloha}
+

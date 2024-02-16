@@ -1,0 +1,129 @@
+\chapter{Vlastné typy: \vb{struct}}
+
+Základné typy, o ktorých sme si hovorili v kapitole~\ref{sect:cisla}
+majú spoločné to, že zaberajú nejakú fixnú časť pamäte. Okrem základných typov je\indexItem{Prg}{\vb{struct}} 
+možnosť vyrobiť si aj vlastné typy. Na to slúži kľúčové slovo \prg!struct! (záznam).
+Vlastný typ, ktorý si vyrobíš v programe, bude pozostávať z niekoľkých častí,
+z ktorých každá má meno a svoj typ. Napríklad pre prácu s farbami sa často
+používa RGBA model: farba je pamätaná ako štyri čísla z rozsahu $0\ldots255$,
+ktoré udávajú množstvo červenej, zelenej a modrej zložky. Posledné číslo je
+tzv. alfa zložka a udáva priesvitnosť: 0 je úplne priesvitná a 255 úplne nepriesvitná.\\
+
+
+\vbox{
+\begin{lstlisting}[] 
+struct Farba {
+  unsigned char r, g, b, a;
+};
+\end{lstlisting}
+}
+
+Týmto si vyrobil typ \vb{Farba}. Premenné tohto typu budú v pamäti zaberať 
+4 byty, pričom každý z nich sa bude správať ako celé číslo bez znamienka (t.j. budú
+mať hodnoty $0\ldots255$). Premennú tohto typu vyrobíš rovnako ako akúkoľvek inú, napr.
+\prg!Farba f;! vyrobí premennú \vb{f} typu \vb{Farba}. K jej jednotlivým zložkám
+sa dá pristupovať pomocou operátora \vb{.} (bodka): \prg!f.r! je premenná typu 
+\prg!unsigned char!, ktorá je zložka \vb{r} z premennej \vb{f}. 
+Celú premennú môžeš nastaviť zápisom v kučeravých zátvorkách, napr. 
+\prg!f = {255, 255, 0, 255};!
+urobí žltú farbu. Jednu premennú môžeš skopírovať do druhej pomocou priradenia. 
+Priradenie skopíruje celú pamäť, t.j. ak máš premenné \prg!Farba f1,f2;! tak
+\prg!f1 = f2;! je to isté ako 
+\prg!f1.r = f2.r;! 
+\prg!f1.g = f2.g;! 
+\prg!f1.b = f2.b;! 
+\prg!f1.a = f2.a;! 
+Keďže to ale nie sú čísla, nemôžeš použiť iné operácie, napr. sčítanie, \prg!f1 + f2! 
+je chyba. Program\\
+
+\vbox{
+\begin{lstlisting}[] 
+struct Farba {
+  unsigned char r, g, b, a;
+};
+
+int main() {
+  Farba f, h;
+  f = {100, 100, 255, 255};
+  h = f;
+  h.r = 0;
+  h.b = 80;
+  cout << (int)h.r << " " << (int)h.g << " " << (int)h.b << endl;
+}
+\end{lstlisting}
+}
+
+vypíše \vb{0 100 80}. \indexItem{Prg}{pretypovanie (konverzia)}Všimni si zápis \prg!(int)h.r!. Ten sa volá pretypovanie
+({\em konverzia}). Výraz
+\vb{($\langle typ\rangle$)$\langle vyraz\rangle$} hovorí \cmd{Zober hodnotu výrazu $\langle
+vyraz\rangle$ a urob z nej typ $\langle typ\rangle$.} V našom prípade je 
+$\langle vyraz\rangle$ \vb{h.r}, čo je hodnota typu \prg!unsigned char!.
+Bez konverzie by sa k nej príkaz \prg!cout <<! správal ako k znaku: vypísal by znak s 
+príslušnou ASCII hodnotou. Konverzia spôsobí, že hodnota výrazu sa síce nezmení, ale 
+\prg!cout <<! vypíše príslušné číslo. Podobne príkaz
+
+
+\prg!int i = -1; cout << (unsigned int)i << " " << i << endl;! 
+
+ vypíše
+\vb{4294967295 -1} (v pamäti na adrese premennej \vb{i} je stále uložená
+tá istá hodnota, 32 jednotiek v dvojkovom zápise).
+
+
+Jednotlivé zložky typu \prg!struct! môžu byť akékoľvek typy alebo polia, takže 
+môžeš mať napr.
+
+\vbox{
+\begin{lstlisting}[] 
+struct Gradient{
+  Farba x[2];  // ak je tu pole, musí mať fixnú veľkosť
+  bool linear;
+};
+\end{lstlisting}
+}
+
+a písať\footnote{\indexItem{Prg}{inicializačný zoznam (initializer list)}%
+  S takýmto zápisom v kučeravých zátvorkách sa stretneme ešte veľakrát, hovorí sa mu {\em inicializačný zoznam} ({\em initializer list}). Do (takmer) hocijakej premennej,
+  ktorá má viac zložiek (napr. pole, \prg!struct!) môžeš priradiť konštantu, ak jednotlivé položky (v poradí, v akom sú definované) vymenuješ
+  v kučeravých zátvorkách.
+}\prg!Gradient g = {{f, {100, 100, 100, 255}}, false};! alebo 
+\prg!g.x[1].r = g.x[0].b;! a pod. V súbore  
+\link{\rootpath/obrazok.h}{obrazok.h}
+je aj jednoduchá podpora na prácu s farebnými obrázkami, takže napr. program\\
+
+
+\vbox{
+\begin{lstlisting}[] 
+#include "obrazok.h"
+#include <iostream>
+using namespace std;
+
+struct Farba {
+  unsigned char r, g, b, a;
+};
+
+Farba pal[2] = {{0, 0, 255, 255}, {255, 255, 0, 255}};
+
+int main() {
+  int d = 100;
+  Farba a[8 * d][8 * d];
+  int i, j;
+  for (i = 0; i < 8 * d; i++)
+    for (j = 0; j < 8 * d; j++)
+      a[i][j] = pal[((i / d) + (j / d)) % 2];
+  zapis_rgba_png(8 * d, 8 * d, a, "vystup.png");
+}
+\end{lstlisting}
+}
+
+
+vyrobí súbor \vb{vystup.png}, v ktorom bude žlto-modrá šachovnica.
+
+\def\ulohaTarget{None}
+\begin{uloha}
+  Pozri si stránku 
+  \link{https://sk.wikipedia.org/wiki/Gal\%C3\%A9ria_\%C5\%A1t\%C3\%A1tnych_vlajok}{%
+  galéria štátnych vlajok} a napíš program, ktorý pre zadaný názov štátu vyrobí obrázok
+  s jeho vlajkou. Pre ktoré štáty to vieš urobiť?
+\end{uloha}
+\def\ulohaTarget{File}

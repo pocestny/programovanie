@@ -1,0 +1,292 @@
+\chapter{Zásobník ako vlastný typ}
+\label{sect:zasobnik}
+
+V kapitole~\ref{sect:stack} sme používali zásobník tak, že sme mali pole fixnej
+veľkosti a jednu premennú, ktorá udávala aktuálny počet prvkov v zásobníku. Keby sme chceli
+mať viac zásobníkov, mali by sme viac polí a viac premenných. Aby sme v tom udržali
+poriadok, je dobré spraviť si vlastný typ, kde budú obe veci pokope, napr.
+
+\vskip 2ex
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+const int N = 100000;
+
+struct Stack {
+  int a[N], n;
+};
+  
+int main() {
+  Stack s1, s2;
+
+  s1.n = 0;
+  s2.n = 0;
+
+  // pridaj prvok
+  s1.a[n]=1;
+  s1.n++;
+}
+\end{lstlisting}
+}
+
+
+Takáto definícia má dva problémy: vždy, keď vyrobíme zásobník, vyhradí sa v pamäti
+veľké pole, aj keby sme dopredu vedeli, že budeme potrebovať menej. Druhý problém je,
+že na pridanie prvku treba dva príkazy, čo pri častom používaní môže byť neprehľadné.
+Prvý problém vyriešime dynamickou alokáciou: zásobník si bude pamätať, aké veľké pole
+má alokované a na začiatku ho inicializujeme. Inicializáciu aj pridanie prvku zariadime 
+funkciami. Tieto musia ako parameter dostávať pointer na zásobník, aby mohli meniť jeho 
+premenné\footnote{%
+Keby dostali ako parameter namiesto \prg!Stack *s! iba \prg!Stack s!, pri volaní
+funkcie sa zásobník (t.j. premenné \prg!a, n, max!)  
+skopíruje do lokálneho sveta funkcie, tam sa zmení
+a po skončení volania spolu so svetom zanikne. Dynamicky alokované pamäť by ostala,
+ale pointer na ňu by sa stratil. To nie je to, čo chceme.
+}.
+
+
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+struct Stack {
+  int *a, n, max;
+};
+  
+void resize(Stack *s, int max) {
+  (*s).a = new int[max];
+  (*s).max = max;
+  (*s).n = 0;
+} 
+
+bool push(Stack *s, int x) {
+  if ((*s).n == (*s).max) return false;
+  (*s).a[(*s).n] = x;
+  (*s).n++;
+  return true;
+} 
+
+void discard(Stack *s) {
+  delete[] (*s).a;
+  (*s).a = nullptr;
+}
+
+int main() {
+  Stack s1, s2;
+
+  resize(&s1, 10);
+  resize(&s2, 1000);
+  push(&s1, 4);
+  discard(&s1);
+  discard(&s2);
+
+}
+\end{lstlisting}
+
+ Funkcia \vb{push} nám teraz kontroluje, aby zásobník nepretiekol: ak je plný, 
+prvok nevloží a vráti \prg!false!.
+Volanie \vb{(*p).x}, kde \vb{p} je pointer na typ, ktorý má zložku \vb{x} je natoľko\indexItem{Prg}{zápis \vb{->}}%
+časté, že má skratku \vb{p->x}. Teda namiesto \prg!(*s).a! môžeš písať \prg!s->a!.
+Týmto sme dosiahli, že všetky operácie so zásobníkom sú schované v jednom type a príslušných
+funkciách. Keby sme sa rozhodli naprogramovať zásobník nejak inak\footnote{%
+  Zásobník je tak jednoduchá dátová štruktúra, že iný spôsob ťažko vymyslieť, ale 
+  stretneme aj oveľa zložitejšie veci, kde to bude dávať dobrý zmysel.}
+nemusíme meniť zvyšok programu. 
+
+
+
+Všetky tri funkcie \vb{resize}, \vb{push}, \vb{discard} sú podobné v tom, že prvý
+parameter je pointer na premennú typu \vb{Stack} a funkcia nejakým spôsobom túto premennú 
+mení. Pretože logicky patria k typu \vb{Stack}, je možné ich definovať priamo v type.\indexItem{Prg}{trieda, metódy, atribúty}
+Typ, ktorý má definované funkcie, sa volá {\em trieda}, jemu priradené funkcie sa volajú
+{\em metódy}. Premennej typu trieda sa zvykne hovoriť {\em objekt} a jeho zložkám 
+(jednotlivým premenným vovnútri typu) sa občas hovorí {\em atribúty}. Ale to všetko sú
+len mená, na ktorých príliš nezáleží\footnote{{\em ''A rose by any other name would 
+smell as sweet'' --- W. Shakespeare}}. Dôležité je, že funkcie \vb{resize}, \vb{push}
+a \vb{discard} môžeš definovať priamo v type \vb{Stack}. Takéto funkcie
+dostávajú prvý ''neviditeľný'' parameter \prg!Stack *this!, ktorý obsahuje pointer
+na objekt (premennú), na ktorom pracujú. Jednotlivé atribúty (premenné) sa potom
+dajú písať bez zmienky o premennej (t.j. môžeš písať \vb{zzz} namiesto \prg!this->zzz!, 
+aj keď to druhé je rovnako správne). Pretože metóda má neviditeľný parameter \prg!this!,
+dá sa zavolať iba v spojení s nejakým objektom (premennou).  Na to sa používa rovnaký zápis
+pomocou bodky, ako keď sa pristupuje k atribútom (zložkám) objektu (premennej). 
+Takže môžeme mať niečo takéto:
+
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+struct Stack {
+  int *a, n, max;
+
+  void resize(int _max) {
+    max = _max;
+    a = new int[max];
+    n = 0;
+  }
+
+  bool push(int x) {
+    if (n == max) return false;
+    a[n] = x;
+    n++;
+    return true;
+  }
+
+  void discard() {
+    if (a != nullptr) // aby sme náhodou nevolali delete[] viackrát
+      delete[] a;
+    a = nullptr;
+  }
+};
+
+int main() {
+  Stack s1, s2;
+
+  s1.resize(10);
+  s2.resize(1000);
+  s1.push(4);
+  s1.discard();
+  s2.discard();
+}
+\end{lstlisting}
+
+Príkaz \prg!s1.resize(10);! zavolá metódu \vb{resize} s parametrom 10 na objekte \vb{s1},
+t.j. vyrobí sa nový svet pre funkciu \vb{resize}, 
+premenná \vb{\_max} sa v ňom nastaví na $10$ a 
+neviditeľná premenná \prg!Stack *this! sa nastaví na \prg!&s1!. Pri vykonávaní funkcie
+premenné \prg!max, a, n! nie sú v jej svete definované.  Ale skôr, ako by sa 
+začali hľadať medzi globálnymi premennými, skúsi sa
+\prg!this->max!, \prg!this->a!, \prg!this->n!. 
+
+
+Skoro dokonalé, ale ešte tomu zopár vecí chýba. Ak na začiatku zabudneme zavolať \vb{resize}
+premenné \vb{a, n, max} budú v nedefinovanom stave, takže potom ďalšie volania budú
+robiť paseku. Podobne sa nám môže stať, že zabudneme zavolať \vb{discard} a stratí sa nám
+pamäť. Na to, aby sme tieto problémy vuriešili, slúžia \indexItem{Prg}{konštruktor a deštruktor}dve špeciálne metódy: {\em konštruktor}
+a {\em deštruktor}. Ak v rámci typu (triedy) definuješ funkciu, ktorá sa volá rovnako ako
+typ a nemá návratovú hodnotu\footnote{Konštruktor a deštruktor je jediná výnimka z pravidla,
+že funkcia musí mať návratovú hodnotu, keď už nič iné tak aspoň typ \vb{void}}, táto metóda
+sa zavolá vždy, keď sa vyrobí nová premenná (či už osamote alebo v poli) hneď potom, ako
+sa jej vyhradí v pamäti miesto\footnote{Môžeš skúsiť pridať do konštruktora nejaký výpis
+a potom v hlavnom programe zavolať napr. \prg!Stack *a = new Stack[5];!.}. Konštruktorom
+vieme zabezpečiť, že náš zásobník nikdy nebude neinicializovaný. Podobne, ak napíšeš
+funkciu, ktorej meno je meno typu s prefixom \vb{\textasciitilde}, táto metóda
+sa zavolá vždy tesne predtým, ako premenná zanikne (či už preto, že zanikne svet funkcie,
+v ktorom vznikla, alebo sa volá \prg!delete[]! na dynamicky alokovanú pamäť, v ktorej 
+bola\footnote{%
+  Skús si opäť pridať výpis do deštruktora a pozrieť sa, ako sa správa.}.
+
+
+\begin{lstlisting}[] 
+struct Stack {
+  int *a, n, max;
+  
+  Stack() {                 // konštruktor
+    a = nullptr;
+    n = 0;
+    max = 0;
+  }
+
+  ~Stack() { discard(); }   // dešstruktor
+  
+  // zmena veľkosti
+  void resize(int _max) {  
+    if (a != nullptr) { // ak tam už niečo bolo, skopírujeme
+      int *b = new int[_max];
+      if (n > _max) n = _max;
+      for (int i = 0; i < n; i++) b[i] = a[i];
+      discard();        // zahodíme, čo tam bolo doteraz
+      a = b; 
+    } else { // nemali sme nič naalokované, vyrobíme nové
+      a = new int[_max];
+      n = 0;
+    }
+    max = _max;
+  } 
+  
+  // pridanie prvku, iba ak máme miesto
+  bool push(int x) {
+    if (n == max) return false;
+    a[n] = x;
+    n++;
+    return true;
+  } 
+  
+  void discard() {          // odalokujeme pamäť
+    delete[] a;
+    a = nullptr;
+  } 
+};
+\end{lstlisting}
+
+Teraz je už náš zásobník presne, ako sme ho chceli mať\footnote{%
+  v programe som použil novú skratku: ak v cykle \prg!for! chceš použiť
+  premennú, ktorá bude viditeľná iba vo svete zloženého príkazu v cykle,
+  môžeš je vyrobiť priamo v príkaze \prg!for(int i=0;...!}.
+Vždy, keď budeš potrebovať zásobník, stačí urobiť copy\&paste definície
+typu \vb{Stack} a dá sa pohodlne používať. Lenže robiť zakaždým copy\&paste
+je otrava a navyše keď budeš mať 5--6 podobných tried, tvoj program sa stane
+neprehľadný. Tento problém elegantne rieši {\em preprocesor}: prv než\indexItem{Prg}{preprocesor, direktíva \vb{\#include}}
+sa súbor s programom dá kompilátoru, text súboru prejde jednoduchý prekladač.
+Ten netuší nič o premenných, typoch, príkazoch atď, len spracováva text. 
+Príkazy pre preprocesor sa spravidla začínajú znakom \prg!#! a jeden z nich je
+\prg!#include!. Keď v programe napíšeš \prg!#include "velryba"! tak preprocesor
+nájde súbor \vb{velryba} v aktuálnom adresári\footnote{Ak namiesto úvodzoviek použiješ
+''zobáčiky'', bude sa hľadať nie v aktuálnom adresári, ale v jednom z default, ktoré
+sú nastavené pri inštalácii. To je presne to, čo sa deje, keď napíšeš 
+\prg!#include <iostream>!} a spraví copy\&paste jeho obsah na mieste \prg!#include!.
+Preto ak si celú definíciu typu \vb{Stack} uložíš do suboru \vb{stack.h}, tak
+kedykoľvek napíšeš \prg!#include "stack.h"!, na tom mieste sa nakopíruje 
+definícia typu \vb{Stack}.
+
+
+A na záver tejto kapitoly ešte drobnosť. Predstav si, že budeš mať súbor \vb{stack.h}
+a spravíš inú triedu, \prg!struct Opica{Stack a,b;};!, ktorú si uložíš do súboru
+\vb{opica.h}. Pretože si nechceš pamätať, že vždy pred použitím \prg!#include "opica.h"!
+treba napísať \prg!#include "stack.h"!, napíšeš \prg!#include "stack.h"! ako prvý riadok v 
+súbore \vb{opica.h}. Teraz keď napíšeš \prg!#include "opica.h"! tak preprocesor nájde súbor
+\vb{opica.h} vloží ho do textu a pokračuje v spracovávní už aktualizovaného súboru. V ňom
+nájde \prg!#include "stack.h"!, tak nájde súbor \vb{stack.h}, vloží ho tam a pokračuje
+a celé to funguje. Problém ale môže nastať, ak neskôr chceš písať program, v ktorom chceš
+použiť zásobník aj opicu. Napíšeš
+
+
+\begin{lstlisting}[] 
+#include "opica.h"
+#include "stack.h"
+
+int main() {
+  // môj program s opicou a zásobníkom
+}
+\end{lstlisting}
+
+Teraz sa ale stane to, že súbor \vb{stack.h} sa vloží do programu dvakrát (raz v 
+hlavnom súbore, raz pri spracovaní súboru \vb{opica.h}) a kompilátor vyhlási chybu. Tento
+problém sa spravidla rieši pomocou symbolov, ktoré vie preprocesor spracovávať.\indexItem{Prg}{direktívy \vb{\#define}, \vb{\#ifdef}}
+Riadok \prg!#define pumpa 118! definuje v preprocesore symbol \vb{pumpa}: 
+kdekoľvek sa v texte programu vyskytne reťazec  \vb{pumpa}, preprocesor ho nahradí 
+číslom 118. Preprocesor má aj podmienky, ktoré testujú, či je alebo nie je
+nejaký symbol definovaný. 
+Zvyčajný spôsob, ako napísať súbor \vb{stack.h} je
+
+\vbox{
+\begin{lstlisting}[] 
+#ifndef _subor_stack_h_uz_je_v_programe_
+#define _subor_stack_h_uz_je_v_programe_
+
+struct Stack{
+  // všetko čo treba
+};
+
+#endif
+\end{lstlisting}
+}
+
+Keď preprocesor načítava súbor \vb{stack.h} prvýkrát, symbol 
+\prg!_subor_stack_h_uz_je_v_programe_! nie je definovaný, preto sa pokračuje\footnote{%
+  všimni si, že podmienka je \vb{ifndef} ako \vb{if not defined}}, preto sa definuje
+  a vloží sa definícia \vb{Stack}. 
+  Pri každom ďalšom raze už symbol bude definovaný a definícia \vb{Stack} sa preskočí.
+

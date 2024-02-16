@@ -1,0 +1,2 @@
+Zvukové súbory sú z porjekty PyChess
+https://github.com/pychess/pychess

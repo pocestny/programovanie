@@ -1,0 +1,370 @@
+%\section*{Funkcie ako parametre}
+\chapter{Funkcie ako parametre}
+\label{sec:lambdy}
+
+Funkcie z knižnice \vb{algorithm} sú užitočné, ale ak sa napr. vrátiš
+k úlohe \ref{uloha:sortbody}, zistíš, že stále máš problém.
+Dajme tomu, že máš typ
+\begin{lstlisting}
+struct Bod {
+  double x,y;
+};
+\end{lstlisting}
+a chceš utriediť pole bodov podľa $x$-ovej súradnice. Ak skúsiš napísať
+\begin{lstlisting}
+vector<Bod> a;
+sort(a.begin(), a.end());
+\end{lstlisting}
+dostaneš chybovú správu, že typ \vb{Bod} nemá operátor \vb{<}, podľa ktorého
+by sa mohol triediť. Môžeš to vyriešiť takto:
+\begin{lstlisting}
+struct Bod {
+  double x,y;
+  bool operator<(Bod p) { return x < p.x; }
+};
+\end{lstlisting}
+ale vzápätí sa dostaneš do problémov, ak chceš teraz utriediť body podľa $y$-ovej súradnice.
+Hodil by sa nejaký mechanizmus, ako funkcii \vb{sort} povedať, podľa čoho má triediť.
+Keďže to má byť všeobecná funkcia, najlepšie by bolo, keby sa jej, ako ďalší
+parameter, dala posunúť funkcia, ktorú má použiť na porovnávanie dvoch hodnôt
+namiesto operátora \vb{<}.
+
+ Keď skompiluješ program, vytvorí sa z neho postupnosť príkazov pre procesor,
+ktorá sa pri spustení programu uloží do pamäte, podobne ako sme to mali pri riešení
+úlohy~\ref{uloha:logo}. Keď sa v programe volá funkcia, vytvorí sa v pamäti
+pre ňu nový svet, a procesor začne spracovávať príkazy na tom mieste pamäte,
+kde je program pre danú funkciu. Keď funkcia skončí, program pokračuje vo vykonávaní
+príkazov tam, kde prestal. Funkcia je teda, podobne ako premenná, tiež len postupnosť
+núl a jednotiek uložená niekde v pamäti, a teda, podobne ako premenná, má adresu.
+Táto adresa sa dá uložiť do premennej typu {\em pointer na funkciu}. Pretože pri vytváraní\indexItem{Prg}{pointer na funkciu}
+sveta funkcie treba vedieť, aké má parametre, pre každú kombináciu parametrov existuje
+iný typ, napr. typ \cmd{pointer na funkciu, ktorá má jeden parameter \prg!int! a vracia
+typ \prg!bool!}. Premenné typu {\em pointer na funkciu} sa zapisujú trochu špeciálnym 
+spôsobom. Namiesto \vb{typ nazov;} ako pri \prg!int x;! sa napíše definícia funkcie,
+ale namiesto názvu má hviezdičku a názov premennej. Takže napr. 
+\prg!bool (*a)(int*);! vyrobí premennú \vb{a} ktorá bude typu \cmd{pointer na funkciu, ktorá
+má parameter \prg!int *! a vracia \prg!bool!}. Priradiť do takejto premennej sa dá
+adresa funkcie, t.j. ak máš v programe napr. 
+\prg!bool parne(int* x) { return (*x) % 2 == 0; }!, 
+tak môžeš napísať \prg!a=&parne;!, prípadne ten ampersand môžeš aj vynechať a písať
+rovno \prg!a=parne;!. Premenná \vb{a} teda bude pointer na funkciu, a jeho hodnota
+bude samotná funkcia, ktorú môžeš zavolať, napr. \prg!(*a)(&x);! (rovnako môžeš
+hviezdičku vynechať a funguje aj zápis \prg!a(&x);!. Napokon, ak chceš viackrát 
+použiť ten istý typ, je príjemné si naňho urobiť skratku pomocou \prg!using!.
+V nasledujúcom programe je \vb{Funkcia} typ \cmd{pointer na funkciu, ktorá má
+parameter \prg!int! a vracia \prg!int!}. Funkcia \vb{urob} má parameter \prg!int!
+a pointer na funkciu, ktorú zavolá. Pri volaní \vb{urob(20, pridaj)} sa vypíše $30$
+a pri volaní \vb{urob(20, uber)} sa vypíše $10$.
+
+
+\begin{lstlisting}
+#include <iostream>
+using namespace std;
+
+using Funkcia = int (*)(int);
+
+int pridaj(int x) { return x + 10; }
+int uber(int x) { return x - 10; }
+
+void urob(int x, Funkcia f) {
+  cout << f(x) << endl;
+}
+
+int main() {
+  urob(20, pridaj);
+  urob(20, uber);
+}
+\end{lstlisting}
+
+Tento mechanizmus funnguje aj v jazyku C a častokrát sa používa v rôznych knižniciach na
+tzv. {\em callbacks}. Napríklad knižnica na prácu so sieťou môže mať funkciu, ktorá čaká, 
+kým prídu nejaké dáta a potom zavolá callback, ktorý dostala ako parameter, na ich spracovanie.
+
+
+V C++ sú aj ďalšie možnosti, ako odovzdať funkciu ako parameter, napr. pomocou tzv.\indexItem{Prg}{funktor}
+{\em funktorov}. Funktor je len honosne znejúce slovo pre triedu, ktorá má definovaný 
+operátor\vb{()}. Tento program robí to isté, čo ten predchádzajúci:
+
+\begin{lstlisting}
+#include <iostream>
+using namespace std;
+
+struct Pridaj {
+  int operator()(int x) { return x + 10; }
+};
+
+struct Uber {
+  int operator()(int x) { return x - 10; }
+};
+
+template <typename T>
+void urob(int x, T f) {
+  cout << f(x) << endl;
+}
+
+int main() {
+  urob(20, Pridaj());
+  urob(20, Uber());
+}
+\end{lstlisting}
+
+Treba to čítať tak, že \vb{Pridaj} je trieda, ktorá nemá žiadne premenné
+a má jedinú metódu, ktorou je operátor \vb{()}. Ten berie ako parameter \prg!int!
+a vracia \prg!int!. Funkcia \vb{urob} je šablóna, ktorá má prvý parameter \prg!int!
+a druhý akéhokoľvek typu \vb{T}. Ten typ ale musí mať príslušný operátor, aby sa dalo
+zavolať \vb{f(x)}; keby si skúsil vyrobiť typ \prg!urob<int>! kompilátor vyhlási chybu
+pri použití šablóny.
+V hlavnom programe je volanie \vb{Pridaj()} konštruktor typu \prg!Pridaj! (keďže si žiaden nedefinoval,
+kompilátor si spravil default), ktorý vyrobí premennú typu \vb{Pridaj} a pošle
+ju ako parameter do funkcie \vb{urob<Pridaj>}, ktorú si vyrobí podľa šablóny. 
+Pri volaní \prg!urob<Pridaj>(20,Pridaj())! si môžem typ v šablóne odpustiť, kompilátor si
+ho vie domyslieť podľa typu parametra. 
+
+
+Ukážem ti ešte ďalšiu možnosť, ako dosiahnuť to isté, ktorá bude pre naše potreby\indexItem{Prg}{lambda výrazy}
+častokrát najvhodnejšia. Sú ňou tzv. {\em lambda výrazy}\footnote{%
+  Nazvané podľa $\lambda$-kalkulu, čo je funkcionálny jazyk navrhnutý v 30tych rokoch
+  minulého storočia Alonsom Churchom (\url{https://en.wikipedia.org/wiki/Lambda_calculus})
+}, ktoré umožňujú definovať funkciu formou výrazu a pracovať s pointrom na ňu.
+Ešte raz ten istý program, tento raz s lambdami:
+
+\begin{lstlisting}
+#include <iostream>
+using namespace std;
+
+template <typename T>
+void urob(int x, T f) {
+  cout << f(x) << endl;
+}
+
+int main() {
+  urob(20, [](int x) { return x + 10; });
+  urob(20, [](int x) { return x - 10; });
+}
+\end{lstlisting}
+
+Skôr ako začneme hovoriť o lambdách, všimni si, že keď sme funkciu \vb{urob}
+definovali pomocou šablóny, dá sa použiť s pointrom na funkciu, funktorom, aj lambdou,
+čo sú inak všetko rozdielne zvieratá.
+
+ Ako teda fungujú lambdy? Lambda výraz je {\em výraz}, t.j. ako som povedal úplne 
+na začiatku: {\em príklad, ktorý
+sa počas behu programu vyráta a zistí sa jeho výsledok}. Výsledkom lambda výrazu je 
+funkcia: dá sa predstaviť ako pointer na bezmennú funkciu (v skutočnosti to tak aj je),
+ale v programe má špeciálny typ \vb{function}, definovaný v knižnici \vb{functional}.\indexItem{Prg}{šablóna \vb{function}}
+Typ \vb{function} je šablóna, ktorá sa dá použiť napr. takto:
+
+\begin{lstlisting}
+#include <functional>
+using namespace std;
+
+int main() {
+  function<int(int)> f = [](int x) { return x + 42; };
+}
+\end{lstlisting}
+
+
+\vb{f} je typu \cmd{funkcia, ktorá má parameter \prg!int! a vracia \prg!int!}.
+Keď kompilátor vidí tento zápis, vyrobí v programe kód pre funkciu, ktorá vráti 
+parameter zväčšený o 42 a pointer na túto funkciu priradí do premennej \vb{f}.
+Hranaté zátvorky \vb{[]} hovoria, že ide o lambda výraz. Potom nasledujú
+v normálnych zátvorkách parametre, ako pri bežnej funkcii a v kučeravých zátvorkách program
+tela funkcie. Keby bolo treba povedať aj návratový typ (napríklad by nebolo
+jasné, či sa má vracať \prg!int! alebo \prg!double!), dá sa to urobiť pomocou \vb{->}
+takto:
+
+\begin{lstlisting}
+function<double(int)> f = [](int x) -> double { return x + 42; };
+\end{lstlisting}
+
+V oboch prípadoch sa \vb{f} dá zavolať ako normálna funkcia, t.j. \vb{f(10)}. 
+
+ Hranaté zátvorky nie sú iba značenie lambda výrazu, dovnútra sa píšu tzv.\indexItem{Prg}{captures} 
+{\em captures}. Dajú sa predstaviť ako parametre, ktoré sa zafixujú v čase, keď sa
+funkcia vytvára (na rozdiel od normálnych parametrov, ktoré sa zafixujú až pri volaní).
+Dajme tomu, že chcem urobiť funkciu \vb{zvacsovac}, ktorá dostane parameter \vb{kolko}
+a vráti lambdu, ktorá bude mať jeden parameter a pri zavolaní ho zväčší o \vb{kolko}.
+Prvý pokus by bol takýto:
+
+\begin{lstlisting}
+function<int(int)> zvacsovac(int kolko) {
+  return [](int x) { return x + kolko; }; // !! chyba
+}
+\end{lstlisting}
+
+Tu je problém v tom, že pri vyrábaní lambdy je premenná \vb{kolko} lokálna premenná
+funkcie \vb{zvacsovac}: vo vyrobenej lambde ju nevidno (ako v každej funkcii, aj 
+v lambde vidno
+iba globálne a lokálne premenné). Keď premennú \vb{kolko} uvedieš ako {\em capture},
+t.j. spravíš
+
+\begin{lstlisting}
+function<int(int)> zvacsovac(int kolko) {
+  return [kolko](int x) { return x + kolko; };
+}
+\end{lstlisting}
+
+bude to fungovať takto: ak sa zavolá napr. \prg!zvacsovac(10)(20)!, vytvorí sa svet
+pre funkciu \vb{zvacsovac}, v ktorom bude lokálna premenná \vb{kolko} mať hodnotu $10$.
+Volanie \prg!zvacsovac(10)! vráti bezmennú lambda funkciu, v ktorej hodnota \vb{kolko} bude pevne fixovaná
+konštanta $10$: funkcia teda pri svojom volaní robí to, že vráti svoj parameter zväčšený o 10.
+Pointer na túto funkciu sa vráti ako výsledok volania \prg!zvacsovac(10)! a vzápätí sa funkcia zavolá,
+t.j. vytvorí sa nový svet, v ktorom premenná \vb{x} bude nastavená na 20. Pretože 
+\vb{kolko} je navždy fixná konštanta 10, bezmenná funkcia vráti 30. Keby nasledovalo
+volanie \vb{zvacsovac(30)}, vráti sa nová, nezávislá, bezmenná funkcia, v ktorej je hodnota 
+\vb{kolko} fixovaná konštanta 30.
+
+ 
+Keď sa teda ako {\em capture} napíše meno premennej, napr. \vb{x},
+jej aktuálna hodnota sa v lambde 
+zoberie ako fixná konštanta. Ako {\em capture} sa dá napísať aj \prg!&x!,
+a vtedy sa ako fixná konštanta zoberie referencia (t.j. pointer) na \vb{x}. 
+Pozri si tento program:
+
+\begin{lstlisting}
+int main() {
+  vector<int> a;
+  int kde = 0, kolko = 5;
+
+  auto f = [&a, &kde, kolko](int este) { a[kde] = kolko + este; };
+
+  a.resize(5);
+  vypis(a);  // 0 0 0 0 0
+  f(1);
+  vypis(a);  // 6 0 0 0 0
+  kde = 3;
+  f(2);
+  vypis(a);  // 6 0 0 7 0
+  kolko = 12234;
+  f(2);
+  vypis(a);  // 6 0 0 7 0
+}
+\end{lstlisting}
+
+Hodnota premennej \vb{f} je funkcia s parametrom typu \prg!int!. V tejto funkcii  je vektor \vb{a}
+a premenná \vb{kde} prevzatá referenciou, t.j. v čase, keď sa vyhodnocuje 
+lambda-výraz (t.j. v našom prípade vtedy, keď sa robí priradenie do premennej \vb{f}),
+sa zoberie adresa \vb{a} a adresa \vb{kde}, a vo vzniknutej funkcii sa každá
+odvolávka na \vb{a} a \vb{kde} bdue odvolávať na premenné na týchto adresách. Na druhej 
+strane, pri premennej \vb{kolko} sa zoberie jej hodnota v čase vytvárania lambdy (t.j. 5),
+a všetky výskyty \vb{kolko} sa nahradia touto hodnotou. Preto keď sa zmení premenná 
+\vb{kde}, tak nasledujúce volanie \vb{f} bude meniť iný prvok vektora (lebo pri volaní
+zoberie hodnotu z adresy \vb{kde}, ktorá sa nezmenila). Ale keď sa zmení premenná 
+\vb{kolko}, nič sa nestane, lebo \vb{f} má namiesto \vb{kolko} nastavenú hodnotu 5.
+
+
+Treba, samozrejme, dávať pozor na to, že referencia môže prestať platiť, napríklad
+referencia na lokálnu premennú:
+
+\begin{lstlisting}
+function<void()> quak(vector<int>& x) {
+  int z = 42;
+  // return [\&x, \&z]() \{ x[2] = z; \};   !! problém
+  return [&x, z]() { x[2] = z; };   // toto je v poriadku
+}
+\end{lstlisting}
+
+V prvom prípade sa vyrobí bezmenná lambda, do ktorej sa za \vb{z} zafixuje
+adresa premennej \vb{z} zo sveta funkcie \vb{quak}. Lenže \vb{quak} vzápätí skončí
+a na tej adrese môže byť čokoľvek. Na záver ešte poznámka: ak chceš do {\em capture}
+zoznamu dať všetky lokálne premenné, dá sa použiť \vb{[=]} (resp. \prg![&]!, ak 
+sa majú brať ich referencie). Ak sa lambda nachádza v rámci triedy, netreba
+zabudnúť dať do {\em capture} zoznamu \prg!this!, inak premenné z triedy nebudú
+viditeľné (lambda je nezávislá funkcia\footnote{%
+Presnejšie povedané pre fanjnšmekrov: lambda je v skutočnosti iba skrátený zápis pre funktor.
+Ak máš v programe premennú \prg!int kvak=17! a zavoláš \prg!auto zaba = [kvak](int x){return kvak+x;}!,
+kompilátor vyrobí nejaký typ, napr. 
+\prg!struct lambda_el4l59265e {int kvak; operator()(int x){return kvak+x;}};!,
+povie si, že \prg!auto zaba! bude \prg!lambda_el4l59265e zaba! a uloží tam premennú typu 
+\prg!lambda_el4l59265e!, 
+ktorej hodnotu \prg!zaba.kvak! nastaví
+na $17$.}).
+
+ Lambda výrazy sú často vhod pri práci s algoritmami v STL. Veľa funkcií
+má verzie s dodatočným parametrom, ktorý je funkcia na porovnávanie prvkov.
+Špeciálne nás zaujíma funkcia \vb{sort}. Videl si tvar 
+\prg!sort(a.begin(),a.end())!, ale dá sa pridať aj tretí parameter, ktorý musí byť 
+funkcia, ktorá zoberie dva prvky (takého typu, ako sú v kontajneri, ktorý sa triedi),
+a vráti \prg!true!, ak je prvý prvok menší. Napríklad:
+
+\begin{lstlisting}
+int main() {
+  vector<int> a;
+  for (int i = 0; i < 6; i++)
+    a.push_back(2 + 2 * (i / 2) - i % 2);
+
+  vypis(a);  // 2 1 4 3 6 5
+  sort(a.begin(), a.end());
+  vypis(a);  // 1 2 3 4 5 6
+  sort(a.begin(), a.end(), [](int a, int b) { return a > b; });
+  vypis(a);  // 6 5 4 3 2 1
+}
+\end{lstlisting}
+
+Ak je treba posielať funkciu ako parameter, treba sa rozhodnúť, či to bude pointer na funkciu, lambda, prípadne nejaký typ funktora. Táto dilema sa častokrát rieši šablónou. Ak si urobíš napr. šablónu
+
+\begin{lstlisting}
+template <typename F>
+void rob(F f) { cout << f(10) << endl; }
+\end{lstlisting}
+
+tak kompilátor bude vedieť vyrobiť funkcie \vb{rob<...>} pre všetky tri verzie. Navyše sa veľakrát nemusíš starať o to, aký presne typ má tvoj parameter, 
+lebo kompilátor to pri použití šablóny častokrát zistí. Takže môžeš napr. napísať 
+
+\begin{lstlisting}
+int sedem(int x) { return 7; }
+
+struct Uberac {
+  Uberac() { y = 42; }
+  int operator()(int x) {  y -= x; return y; }
+  int y;
+};
+
+int main() {
+  rob( [](int x) { return x + 5; } );  // zavolá sa rob<function<int(int)> >
+  rob( &sedem );                       // zavolá sa rob<int (*)(int)>
+
+  Uberac u;
+  rob( u );                            // zavolá sa rob<Uberac>
+}
+\end{lstlisting}
+
+
+
+\begin{uloha}
+Na vstupe je $n$ prirodzených čísel. Zoraď ich tak, aby najprv nasledovali všetky
+párne čísla utriedené od najmenšieho po najväčšie a potom všetky nepárne čísla
+  utriedené od najväčšieho po najmenšie. Napríklad pre vstup \vb{7 3 2 6 4 1 5}
+  je výstup \vb{2 4 6 7 5 3 1}.
+\end{uloha}
+
+\begin{uloha}
+  Na vstupe je číslo $n$ a potom pole $n$ čísel. Napíš program, ktorý zistí, ktoré číslo
+  sa najčastejšie opakuje. Napr. pre pole \vb{3 5 7 5 3 2 1 5 6 5} je odpoveď $5$.
+\end{uloha}
+
+\begin{uloha}
+  Na vstupe je $n$ prirodzených čísel. Pre každé z nich (v tom poradí, ako sa
+  nachádzajú na vstupe) vypíš, koľkáte v poradí by bolo, keby sa utriedili.
+  Napr. pre vstup \vb{4 10 2 20 1 5 3 6} je výstup \vb{4 7 2 8 1 5 3 6}.
+\end{uloha}
+
+\begin{uloha}
+  Máme displej, ktorý môže ukazovať kladné aj záporné čísla. Na začiatku ukazuje 0.
+  Na vstupe sú čísla $n$, $k$ a potom 
+  $n$ čísel, ktoré udávajú, o koľko sa hodnota na displeji zmenila
+  každú nasledujúcu sekundu. Napíš program, ktorý vypíše počet takých dvojíc sekúnd
+  $i$, $j$, že $i<j\le k+i$ (t.j. $i$ a $j$ sú od seba vzdialené najviac $k$), 
+  že displej po $i$ sekundách a po $j$ sekundách
+  ukazoval rovnakú hodnotu.
+  Napríklad pre vstup $n=9$, $k=4$ a čísla \vb{2 1 2 -2 1 -4 3 1 -4},
+  bude po prvej sekunde na displeji hodnota $2$, po druhej hodnota $3$ atď,
+  celkovo budú hodnoty na displeji postupne \vb{0 2 3 5 3 4 0 3 4 0}.
+  Rovnaké hodnoty sú po nultej, 6. a 9. sekunde (vtedy je hodnota 0), po 2., 4. 
+  a 7. sekunde (vtedy je hodnota 3) a po 5. a 8. sekunde (vtedy je hodnota 4).
+  Dvojice, koré od seba nie sú ďalej ako $4$ sú preto $(2,4)$, $(4,7)$, $(5,8)$
+  a $(6,9)$. Odpoveď je preto $4$. Podobne pre vstup $n=5$ a $k=5$ a čísla 
+  \vb{0 0 0 0 0} je odpoveď $15$ 
+  (všetky dvojice sú dobré).
+\end{uloha}
+

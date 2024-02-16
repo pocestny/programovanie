@@ -1,0 +1,293 @@
+\chapter{Meranie času, statické a privátne metódy}
+\label{sect:clock}
+
+Na meranie času slúži knižnica \vb{chrono}.\indexItem{Prg}{knižnica \vb{chrono}} 
+Môže pôsobiť trochu komplikovane, ale my z
+nej budeme používať iba niečo. Základom je, že sú rôzne druhy hodiniek (\vb{clock}),
+napr. \prg!system_clock! alebo \prg!high_resolution_clock!. Každé hodinky majú
+nejaký začiatočný čas a od neho si pamätajú počet tiknutí (každé hodinky môžu mať
+rôznu rýchlosť).
+Zvyšné triedy spracovávajú tiknutia hodiniek tak, aby sa
+dali použiť na meranie času. Prvou triedou je \vb{duration}, v ktorej sa ukladá počet
+tiknutí nejakej rýchlosti. Je to šablóna s dvoma parametrami -- prvý je typ, v ktorom
+sa počet ukladá, a druhý typ, ktorý udáva, koľko sekúnd trvá jedno tiknutie.
+Na dĺžku tiknutia sa používa typ \prg!ratio!, čo je šablóna reprezentujúca zlomok.
+Napr. \prg!duration<long, ratio<1,10>>! 
+uchováva počet tiknutí v type \prg!long!
+a jedno tiknutie trvá desatinu sekundy. 
+Treba zdôrazniť, že dĺžka tiknutia je parameter šablóny, 
+pre každú dĺžku sa teda vyrobí separátny typ. 
+Pre typické časy sú vyrobené pomocné typy, napr. \prg!milliseconds!
+je \prg!duration<long, ratio<1,1000>>!, \prg!hours! je \prg!duration<int,ratio<3600,1>>!
+a pod.
+
+
+Počet tiknutí sa dá nastaviť v konštruktore a vrátiť funkciou \prg!count()!.
+Premena jednotiek sa dá robiť pomocou šablóny \prg!duration_cast! takto:
+
+\begin{lstlisting}
+#include <chrono>
+#include <iostream>
+
+using namespace std;
+using namespace chrono;
+using Dvojsekundy = duration<double, ratio<2, 1>>;
+
+int main() {
+  milliseconds m(1000);
+  Dvojsekundy ds = duration_cast<Dvojsekundy>(m);
+  cout << m.count() << " " << ds.count() << endl;
+} 
+
+\end{lstlisting}
+
+Tento program vypíše \vb{1000 0.5}. Premenná \vb{m}  ráta v milisekundách a
+obsahuje $1000$ tikov. Premenná \vb{ds} ráta v dvojsekundových intervaloch:
+$1000$ms je $1$s a to je $0.5$ dvojsekundového intervalu.
+
+
+Druhou pomocnou triedou je \prg!time_point!. Je to šablóna, ktorej parametrom sú hodinky,
+a pamätá si počet tiknutí od začiatku hodiniek. Každé hodinky majú funkciu \prg!now()!,
+ktorá vráti aktuálny \prg!time_point!, napr.
+\prg!time_point<system_clock> vcul = system_clock::now();!
+
+Tento zápis s dvoma dvojbodkami je nový. V kapitole~\ref{sect:algstl}
+sme hovorili, že dve dvojbodky znamenajú {\em ``patriaci do''}: vnorený typ, metóda triedy, funkcia v \vb{namespace} a pod.
+V tomto
+prípade to vyzerá, ako keby sme volali funkciu \vb{now()} z \vb{namespace system\_clock}, ale \vb{system\_clock} nie je \vb{namespace}, ale typ.
+Takže \vb{now()} by mala byť metóda toho typu.
+Lenže metódu z nejakého typu vieme zavolať iba na premennú toho typu (metóda má prvý neviditeľný parameter \vb{this}), niečo ako \vb{budik.now()}.
+Takýto zápis označuje volanie tzv. {\em statickej metódy}. Poďme si to pozrieť detailnejšie. Doteraz sme hovorili, \indexItem{Prg}{statické metóody}
+že vlastný typ vyrobený pomocou \prg!struct! má svoje premenné. 
+Zoberme napr. takýto 
+typ \vb{Mamut}
+
+\vskip 2em
+\vbox{
+\begin{lstlisting}
+struct Mamut {
+  int ID;
+  float chobot;
+  vector<float> chlp;
+};
+\end{lstlisting}
+}
+
+v ktorom je o mamutovi uložený jeho identifikátor,  dĺžka chobota
+a dĺžka každého chlpu. Každá premenná typu \vb{Mamut} má vyhradenú
+pamäť na všetky tri položky. Povedzme, že keď chcem pridať nového mamuta,
+chcem mu dať nový identifikátor tak, aby všetky mamuty mali rôzne
+identifikátory. 
+Na to si môžem urobiť globálnu premennú \vb{volne}, v ktorej si budem
+pamätať prvý voľný identifikátor. To ale nie je veľmi pekné, lebo po čase (napr.
+keď budem chcieť typ \vb{Mamut} použiť v inom programe) ľahko zabudnem, že 
+k typu \vb{Mamut} patrí aj globálna premenná \vb{volne}. A navyše sa mi
+ľahko môže stať, že si \vb{volne} kdesi v programe omylom niečím prepíšem.
+Premennú \vb{volne} ale môžem definovať ako statickú premennú typu \vb{Mamut}:
+
+\begin{lstlisting}
+struct Mamut {
+  int ID;
+  float chobot;
+  vector<float> chlp;
+
+  Mamut() {
+    ID = volne;
+    volne++;
+  }
+  int pocet_chlpov() { return chlp.size(); }
+  int get_ID() { return volne; }
+
+  static int volne;
+};
+
+int Mamut::volne = 1;
+
+int main() {
+  Mamut m;
+  cout << m.ID << endl;
+  cout << Mamut::volne << endl;
+}
+\end{lstlisting}
+
+a vyrobiť globálnu premennú \prg!Mamut::volne!, ktorá logicky patrí k
+typu \vb{Mamut}, ale nepatrí žiadnej konkrétnej premennej:
+každá premenná typu \vb{Mamut} má stále v pamäti iba tri položky
+\vb{ID}, \vb{chobot} a \vb{chlp}.
+Zápis 
+\prg!static int volne;! iba hovorí \cmd{očakávam, že v programe bude
+definovaná globálna premenná \prg!Mamut::volne!} t.j.
+pred začiatkom programu musíš mať definíciu \prg!int Mamut::volne;!
+Program by vypísal $1$ a $2$.
+
+
+Podobne je to s metódami. Hovorili sme, že každá metóda nejakého typu má neviditeľný
+prvý parameter \prg!this!. Ak metódu označím ako \prg!static!, tento parameter
+mať nebude a bude to obyčajná funkcia, ktorá ale logicky patrí k typu.
+Napr. môžem označiť \prg!static int get_ID(){...}! a bude to obyčajná funkcia, 
+ktorá vráti \prg!Mamut::volne!,
+ale  \prg!pocet_chlpov()! nemôže byť \vb{static}, lebo v nej používam 
+\prg!this->chlp.size()!.
+
+
+Stále mi ale ostáva problém, že \vb{Mamut::volne} môžem omylom kdekoľvek prepísať.\indexItem{Prg}{\vb{private}}
+Ja by som pritom chcel zaručiť, aby sa používala iba v konštruktore typu 
+\vb{Mamut}. Na to slúži privátna časť typu. Ak v definícii typu napíšem
+\prg!private:!, všetky nasledujúce premenné a metódy budú privátne. Naspäť
+do verejnej časti sa prepnem kľúčovým slovom \prg!public:!
+
+\vskip 2ex
+\vbox{
+\begin{lstlisting}
+struct A {
+  int x; // verejné
+  private:
+  int y; // privátne
+  public:
+  int z; // verejné
+  private:
+  int u; // privátne
+};
+\end{lstlisting}
+}
+
+
+K privátnym premenným sa dá pristupovať iba z metód príslušnej triedy. V mojom
+prípade môžem premennú \vb{volne} urobiť v type \vb{Mamut} privátnou:
+
+\vbox{
+\begin{lstlisting}
+struct Mamut {
+  int ID;
+  float chobot;
+  vector<float> chlp;
+
+  Mamut() {
+    ID = volne; // toto je v poriadku, lebo k premennej volne
+    volne++;    // pristupujem z metódy (konštruktora) Mamut
+  }
+
+  int pocet_chlpov() { return chlp.size(); }
+  static int get_ID() { return volne; }
+
+  private:
+  static int volne;
+};
+
+int Mamut::volne = 1; // toto je v poriadku, 
+                      // inicializácia má výnimku
+
+int main() {
+  Mamut m;
+  cout << m.ID << endl; 
+  cout << Mamut::volne << endl;    // toto je chyba, Mamut::volne
+                                   // je privátne v type Mamut
+  cout << Mamut::get_ID() << endl; // toto je v poriadku                                 
+}
+\end{lstlisting}
+}
+
+
+Teraz nikde v programe nemôžem k premennej \vb{Mamut::volne} pristupovať,
+takže mám zaručené, že si ju omylom neprepíšem.
+Podobne to funguje aj s metódami: privátne metódy sa dajú volať iba z iných
+metód typu, ktorému patria. Napr.
+
+\vskip 2ex
+\begin{lstlisting}
+struct A {
+  int x;
+
+  private:
+  int y;
+  void hrr(int a) { y += a; }
+
+  public:
+  int frr(int a) {  // k privátnym premenným a metódam
+    y = x;          // môžem pristupovať
+    hrr(a);
+    return y;
+  }
+};
+
+int main() {
+  A a;
+  a.x = 1;                   // ok, x je public
+  a.y = 2;                   // <- chyba  
+  a.hrr()                    // <- chyba
+  cout << a.frr(4) << endl;  // ok, vypíše 5
+}
+\end{lstlisting}
+
+Privátne časti typov umožňujú ľahšie udržiavať poriadok vo väčších programoch: 
+napr. typ \prg!set! v \vb{C++} má v \prg!public! časti všetky metódy ako 
+\prg!insert()!, \prg!erase()!,
+\prg!find()!, \prg!size()!, \ldots a v \prg!private! časti
+implementáciu red-black stromu. Keby sa niekedy autori rozhodli vymeniť red-black
+strom za AA-strom, môžu to urobiť bez strachu, že nejaké programy prestanú 
+fungovať. 
+Len pripomeniem, čo by malo byť jasné: privátne a statické premenné/metódy sú rôzne veci:
+statický znamená, že je to normálna globálna premenná alebo funkcia, ale logicky patrí
+k danému typu (a tým pádom môže byť privátna). Privátne premenné/metódy sú také, ku ktorým
+sa dá pristupovať len z metód typu, ktorému patria.
+Na záver tejto vsuvky posledná poznámka: okrem kľúčového slova 
+\prg!struct! sa na definovanie nových typov dá použiť aj \prg!class!. Robia
+presne to isté, iba \prg!struct! má default časť \prg!public! a \prg!class!
+má default \prg!private!.
+
+
+Poďme naspäť k meraniu času. 
+Skončili sme pri tom, že každý typ hodiniek má statickú metódu
+\prg!now()!, ktorá vráti aktuálny čas ako \prg!time_point!, napr. \indexItem{Prg}{\vb{tiem\_point::time\_since\_epoch()}}
+
+\begin{lstlisting}
+time_point<system_clock> vcul = system_clock::now();
+\end{lstlisting}
+
+Ešte treba vedieť, že \prg!time_point! má metódu \prg!time_since_epoch()!, ktorá
+vráti \prg!duration! od začiatku príslušných hodiniek a že 
+dve premenné typu \prg!time_point! môžem odčítať a dostanem 
+príslušný \prg!duration!.
+
+
+\IGNORE{
+Keď chcem preto nastaviť seed do pseudonáhodného generátora, často sa používa čosti ako
+
+\begin{lstlisting}
+srandom(system_clock::now().time_since_epoch().count());
+\end{lstlisting}
+}
+
+
+\begin{uloha}
+  Naprogramuj funkciu \prg!template<typename F> int meraj(F f){...}!, ktorá
+  má ako parameter funkciu /lambdu bez parametrov a odmeria, koľko milisekúnd trvá
+  jej spustenie.
+\end{uloha}
+
+
+S riešením predchádzajúvej úlohy
+môžeš skúsiť pozorovať, ako je kompilátor schopný veci optimalizovať. 
+Zober si napr. program
+
+\begin{lstlisting}
+int main() {
+  cout << meraj([]() {
+    int x;
+    for (int i = 0; i < 1000000000; i++) x++;
+  }) << endl;
+}
+\end{lstlisting}
+
+A skompiluj ho raz \vb{g++ test.cc -o test} a raz s prepínačom \vb{O3} napr.
+\vb{g++ -O3 test.cc -o test\_opt}. Pri optimalizácii kompilátor pochopil, že v tom cykle
+nič zaujímavé nerobíš a dá sa to zrátať priamo.
+
+\begin{uloha}
+S pomocou predchádzajúcej úlohy napíš program, ktorý odmeria rýchlosť triedenia takto:
+pre každé $n$ z rozsahu $10000,20000,30000,\ldots,1000000$ sa $10\times$ vygeneruje
+náhodný vektor s $n$ prvkami, odmeria sa čas, ktorý treba na jeho utriedenie
+  funkicou \prg!sort! z knižnice \prg!algorithm! a vypíše sa priemer z 
+  časov v milisekundách.
+\end{uloha}
+

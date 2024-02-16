@@ -1,0 +1,475 @@
+\chapter{Funkcie}
+
+Kapitolu~\ref{sec:CB obrazky} som začal tým, že som ti pripravil súbor, v ktorom
+bol nový príkaz \prg!zapis_cb_png!. Teraz ti idem ukázať, ako si nové príkazy, ktorým
+sa hovorí {\em funkcie}, môžeš vyrobiť aj ty. 
+Možnosť vyrobiť si vlastné funkcie je veľmi dôležitá:
+umožňuje ti rozdeliť si veľký program na malé časti, ktoré potom môžeš používať viackrát.
+
+
+Najjednoduchšia funkcia vyzerá takto:\\
+
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+int sedem() {
+  return 7;
+}
+
+int main() {
+  cout << sedem() << endl;
+}
+\end{lstlisting}
+}
+
+Všimni si, že sa veľmi podobá na zápis, ktorý používame na program. Nie je to náhoda.
+Celý program je v skutočnosti len kopa funkcií, ibaže jedna z nich je špeciálna: tá, ktorá
+sa volá \prg!main! sa začne vykonávať ako prvá. Každá funkcia je samostatný program,
+ktorý má svoj vlastný svet.
+
+ Funkcia má meno\footnote{Podobne
+ako pri premenných, meno funkcie môže byť čokoľvek z veľkých a malých písmen, podčiarkovníkov
+a čísel, ale nesmie začínať číslom.} a typ. V našom programe sme spravili funkciu, ktorá
+sa volá \vb{sedem}. Typ \prg!int! pred jej menom hovorí, že táto funkcia predstavuje
+výraz, ktorého výsledok je celé číslo.
+Guľaté zátvorky za menom slúžia
+na parametre. Zatiaľ žiadne nemáme, ale zátvorky aj tak treba písať, aby bolo jasné, že je to funkcia a nie premenná.
+Potom nasleduje zložený príkaz, t.j. v kučeravých zátvorkách napísané príkazy. 
+
+ Funkciu vieme v nejakej inej funkcii použiť ({\em zavolať}) tak, že napíšeme jej meno a parametre,
+v našom prípade \prg!sedem()!. 
+Pretože naša funkcia má typ \prg!int!, vieme, že každé jej zavolanie {\em vráti} celé číslo a
+môžme ju použiť
+vo výrazoch rovnako, ako by sme používali číslo. Môžeme napr. urobiť 
+\prg!int x = 3 + sedem();! a pod. Kedykoľvek treba vyhodnotiť výraz, v ktorom
+sa volá funkcia, všetko sa preruší a spustí sa tá funkcia. Príkaz
+\prg!cout << sedem() << endl;! v našom programe hovorí \cmd{
+  Začni vypisovať, mal by si vypísať číslo. Preruš robotu, spusti funkciu \prg!sedem()! 
+  a počkaj, kým skončí.
+Keď skončí, ako výsledok ti dá číslo. Pokračuj vo vypisovaní, vypíš  toto číslo a potom znak 
+konca riadku.}
+
+\indexItem{Prg}{\vb{return}}
+ Príkazy, ktoré sa vo funkcii vykonávajú sa volajú {\em telo} funkcie. Špeciálny 
+príkaz \prg!return vyraz;! urobí to, že skončí funkciu a výsledok funkcie 
+(tzv. {\em návratová hodnota}) bude hodnota výrazu \prg!vyraz!. Typ výrazu musí byť rovnaký
+ako návratový typ funkcie, ktorý sme zadali pri jej definícii. Napr. naša funkcia
+\prg!sedem()! vracia typ \prg!int!, preto výraz v príkaze \prg!return! musí mať hodnotu typu
+\prg!int!. Funkcie ale môžu mať ako návratovú hodnotu ľubovoľný typ. Ak by som mal
+funkciu \prg!bool zle() { return false; }!, môžem ju použiť všade, kde môžem mať výraz typu
+\prg!bool!, napr. \prg!if (zle()) {}!.
+
+
+Každá funkcia musí skončiť príkazom
+\prg!return!\footnote{Slušné by bolo, aby sme aj na konci hlavného programu písali 
+\prg!return 0;!, ale keďže už potom program skončí, tak to nevadí, keď to vynecháme.}.
+Funkcia je samostatný svet, takže môže mať vlastné premenné. Tie sú úplne nezávislé
+od iných funkcií (hovoríme im\indexItem{Prg}{lokálne premenné}{\em lokálne premenné}). Čo urobí tento program?
+
+%\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+int pridaj() {
+  int x;
+  cin >> x;
+  return x + 7;
+}
+
+int main() {
+  int x = pridaj();
+  cout << x + pridaj() << endl;
+}
+\end{lstlisting}
+%}
+
+Hlavný program vyrobí premennú \prg!x!. Zavolá funkciu \prg!pridaj()! a jej
+výsledok má uložiť do \prg!x!. Keď sa zavolá funkcia \prg!pridaj()!, vznikne 
+nový svet, v ktorom sa vytvorí iná premenná \prg!x! a načíta sa do nej číslo zo vstupu.
+Dajme tomu, že používateľ napíše 2.
+Potom sa funkcia \prg!pridaj()! skončí, jej svet zanikne, a ostane len výsledok, číslo 9. 
+Pracovať pokračuje hlavný program, do svojej premennej \prg!x! 
+uloží výsledok volania funkcie, t.j. 9. Pokračuje príkazom \prg!cout <<!, 
+na to potrebuje vyhodnotiť
+výraz \prg!x + pridaj()!. V \prg!x! má 9, opäť preruší robotu a zavolá \prg!pridaj()!.
+Zase vznikne nový svet s premennou \prg!x!, do ktorej sa prečíta hodnota. 
+Dajme tomu, že teraz
+je na vstupe 3. Funkcia skončí, jej svet zanikne a ostane číslo 10. Hlavný program
+teraz dokončí rátanie výrazu \prg!9 + 10! a vypíše \prg!19!.
+
+
+\indexItem{Prg}{parametre funkcie}
+Doteraz sme nehovorili o parametroch. Parametre umožňujú používať tú istú funkciu na
+rátanie rôznych vecí. Sú to premenné, ktoré sú lokálne premenné funkcie, ale
+ich hodnota sa dá nastaviť zvonka pri volaní funkcie. Parametre a ich typy
+sú uvedené v zátvorkách za menom funkcie, takže napr.\\
+
+\vbox{
+\begin{lstlisting}[] 
+int scitaj(int x, int y) {
+  int z = x + y;
+  return z;
+}
+\end{lstlisting}
+}
+
+je funkcia, ktorá má dva parametre a oba sú celé čísla. Vo vnútri funkcie sa 
+k nim dá správať ako k normálnym premenným. Majme hlavný program:\\
+
+\vbox{
+\begin{lstlisting}[] 
+int main() {
+  int x = 1;
+  x = scitaj(x, scitaj(x, 3 * x));
+  cout << x << endl;
+}
+\end{lstlisting}
+}
+
+Skús sa zamyslieť, čo vypíše. Máš to? Poďme to pozrieť detailne. Hlavný program
+sa spustí, vyrobí si svoju premennú \vb{x} a dá do nej $1$. Potom ide
+vyhodnocovať výraz, ktorého výsledok má uložiť do \vb{x} a zistí, že je to 
+volanie funkcie.
+
+\def\tw{2}
+\def\th{3ex}
+\def\r{1ex}
+\def\vw{3.5ex}
+\def\mimo{\color{black!50!white}}
+\def\hi{\color{red!50!black}}
+\def\dn{\color{blue!80!white}}
+\def\fr#1{
+  \filldraw[thick,draw=\clr,fill=white,rounded corners=\r] (0,\th) rectangle (\tw,-\r);
+  \filldraw[draw=none, fill=white] (0,0) rectangle (\w,-\h);
+  \draw[thick,draw=\clr] (0,-\h) -- (0,0) -- (\w,0) -- (\w,-\h);
+  \draw[thick,draw=none] (0,\th) rectangle node[color=\clr,anchor=center]{\vb{#1}} (\tw,0);
+}
+\def\var(#1,#2)#3#4#5{
+  \draw (#1,#2) rectangle node[anchor=center]{#4} (#1+\vw,#2-\vw) 
+  coordinate[pos=0.5] (#5);
+  \node [anchor=east] at (#1,#2-0.5*\vw) {\vb{#3:}};
+}
+
+\def\conn[#1][#2](#3,#4){
+    \draw[draw=orange, thick, ->, shorten >= 3ex, shorten <= 3ex] (#1) to[in=#3,out=#4] 
+    node[midway, above, color=orange]{}(#2);
+}
+
+\def\fsc{[yscale=0.78]}
+\begin{tikzpicture}\fsc
+  \def\h{1.8}
+  \def\w{6.2}
+  \def\clr{green!55!black}
+  \fr{main}
+  \var(4ex,-1ex){x}{1}{mX}
+  \node [anchor=south west] at (0,-10ex) {\vb{ 
+  {\mimo x = {\hi scitaj(}x, scitaj(x, 3 * x){\hi )}};}};
+\end{tikzpicture}
+
+
+Vyrobí sa teda nový svet funkcie \vb{scitaj} a hlavný program chce nastaviť
+hodnoty parametrov. 
+Prvý parameter nastaví podľa aktuálneho obsahu \vb{x}, 
+ale pri druhom zistí, že je to výraz, v ktorom 
+je opäť volanie funkcie.
+
+
+\begin{tikzpicture}\fsc
+  \def\h{1.8}
+  \def\w{6.2}
+  \def\clr{green!55!black}
+  \fr{main}
+  \var(4ex,-1ex){x}{1}{mX}
+  \node [anchor=south west] at (0,-10ex) {\vb{ 
+  {\mimo x = {\dn scitaj(x, }{\hi scitaj(}x, 3 * x{\hi )}{\dn )}};}};
+
+  \begin{scope}[shift={(8,-1)}]
+  \def\h{1}
+  \def\w{4}
+  \def\clr{blue!55!black}
+  \fr{scitaj}
+  \var(4ex,-1ex){x}{1}{vX}  
+  \var(15ex,-1ex){y}{}{vY}  
+  \draw[draw=\clr](0,-5ex) -- (\w,-5ex); 
+  \conn[mX][vX](150,10);
+  \end{scope}
+\end{tikzpicture}
+
+ Vytvorí sa teda ďalší, nezávislý, svet funkcie \vb{scitaj}, nastavia sa mu hodnoty
+parametrov a vyráta sa výsledok, ktorý sa potom vráti tomu, kto funkciu zavolal.
+
+
+\tikzexternaldisable
+\begin{tikzpicture}[remember picture, yscale=0.78]%\fsc
+  \def\h{1.8}
+  \def\w{6.2}
+  \def\clr{green!55!black}
+  \fr{main}
+  \var(4ex,-1ex){x}{1}{mX}
+  \node [anchor=south west] at (0,-10ex) {\vb{ 
+  {\mimo x = {\dn scitaj(x, }{\hi scitaj(}x, 3 * x{\hi )}{\dn )}};}};
+
+  \begin{scope}[shift={(10,0.2)}]
+  \def\h{1}
+  \def\w{4}
+  \def\clr{blue!55!black}
+  \fr{scitaj}
+  \var(4ex,-1ex){x}{1}{vX}  
+  \var(15ex,-1ex){y}{}{vY}  
+  \draw[draw=\clr](0,-5ex) -- (\w,-5ex); 
+  \end{scope}
+  
+  \begin{scope}[shift={(7.5,-1)}]
+  \def\h{2.6}
+  \def\w{4}
+  \def\clr{orange!55!black}
+  \fr{scitaj}
+  \var(4ex,-1ex){x}{1}{vvX}  
+  \var(15ex,-1ex){y}{3}{vvY}  
+  \draw[draw=\clr](0,-5ex) -- (\w,-5ex); 
+  \conn[mX][vvX](140,20);
+  \conn[mX][vvY](140,20);
+  \var(4ex,-6ex){z}{4}{vvZ}  
+    \node [anchor=south west] at (0,-13ex) {\vb{... }};
+    \node [anchor=south west] at (0,-16ex) {\vb{return z;}};
+  \draw[draw=\clr](0,-\h) -- (\w,-\h); 
+  \end{scope}
+\end{tikzpicture}
+
+ Teraz druhý svet zanikne, ostane z neho iba výsledok $4$, a tým sa nastaví parameter
+v prvom svete:
+
+
+\begin{tikzpicture}[remember picture,  yscale=0.78]
+  \def\h{1.8}
+  \def\w{6.2}
+  \def\clr{green!55!black}
+  \fr{main}
+  \var(4ex,-1ex){x}{1}{mX}
+  \node [anchor=south west] at (0,-10ex) {\vb{ 
+  {\mimo x = {\dn scitaj(x, }{\color{white} scitaj(x, 3 * x )}{\dn )}};}};
+  \node[anchor=south west] (vys) at (24ex,-10ex) {\color{orange} 4};
+
+  \begin{scope}[shift={(8,-0.5)}]
+  \def\h{2.6}
+  \def\w{4}
+  \def\clr{blue!55!black}
+  \fr{scitaj}
+  \var(4ex,-1ex){x}{1}{vX}  
+  \var(15ex,-1ex){y}{4}{vY}  
+  \draw[draw=\clr](0,-5ex) -- (\w,-5ex); 
+  \var(4ex,-6ex){z}{5}{vZ}  
+    \node [anchor=south west] at (0,-13ex) {\vb{... }};
+    \node [anchor=south west] at (0,-16ex) {\vb{return z;}};
+  \draw[draw=\clr](0,-\h) -- (\w,-\h); 
+  \end{scope}
+ 
+  \conn[vys][vY](150,10);
+  %\conn[vvZ][vys](0,0);
+    \draw[overlay, draw=orange!80, thick, ->, opacity=0.4, shorten >= 1ex, shorten <= 3ex] (vvZ) to[in=90,out=180] 
+    node[midway, above, color=orange]{}(vys);
+\end{tikzpicture}
+\tikzexternalenable
+
+
+Napokon zanikne aj prvý svet, ostane hodnota 5 a tá sa zapíše do premennej \vb{x}
+v hlavnom programe. Takže si to zhrňme: funkcia je samostatný program, ktorý má 
+výstupnú hodnotu\footnote{Tu len pripomeniem: úplne na začiatku sme hovorili,
+že najjednoduchší príkaz \vb{3*(2+5);} len vyráta hodnotu $21$ a výsledok zahodí. 
+To je, samozrejme, zbytočné, ale niekedy môžeš chcieť zahodiť hodnotu funkcie. Napríklad
+ak zoberiem funkciu \vb{pridaj} z predchádzajúceho príkladu , tak
+volanie \prg!pridaj();! načíta číslo zo vstupu a 
+ignoruje ho.}.
+Dá sa použiť vo výrazoch. Pri volaní funkcie sa vytvorí
+nový nezávislý svet, nastavia sa hodnoty parametrov\footnote{%
+Zatiaľ vieme ako parametre funkciám posielať jednoduché premenné, ale nie polia. 
+Polia sa tiež dajú ako parametre použiť, ale o tom až neskôr.
+} a vypočíta sa výstupná hodnota.
+
+\begin{uloha}
+  Napíš funkciu \vb{max} s tromi parametrami, ktorá vráti najväčší z nich.
+\end{uloha}
+
+\begin{uloha}
+  Napíš funkciu \prg! int dlzka(int n) {...}!, ktorá pre zadané číslo $n$
+  vráti počet cifier (napr. \vb{dlzka(546)} je 3). Pomocou nej napíš program,
+  ktorý prečíta zo vstupu číslo \vb{n} a vypíše zarovnanú tabuľku s 
+  mocninami čísel $2$ až $n$. Napr. pre $n=7$ by výstup vyzeral
+
+\begin{outputBox}
+      1      2      4      8     16     32     64
+      1      3      9     27     81    243    729
+      1      4     16     64    256   1024   4096
+      1      5     25    125    625   3125  15625
+      1      6     36    216   1296   7776  46656
+      1      7     49    343   2401  16807 117649
+\end{outputBox}
+\end{uloha}
+
+
+\indexItem{Prg}{globálne premenné}
+Doposiaľ sme mali každú premennú vyrobenú v nejakej funkcii (či už \vb{main} alebo 
+v nejakej inej). Dajú sa však vyrobiť aj premenné, ktoré žiadnej funkcii nepatria
+a sú viditeľné z každého sveta: hovorí sa im {\em globálne premenné}. Najľahšie
+sa to ukáže na píklade:
+
+%\vbox{
+\begin{lstlisting}[label=funkcie.0] 
+#include <iostream>
+using namespace std;
+
+int a; @\ll1@
+
+void pridaj(int kolko) { a = a + kolko; } @\ll2@
+
+int main() {
+  int i;
+  a = 0;
+  for (i = 0; i < 10; i++) pridaj(i);
+  cout << a << endl;
+}
+\end{lstlisting}
+%}
+
+
+Tu sme vyrobili globálnu premennú \vb{a}. Keďže je vyrobená skôr, ako
+definujeme funkciu \vb{pridaj}, telo funkcie môže k premennej \vb{a} pristupovať
+\footnote{Keby sme vymenili riadky \ref{funkcie.0-1} a \ref{funkcie.0-2}, 
+globálna premenná \vb{a} by vo funkcii \vb{pridaj} nebola viditeľná; premenná
+musí byť vždy vyrobená v programe skôr, ako sa použije.}.
+\indexItem{Prg}{typ \vb{void}}
+Tu som použil ako návratový typ nový typ: \prg!void!. Je to prázdny typ, ktorým hovoríme,
+že funkciu chcem vždy použiť iba v situácii, keď výslednú hodnotu zahodím. Takéto funkcie
+nemusia končiť príkazom \prg!return!. Po spustení program vypíše $0+1+2+\cdots+9=45$.
+
+\indexItem{Prg}{viditeľnosť}
+Poznámka o viditeľnosti: rovnako ako pri funkciách sa samostatný svet
+vyrába aj pri zložených príkazoch. To znamená, že svety môžu zapadať jeden do druhého:
+svet globálnych premenných, v ňom svet funckie, v ňom svet zloženého príkazu,\ldots.
+Vždy, keď program potrebuje použiť nejakú premennú,,
+vyberie sa premenná s požadovaným menom z najbližšieho sveta, v ktorom taká je. 
+Napr. program\\
+
+\vbox{
+\begin{lstlisting}[label=funkcie.1] 
+#include <iostream>
+using namespace std;
+
+int x = 5;
+
+void p() { cout << x; }
+
+int main() {
+  int x = 7;
+  int a = 9;
+  cout << x;
+  p();
+  { 
+    int x = 6; @\ll2@
+    cout << x << a;
+    p(); @\ll1@
+  }
+  cout << x << endl;
+}
+\end{lstlisting}
+}
+
+vypíše \footnote{Všimni si, že C++ má tzv. {\em static scope}: ktorý je najbližší 
+svet sa rozhoduje podľa toho, ako je to v programe zapísané. Takže vo volaní \prg!p()!
+z riadku \ref{funkcie.1-1} sa použije globálna premenná \vb{x} a nie premenná \vb{x}
+zo sveta zloženého príkazu na riadku \ref{funkcie.1-2}.}
+\vb{756957}: 
+funkcia \vb{main} má svoju vlastnú \vb{x}, preto sa použije tá.
+Funkcia \vb{p} vo svojom svete nemá premennú \vb{x}, preto sa použije
+globálna \vb{x}. 
+Zložený príkaz má svoj vlastný svet, v ktorom má svoju vlastnú \vb{x}, ale \vb{a}
+sa použije zo sveta \vb{main}.
+
+
+\begin{column}{0.5}
+Globálne premenné môžu byť rovnako dobre aj  polia. Tu je ale problém, akú veľkosť má
+pole mať. Pretože ho vyrábam skôr, ako sa spustí hlavný program, nemôžem čakať, kým
+zo vstupu dostanem veľkosť poľa. Najjednoduchší spôsob je povedať si dopredu ohraničenie
+na veľkosť poľa, vyrobiť dostatočne veľké pole a potom z neho použiť len potrebný kus.
+Toto nie je ideálny prístup (okrem iného mrhá pamäťou), ale nateraz nám postačí.
+Napr. program vpravo:
+\end{column}\hfill\begin{column}{0.4}
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+using namespace std;
+
+int a[1000];
+
+int main() {
+  int n = -1;
+  do {
+    n++;
+    cin >> a[n];
+  } while (a[n] > 0);
+}
+\end{lstlisting}
+}
+\end{column}
+
+číta do poľa \vb{a} vstupné kladné čísla a skončí, keď sa prvýkrát prečíta niečo 
+$\le 0$. V premennej \vb{n} (ktorá je lokálna funkcii \vb{main}) je uložená ''skutočná''
+dĺžka poľa. Ak by bolo na vstupe viac ako 1000 čísel, stanú sa hrozné veci.
+
+\begin{uloha}
+  \label{uloha:sort2}
+  Napíš funkciu s parametromm \prg!int n!, ktorá v globálnom poli \vb{a} 
+  (o ktorom predpokladáme, že obsahuje kladné čísla) nájde najväčší
+  prvok spomedzi prvých \vb{n}, prepíše ho v poli na \vb{-1} a vráti jeho hodnotu
+  (ešte predtým, ako ho prepísala). Potom s pomocou nej
+  napíš program, ktorý do poľa prečíta kladné
+  čísla zo vstupu a vypíše ich v utriedenom poradí.
+\end{uloha}
+
+Na ľahšiu prácu s globálnymi premennými je v súbore \vb{obrazok.h}
+vyrobená funkcia \hbox{\vb{zapis\_cb\_png\_vyrez}}, ktorá má dodatočné
+štyri parametre. Tie hovoria, ktoré riadky a ktoré stĺpce sa majú do obrázka zapísať.
+Program
+
+\vskip 2ex
+\vbox{
+\begin{lstlisting}[] 
+#include <iostream>
+#include "obrazok.h"
+using namespace std;
+
+const int N = 2000;
+int a[N][N];
+
+int main() {
+  // tuto niečo nakresli
+  zapis_cb_png_vyrez(N, N, a, "vystup.png", 50, 80, 300, 200);
+}
+\end{lstlisting}
+}
+
+vypíše do súboru \vb{vystup.png} výrez z poľa \vb{a}  tvorený riadkami
+$50$ až $299$ a stĺpcami $80$ až $199$. Pretože \vb{a} je teraz vyrobené ako globálna
+premenná, jeho rozmery musia byť známe už v čase kompilácie. \indexItem{Prg}{modifikátor \vb{const}}Na to je špeciálny
+modifikátor \prg!const!, ktorý sme použili pri vytváraní premennej \vb{N} a ktorý
+hovorí, že \vb{N} sa v programe nebude meniť (môžeš si vyskúšať, že to nejde).
+
+\begin{column}{0.7}
+\begin{uloha}
+  Napíš funkciu \prg!void stvorec(int r, int s, int d)!, ktorá v globálnom poli
+  vyplní jednotkami štvorec $d\times d$ začínajúci na riadku $r$ a stĺpci $s$.
+  S jej pomocou napíš program, ktorý načíta tri čísla $a, b, c$ také, že
+  $a+b+c<100$ a vyrobí obrázok rozmerov $100\times 100$, v ktorom budú tri štvorce
+  rozmerov $a\times a$, $b\times b$ a $c\times c$ položené jeden na druhom 
+  v strede obrázka. Napr. pre vstup $40, 30, 20$ bude obrázok vyzerať takto:
+\end{uloha}
+\end{column}
+\begin{column}{0.3}
+ {
+\setlength{\fboxsep}{0pt}
+\centerline{\fbox{\includegraphics[width=3.5cm]{data/tristvorce.png}}}
+  }
+\end{column}  

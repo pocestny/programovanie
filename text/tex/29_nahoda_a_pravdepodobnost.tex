@@ -1,0 +1,470 @@
+\chapter{Náhoda a pravdepodobnosť}
+\label{sect:nahoda}
+
+Čo je to náhoda? Dalo by sa povedať, že niečo (napr. keď hodím kockou) je náhodné,
+ak sa nedá dopredu povedať, ako to dopadne.
+Existuje náhoda? To je ťažká otázka. Ako totiž rozlíšim, či sa niečo dopredu nedá povedať,
+alebo to iba neviem? Ak sa traja kamaráti dohodnú, že zavolajú štvrtému v priebehu jednej 
+minúty, jemu to bude pripadať ako veľká náhoda, že z celého dňa si všetci vybrali akurát
+túto minútu. Aj pri hádzaní kockou by klasická fyzika povedala, že ak presne viem všetky
+parametre (veľkosť a hustotu kocky, tvar ruky, silu a smer trasenia, odpor vzduchu,\ldots)
+tak viem dopredu vypočítať, čo na kocke padne. Preto sa fyzici dlho domnievali, že náhoda
+neexistuje, sú len tzv. skryté parametre. S nástupom kvantovej fyziky sa pohľad zmenil
+a väčšina si skôr myslí, že náhoda (t.j. javy, ktoré sa dopredu naozaj nedajú predpovedať,
+lebo od ničoho predtým nezávisia) existuje. Ako je to naozaj sa asi nikdy nedozvieme, ale
+to nám nebráni s náhodou počítať. Keď vieme, že o náhodnom jave sa dopredu nedá nič povedať,
+znamená to, že keď vidíme výsledok, dozvieme sa niečo, čo sme predtým nemohli vedieť
+(získame informáciu). Napr. ak mám mincu, na ktorej
+úplne náhodne môže padnúť $0$ alebo $1$, a vidím, že padla $1$, dozviem sa $1$ bit informácie.
+Ak by som mal mincu, na ktorej stále padá $1$, nedozviem sa nič, čo by som už dopredu
+nevedel. Ak mám mincu, kde nula padá veľmi zriedka a vidím, že padla $1$, niečo sa dozviem,
+ale je to menej ako $1$ bit. Ak si pripomenieš
+predchádzajúcu kapitolu, tak prediktor bol spôsob, ako z doterajšieho vstupu povedať
+niečo o budúcom. Ak mám dobrý prediktor, viem veľa predpovedať, teda sa málo informácie
+dozviem a vstup je málo náhodný. A naopak. Takže ak mám mincu, kde stále padá $1$,
+budem ňou dlho hádzať a budem si písať výsledky, dostanem takúto postupnosť:
+
+
+\centerline{\vb{
+1111111111111111111111111111111111111111111111111111111111111111111111111111111}}
+
+
+na ktorú mám $100\%$ prediktor. Ak som si skúsil vygenerovať súbor $10$ MB jednotkových bitov,
+\vb{gzip} ho spakoval na $10\,216$ B. Keby som mal úplne náhodnú mincu, výsledky hodov by
+mohli vyzerať napr. takto
+
+
+\centerline{\vb{
+01011100111001010000101001100110111001000001100000010001101011010101011011011011}}
+
+
+a žiaden prediktor by mi nepomohol. A $10$ MB náhodných bitov \vb{gzip} spakoval na
+$10\,487\,390$  B (teda vôbec). Nakoniec, keby som mal mincu, kde jednotka padá iba v $1\%$
+prípadov, výsledky by vyzerali nejak takto:
+
+
+\centerline{\vb{
+00000000000000100000000000000000000000000000001000000000000000000000000000000000}}
+
+
+Prediktor, čo vždy predikuje nulu je veľmi dobrý -- pomýli sa iba v $1\%$ prípadov. 
+A aj \vb{gzip} spakuje $10$ MB takýchto bitov na $1\,343\,524$ B.
+
+
+To znamená, že síce neviem, či nejaká skutočne náhodná postupnosť bitov 
+existuje, ale viem povedať, že ak by existovala, tak žiaden prediktor mi
+nepomôže skomprimovať
+ju.
+Z toho viem napr. povedať, že keď by som veľakrát hádzal náhodnou mincou, 
+tak vo výsledku je zhruba rovnako
+veľa núl a jednotiek. Ak by tam bolo viac jednotiek, tak prediktor, čo hovorí vždy $1$,
+by mi pomohol.
+
+
+S náhodou súvisí aj {\em pravdepodobnosť}. Kým náhodnosť je vlastnosť nejakého procesu\indexItem{Mat}{pravdepodobnosť}
+(napr. náhodné hádzanie kocky), pravdepodobnosť je vlastnosťou nejakého javu (napr. že 
+padne číslo deliteľné tromi). 
+
+
+Ak mám náhodný proces (napr. hádzanie kockou), 
+ktorý môže mať $n$ rôznych výsledkov (napr. na kocke môže 
+padnúť $6$ rôznych čísel) a mám jav, ktorý nastane pri $k$ z nich (napr. číslo deliteľné 
+tromi na kocke je len $3$ a $6$, t.j. $k=2$), tak poviem, že pravdepodobnosť tohto javu je
+$\frac{k}{n}$.
+
+ 
+Z toho, čo sme hovorili, je zrejmé, že ak mám jav s pravdepodobnosťou napr. $0.01$,
+tak pri veľkom počte opakovaní budem ten jav vidieť v $1\%$ prípadov.
+
+
+Napr. aká je pravdepodobnosť, že na kocke padne šestka? Jedna šestina, t.j. asi $0.167$. 
+Keď veľakrát hádžem kockou,
+v šestine prípadov hodím šestku. Aká je pravdepodobnosť, že keď hodím 
+dvakrát, obidva razy hodím šestku?
+Všetkých možných výsledkov dvoch hodov je $6\cdot 6=36$ a dve šestky sú iba v jednom 
+z nich, t.j. pravdepodobnosť je $\frac{1}{36}=\frac{1}{6}\cdot\frac{1}{6}\approx0.0278$. 
+Aká je pravdepodobnosť, že hodím šestku päťkrát za sebou? 
+$\left(\frac{1}{6}\right)^5\approx0.00013$.
+To platí vždy: ak mám náhodný jav s pravdepodobnosťou
+$p$ a zopakujem ko $k$-krát, tak pravdepodobnosť, že nastane vždy, je $p^k$.
+Ale stále platí to, že náhodný jav nijak nezávisí od minulosti: ak hádžem kockou 
+a päťkrát za sebou mi padne šestka, aká je pravdepodobnosť, že padne aj šiestykrát?
+Zdalo by sa, že to bude strašne malá pravdepodobnosť. Ale kocka si žiadnu históriu nepamätá.
+Čo bolo, bolo, zase je to len jedna šestina.
+
+
+
+Je to veľmi prekvapivé, ale náhoda nám v skutočnosti môže pomôcť niečo rátať.\indexItem{Alg}{porovnávanie súborov} 
+Predstav si, že Bob a Bobek majú každý na disku veľký súbor, povedzme 1 
+TB\footnote{To je $1000$ GB, alebo $2^{40}$ bytov, 
+takže na uloženie dĺžky takého súboru už nestačí $32$-bitové číslo,
+preto budeme používať $64$-bitové.}.
+Tie súbory by mali byť rovnaké, ale oni si nie sú istí, či sa náhodou medzičasom nezmenili,
+tak by to potrebovali overiť. Jedna možnosť je, aby Bob poslal Bobkovi po sieti 
+svoj súbor a Bobek u seba oba súbory porovná. Ale posielať 1 TB po sieti je priveľa. 
+Spravia teda toto. 
+Bobov súbor je postupnosť $8\cdot2^{40}=2^{43}$ núl a jednotiek (1 byte má 8 bitov).
+Bob si predstaví, že celý súbor je jedno naozaj obrovské číslo $N$
+zapísané v dvojkovej sústave.
+$2^{43}=8796093022208$, teda $N$ môže byť až
+$2^{2^{43}}=2^{8796093022208}$, čo je v desiatkovej sústave
+zhruba jednotka a za ňou $2.6$ bilióna núl. 
+To je síce veľa, ale to nevadí.
+Bob si vymyslí náhodné $64$-bitové prvočíslo\footnote{To sa
+zdá ako ťažká úloha, ale keby Bob mal k dispozícii mincu, ktorá mu dáva náhodne nuly
+a jednotky, tak s trochou šikovnej matematiky, ktorú tu teraz nebudem ukazovať,
+sa to dá naprogramovať pomerne ľahko.} $p$ a vyráta zvyšok z $N$ po delení $p$ (ktorý si
+označí ako $z$).
+To sa dá naprogramovať rovnako, ako keď počítaš delenie na papier -- súborom stačí 
+raz prejsť jedným cyklom.
+
+\begin{uloha}
+  Naprogramuj funkciu, ktorá pre dané meno súboru a číslo $p$ zráta zvyšok po delení
+  čísla $N$ číslom $p$, kde $N$ je (veľmi veľké) číslo, ktoré predstavuje daný súbor.
+\end{uloha}
+
+Namiesto celého súboru pošle Bobkovi iba $p$ a $z$, t.j. dve $64$-bitové čísla. 
+Bobek si predstaví svoj súbor ako obrovské číslo $N'$ a
+vypočíta  zvyšok $z'$ po delení $p$ a porovná $z$ a $z'$.
+Ak sa rovnajú, vyhlási súbory za rovnaké, ak nie, povie, že sú rôzne. 
+
+
+Bude takéto porovnanie fungovať? Nie vždy. Ak sú súbory skutočne rovnaké, t.j.
+ak $N=N'$, tak pochopiteľne nech je $p$ hocijaké, tak aj zvyšok po delení bude rovnaký.
+Ale môže sa stať, že súbory sú rôzne a napriek tomu vyjdu po delení rovnaké zvyšky.
+Aká je pravdepodobnosť, že sa Bobek na konci pomýli?
+Ak $N$ a $N'$ majú po delení $p$ rovnaký zvyšok, potom $N-N'$ má po delení $p$ zvyšok $0$.
+Aj $N$ aj $N'$ sú $2^{43}$-bitové čísla, preto aj ich rozdiel je $2^{43}$-bitové číslo.
+Ak označím $n=2^{43}$, tak $N-N'\le 2^n$. Predstavím si prvočíselný rozklad 
+$N-N'=p_1\cdot p_2\cdots p_z\le 2^n$. Každé z $p_i$
+je aspoň $2$, preto $z<n$ (keby bolo v rozklade viac ako $n$ prvočísel, ich súčin
+by bol väčší ako $2^n$). Bobek sa pomýli, ak $p$ delí $N-N'$, t.j. ak
+Bob nešťastnou náhodou za $p$
+zvolil jedno z tých najviac $n$ prvočísel z rozkladu $N-N'$. 
+
+
+Napríklad, ak by králici mali takéto (krátke) súbory:
+
+
+\centerline{
+  \begin{tikzpicture}[scale=0.7]
+    \def\file#1{
+      \foreach\v/\a[count=\i] in {#1} {
+    \draw (\i,0) rectangle node[align=center, above, yshift=-1.5ex]  
+    {\textcolor{\stringcolor}{\vb{\v}}}(\i+1,1) ;
+    \node [align=center, above] at (\i+0.5,-0.7) {{\small\roboto \a}};
+   }
+    \node [align=right, above] at (0,-0.7) {{\small\roboto ASCII}}; 
+  }
+
+  \node[align=center] at (10,2) {Bobov súbor:} ;
+  \file{P/80,r/114,a/97,l/108,\ /32,s/115,i/105,\ /32,v/118,o/111,\ /32,v/118,a/97,n/110,
+    i/105,?/63}
+  \begin{scope}[shift={(0,-4)}]
+    \file{K/75,r/114,a/97,l/108,i/105,c/99,i/105,\ /32,n/110,a/97,\ /32,v/118,i/105,n/110,
+    e/101,!/33}
+    \node[align=center] at (10,2) {Bobkov súbor:} ;
+  \end{scope}
+
+  \end{tikzpicture}
+}
+
+
+tak 
+
+\begin{eqnarray*}
+  N&=&106932137465082389165385936127520565567\\
+  N'&=&100285997508730872704130855374389404961\\
+  N-N'&=&6646139956351516461255080753131160606= \\
+  &=& 2 \cdot 7 \cdot 3323 \cdot 3571161089 \cdot 40003838440072490937307
+\end{eqnarray*}
+
+V rozklade $N-N'$ je len $5$ prvočísel, z nich iba $4$ sa zmestia do $64$ bitov.
+V tomto príklade sa preto Bobek  pomýli iba pri štyroch voľbách $p$. 
+
+
+
+Pravdepodobnosť, že Bobek sa pomýli, je teda najviac $n/P$, kde $n$ je dĺžka súboru v bitoch a $P$ 
+je počet $64$-bitových prvočísel.
+Aby sme túto pravdepodobnosť vedeli odhadnúť, potrebujeme vedieť, koľko je 64-bitových 
+prvočísel. Presne to ťažko povedať,
+ale platí\footnote{opäť jedna pekná matematická úvaha, ktorú tu teraz nepoviem},
+že pre hocijaké číslo $x$, počet prvočísel menších ako $x$ (čo sa zvykne označovať ako \indexItem{Mat}{počet prvočísel menších ako $n$}
+$\pi(x)$) je $\pi(x)>\frac{x}{\log(x)}$. Keď si za $x$ dosadím $2^{64}$, dostanem,
+že $64$-bitových prvočísel je viac ako $415828534266394360\approx 2^{58.5}$.
+Preto ak si Bob vyberie náhodné $64$-bitové prvočíslo, tak pravdepodobnosť, že Bobek sa
+pomýli, bude najviac $\frac{n}{415828534266394360}$. Pre terabajtový súbor je $n=2^{43}$,
+takže po dosadení máme pravdepodobnosť chyby $\approx0.0000211531$.
+Preto ak by porovnávali veľa súborov, tak najviac zhruba $2$ z $10000$ budú porovnané zle.
+To je pomerne málo, ale čo ak je ten súbor tak dôležitý, že Bob a Bobek nechcú riskovať
+ani takúto malú chybu? Bob môže celý postup zopakovať dvakrát, to znamená, že Bobkovi
+pošle štyri $64$-bitové čísla $p$, $z$, $p'$, $z'$. Bobek vie, že ak sú súbory rovnaké,
+tak v obidvoch prípadoch mu musí vyjsť rovnaký zvyšok. Preto ak mu čo len raz vyjde rôzny,
+vie, že súbory sa naozaj líšia. Takže pravdepodobnosť, že sa pomýli teraz, je 
+$\approx(0.0000211531)^2=0.00000000044745363961$. Ak Bob celý postup zopakuje
+dvadsaťkrát, t.j. pošle Bobkovi $40$ $64$-bitových čísel, pravdepodobnosť, že
+sa Bobek pomýli bude iba $\approx 3.217\cdot 10^{-94}$ (to je nula, desatinná čiarka,
+$93$ núl a potom $3217$). To je oveľa mensia pravdepodobnosť, ako že sa počítač sám
+odseba pokazí.
+
+
+
+
+Je ešte veľa iných príkladov toho, ako náhodné čísla môžu pomôcť urobiť lepšie programy,
+nateraz sa ale uspokojíme s tým, že náhodné čísla sú užitočné a chceli by sme ich mať.
+Ako ich ale získať? Rôzne operačné systémy poskytujú rôzne spôsoby, ako ich získavať, 
+spravidla tak, že sa systém meria časy rôznych udalostí (stláčania kláves, prijatie 
+sieťových paketov a pod., v skutočnosti sa v pozadí robia pomerne zložité
+veci), ktoré sa dajú považovať za náhodné podobne ako hádzanie 
+kockou. Napr. v linuxe existuje súbor \vb{/dev/urandom}, do ktorého systém píše náhodné\indexItem{Prg}{\vb{/dev/urandom}}
+bity. Takže ak programuješ v linuxe, môžeš napísať napr.
+
+\vskip 2ex
+\vbox{\begin{lstlisting}
+int main() {
+  unsigned int x;
+  ifstream rand("/dev/urandom", ios::binary);
+  for (int i = 0; i < 10; i++) {
+    rand.read((char *)&x, sizeof(x));
+    cout << x % 100 << " ";
+  }
+  cout << endl;
+}
+\end{lstlisting}}
+
+a vždy, keď ten program spustíš, vypíše sa $10$ náhodných čísel z rozsahu 
+$0,\ldots,99$.
+
+
+Iná možnosť je skúsiť náhodné čísla vyrobiť priamo nejakým programom. Môže to 
+fungovať? Zjavne nie: hovorili sme, že náhodné veci sú také, pre ktoré nemám
+dobrý prediktor, ale program, ktorý tie čísla generuje, by bol úplne spoľahlivý
+prediktor. Na druhej strane, ak si pamätáš, ako poskakovali niektoré body v
+úlohe \ref{uloha-mandelbrot}, tak to vyzeralo pomerne chaoticky. Ak by si
+nevedel presný bod, ale iba jeho veľkosť (t.j. vzdialenosť od 0), tak predpovedať
+veľkosť nasledujúceho bodu v Mandelbrotovej iterácii by bolo veľmi ťažké. 
+Tak fungujú tzv. {\em pseudonáhodné generátory}.\indexItem{Alg}{pseudonáhodný generátor, {\em seed}}
+Aj keď nevieme
+náhodu vyrobiť, môžem ju vedieť namnožiť. 
+Pseudonáhodný generátor je program, ktorý dostane krátky náhodný vstup (tzv. 
+{\em seed}) a z neho vyrobí postupnosť čísel, ktoré síce nie sú náhodné, ale žiaden
+program s polynomiálnou zložitosťou ich nevie rozoznať od skutočne náhodných. To 
+znamená, že pseudonáhodné čísla by sme mohli pre všetky rozumné účely použiť rovnako
+dobre ako náhodné. Či takýto dokonalý pseudonáhodný generátor existuje, zatiaľ nikto
+nevie, ale existuje viacero takých, 
+ktoré sú dosť dobré v tom zmysle, že nikto zatiaľ nevymyslel,
+ako ich výstup rozlíšiť od náhodných čísel.
+
+ 
+Jedna z možností, ako navrhnúť pseudonáhodný generátor je napr.\footnote{\indexItem{Prg}{\vb{int} ako parameter šablóny}%
+  Tu som použil inú formu šablóny. Doteraz sme ako parameter šablóny 
+  používali typ, ale parametrom môže byť aj číslo. Toto funguje rovnako 
+  ako pri typoch -- pre každú hodnotu parametra sa vyrobí nový typ, v ktorom 
+  sa v čase kompilácie parameter nahradí príslušnou hodnotou.
+}
+
+\begin{lstlisting}
+using Int = unsigned long int;
+
+template <Int a, Int c, Int m>
+struct Nahoda {
+  Int x; 
+
+  Nahoda(Int seed) { x = seed; }
+  
+  int operator()() {
+    x = (a * x + c) % m;
+    return x % (1 << 30);
+  }
+};
+\end{lstlisting}
+
+
+Keď teraz napíšem
+
+\begin{lstlisting}
+Nahoda<7, 3, 23> r(3);
+for (int i = 0; i < 20; i++) cout << r() << " ";
+cout << endl;
+\end{lstlisting}
+
+vypíše sa \vb{1 10 4 8 13 2 17 7 6 22 19 21 12 18 14 9 20 5 15 16}. To na prvý pohľad vyzerá
+náhodne, ale 
+ak pokračujem vo vypisovaní a namiesto $20$ vypíšem $60$ čísel, dostanem 
+\vb{1 10 4 8 13 2 17 7 6 22 19 21 12 18 14 9 20 5 15 16 0 3 1 10 4 8 13 2 17 7 6 22 19 21 12 18 
+14 9 20 5 15 16 0 3 1 10 4 8 13 2 17 7 6 22 19 21 12 18 14 9 } -- čísla sa po chvíli 
+začnú opakovať. Keď sa nad tým zamyslíš, tak ak mám v tomto generátore parameter \vb{m},
+tak najneskôr po \vb{m} krokoch sa číslo zopakuje a potom sa už bude opakovať stále. Môžeme
+to skúsiť napraviť tak, že zvolíme veľmi veľké \vb{m}, napr.\footnote{%
+  Tento pseudonáhodný generátor použila v minulosti IBM na svojich mainframoch
+  pod menom {\em randu}. Parameter  $a=2^{16}+3$, a $m=2^{31}$.} \prg!Nahoda<65539,0,2147483648>!
+Teraz sa už čísla tak skoro neopakujú. Skúsil som 4 rôzne seedy a výstup som naškáloval do rozsahu $0\ldots1$:
+
+  
+\def\tmp#1#2{%
+\begin{tikzpicture}
+\begin{axis}[
+  width=\textwidth, 
+  height=3.5cm,
+  xlabel={},
+  ylabel={},
+  xticklabels={,,},
+  legend cell align={left},
+  legend pos = north west,
+  xmax=500,
+  xmin=1
+]
+  \addplot+[#1, 
+  line join=round, mark size=0.2pt, mark color=red] table [y=#2, x=n]{data/randu.dat};
+\end{axis}
+\end{tikzpicture}}
+
+\tmp{blue!50!white}{r1}
+
+\tmp{green!50!black}{r2}
+
+\tmp{orange!70!black}{r3}
+
+\tmp{magenta!50!white}{r4}
+
+
+Teraz vyzerá byť všetko v poriadku, ale nie je. Ak si budem z generátora brať trojice čísel (naškálovaných na
+rozsah $0\ldots1$) a predstavím si ich ako body v 3D priestore, očakával by som náhodné pozície ako na obrázku
+vľavo. Ale \vb{randu} dá body, ktoré všetky ležia na 15 rovinách ako na obrázku vpravo. 
+Ak si chceš napr. len vyrobiť "náhodné" testovacie vstupy pre tvoj program, tak to asi nijak príliš nevadí,
+ale ak by si náhodné čísla chcel použiť napr. na bezpečné šifrovanie, tak podobné chyby môžu spôsobiť,
+že sa tvoj program bude dať hacknúť. Náhoda je náročná vec.
+
+\begin{column}{0.45}
+\begin{tikzpicture}
+    \begin{axis}
+    [   view={-35}{35},
+      xrange=0:1,
+      yrange=0:1,
+      xmin=0, xmax=1,
+      ymin=0, ymax=1,
+      zmin=0, zmax=1,
+      unit vector ratio=1 1 1,
+      scale=2,
+    ]
+    \addplot3[scatter, only marks, mark color=blue, mark size=0.21pt, domain=0:1, y domain = 0:1] file{data/randucube2.dat};
+    \end{axis}
+\end{tikzpicture}
+\end{column}
+\hfill
+\begin{column}{0.45}
+\begin{tikzpicture}
+    \begin{axis}
+    [   view={-35}{35},
+      xrange=0:1,
+      yrange=0:1,
+      xmin=0, xmax=1,
+      ymin=0, ymax=1,
+      zmin=0, zmax=1,
+      unit vector ratio=1 1 1,
+      scale=2,
+    ]
+    \addplot3[scatter, only marks, mark color=blue, mark size=0.21pt, domain=0:1, y domain = 0:1] file{data/randucube.dat};
+    \end{axis}
+\end{tikzpicture}
+\end{column}
+
+
+Pri lepšej voľbe parametrov môže ale aj takáto jednoduchá procedúra dobre fungovať na generovanie pseudonáhodných čísel.
+Napr. $\left\langle1103515245,12345,2^{31}\right\rangle$,
+$\left\langle25214903917,11,2^{48}\right\rangle$
+alebo\\ 
+$\left\langle6364136223846793005,1442695040888963407,2^{64}\right\rangle$, 
+sú populárne voľby. Samozrejme, existuje aj veľa všelijakých iných prístupov. Skús sa zamyslieť, ako by si generoval
+pseudonáhodné čísla po svojom, prípadne ako by si testoval, či čísla, ktoré vidíš, sú náhodné alebo generované nejakým
+programom.
+
+
+V C++ sú dva spôsoby, ako môžeš získať (pseudo)náhodné čísla.\indexItem{Prg}{funkcia \vb{random()}}
+Prvým, starším,  
+je funkcia \vb{random()}. Je definovaná v knižnici \vb{cstdlib}, ktorú ale
+\vb{iostream} používa tak či tak. Takže na použitie \vb{random} potrebuješ
+buď 
+\prg!#include<cstdlib>!
+alebo 
+\prg!#include<iostream>!. 
+Pred použitím treba inicializovať seed volaním \hbox{\vb{srandom(seed)}} a potom každé  
+volanie \vb{random()} vráti číslo
+z rozsahu $0,\ldots,2^{31}-1$. Napr.
+
+\vbox{\begin{lstlisting}
+#include <iostream>
+using namespace std;
+int main() {
+  srandom(42);
+  for (int i = 0; i < 10; i++) cout << random() % 100 << endl;
+}
+\end{lstlisting}}
+
+vypíše 10 pseudonáhodných čísel z rozsahu $0,\ldots,99$.
+Pretože tento program má fixný seed, tak vždy, keď ho spustíš, vypíše rovnaké
+čísla (čo niekedy chceš, napr. pri ladení programu). 
+Otázka ale znie, ako získať seed, ktorý by bol pri každom 
+spustení rôzny. To sa dá
+napríklad tak, že za seed dáš čas, keď sa program spustil (napr. počet milisekúnd
+od nejakého fixného dátumu). Ako to urobiť, si ukážeme v nasledujúcej kapitole.
+
+Druhý, modernejší spôsob, je knižnica \vb{random}. Jej základom je trieda\indexItem{Prg}{knižnica \vb{random}, \vb{random\_device}, \vb{mt19937} }
+\prg!random_device!. Čo presne sa v nej deje, závisí od konkrétnej implementácie,
+ale v princípe sa snaží získavať ``skutočné'' náhodné čísla (napr. v Linuxe
+spravidla číta z \vb{/dev/urandom}). Dá sa použiť podobne, ako \prg!random()!,
+akurát jej netreba dávať začiatočný seed:
+
+\begin{lstlisting}
+#include <iostream>
+#include <random>
+using namespace std;
+
+int main() {
+  random_device rd;
+  for (int i = 0; i < 10; i++) cout << rd() << endl;
+}
+\end{lstlisting}
+
+Problém tohoto použitia je, že skutočné náhodné čísla sa môžu minúť a volanie 
+\prg!rd()! zhavaruje. Preto sa \prg!random_device! zvyčajne nepoužíva priamo, ale
+ako seed do nejakého náhodného generátora. Tých je v knižnici \vb{random} niekoľko,
+často sa používa tzv. 32-bit Mersenne Twister ({\em Matsumoto and Nishimura, 1998}) 
+\prg!mt19937!, resp. jeho 64-bit verzia \prg!mt19937_64!. Náhodný generátor dostane
+seed v konštruktore, napr.
+
+\begin{lstlisting}
+#include <iostream>
+#include <random>
+using namespace std;
+
+int main() {
+  mt19937 rnd(random_device{}());
+  for (int i = 0; i < 10; i++) cout << rnd() << endl;
+}
+\end{lstlisting}
+
+Zápis \prg!mt19937 rnd(random_device{}());! je skrátená verzia 
+\prg!random_device rd; mt19937 rnd(rd());! Zátvorky \prg!{}!
+sú  {\em brace initializer};  treba 
+zavolať konštruktor \prg!random_device! bez parametrov a potom zavolať jeho 
+\prg!operator()!. Ak už mám generátor vyrobený, môžem ho nastaviť metódou \prg!seed!, napr.
+\prg!rnd.seed(42)!.
+
+Okrem náhodných generátorov sú v knižnici \vb{random} naprogramované aj rôzne pravdepodobnostné\indexItem{Prg}{pravdepodobnostné rozdelenia}
+rozdelenia. Tiež sa im tu príliš nebudeme venovať, ale napr. ak chcem dostávať rovnomerne rozdelené
+náhodné čísla z inetrvalu $(0,1)$, môžem napísať
+
+\vbox{
+\begin{lstlisting}
+#include <iostream>
+#include <random>
+using namespace std;
+
+int main() {
+  mt19937 rnd(random_device{}());
+  uniform_real_distribution<> dis(0.0, 1.0);
+  for (int i = 0; i < 10; i++) cout << dis(rnd) << endl;
+}
+\end{lstlisting}
+}

@@ -1,0 +1,95 @@
+% https://tex.stackexchange.com/questions/82279/cut-one-side-of-a-rectangle-node-in-tikz/82449#82449
+\makeatletter
+\tikzset{
+    rect/.style n args={4}{
+        draw=none,
+        rectangle,
+        append after command={
+            \pgfextra{%
+                \pgfkeysgetvalue{/pgf/outer xsep}{\oxsep}
+                \pgfkeysgetvalue{/pgf/outer ysep}{\oysep}
+                \def\arg@one{#1}
+                \def\arg@two{#2}
+                \def\arg@three{#3}
+                \def\arg@four{#4}
+                \begin{pgfinterruptpath}
+                    \ifx\\#1\\\else
+                        \draw[draw,#1] ([xshift=-\oxsep,yshift=+\pgflinewidth]\tikzlastnode.south east) edge ([xshift=-\oxsep,yshift=0\ifx\arg@two\@empty-\pgflinewidth\fi]\tikzlastnode.north east);
+                    \fi\ifx\\#2\\\else
+                        \draw[draw,#2] ([xshift=-\pgflinewidth,yshift=-\oysep]\tikzlastnode.north east) edge ([xshift=0\ifx\arg@three\@empty+\pgflinewidth\fi,yshift=-\oysep]\tikzlastnode.north west);
+                    \fi\ifx\\#3\\\else
+                        \draw[draw,#3] ([xshift=\oxsep,yshift=0-\pgflinewidth]\tikzlastnode.north west) edge ([xshift=\oxsep,yshift=0\ifx\arg@four\@empty+\pgflinewidth\fi]\tikzlastnode.south west);
+                    \fi\ifx\\#4\\\else
+                        \draw[draw,#4] ([xshift=0+\pgflinewidth,yshift=\oysep]\tikzlastnode.south west) edge ([xshift=0\ifx\arg@one\@empty-\pgflinewidth\fi,yshift=\oysep]\tikzlastnode.south east);
+                    \fi
+                \end{pgfinterruptpath}
+            }
+        }
+    },
+    rect'/.style n args={4}{
+        rectangle,
+        append after command={
+            \pgfextra{%
+                \pgfkeysgetvalue{/pgf/outer xsep}{\oxsep}
+                \pgfkeysgetvalue{/pgf/outer ysep}{\oysep}
+                \begin{pgfinterruptpath}
+                    \ifx\\#1\\\else
+                        \draw[draw,#1] ([xshift=-\oxsep,yshift=0]\tikzlastnode.south east) edge ([xshift=-\oxsep,yshift=0]\tikzlastnode.north east);
+                    \fi\ifx\\#2\\\else
+                        \draw[draw,#2] ([xshift=-\pgflinewidth,yshift=-\oysep]\tikzlastnode.north east) edge ([xshift=0+\pgflinewidth,yshift=-\oysep]\tikzlastnode.north west);
+                    \fi\ifx\\#3\\\else
+                        \draw[draw,#3] ([xshift=\oxsep,yshift=0-\pgflinewidth]\tikzlastnode.north west) edge ([xshift=\oxsep,yshift=0+\pgflinewidth]\tikzlastnode.south west);
+                    \fi\ifx\\#4\\\else
+                        \draw[draw,#4] ([xshift=0+\pgflinewidth,yshift=\oysep]\tikzlastnode.south west) edge ([xshift=0-\pgflinewidth,yshift=\oysep]\tikzlastnode.south east);
+                    \fi
+                \end{pgfinterruptpath}
+            }
+        }
+    },
+    dontshortenme/.style={
+        shorten >=0pt,
+        shorten <=0pt
+    },
+    rect''/.style n args={4}{
+        draw=none,
+        rectangle,
+        append after command={
+            \pgfextra{%
+                \pgfkeysgetvalue{/pgf/outer xsep}{\oxsep}
+                \pgfkeysgetvalue{/pgf/outer ysep}{\oysep}
+                \def\my@path{\path[shorten >=\pgflinewidth,shorten <=\pgflinewidth] ([xshift=-\oxsep]\tikzlastnode.south east) edge}
+                \def\arg@{#1}
+                \ifx\arg@\@empty
+                    \def\arg@{draw=none}
+                \fi
+                \eappto\my@path{[\arg@] }
+                \appto\my@path{ ([xshift=-\oxsep]\tikzlastnode.north east)
+                                          ([yshift=-\oysep]\tikzlastnode.north east) edge }
+                \def\arg@{#2}
+                \ifx\arg@\@empty
+                    \def\arg@{draw=none}
+                \fi
+                \eappto\my@path{[\arg@] }
+                \appto\my@path{ ([yshift=-\oysep]\tikzlastnode.north west)
+                                          ([xshift=\oxsep] \tikzlastnode.north west) edge }
+                \def\arg@{#3}
+                \ifx\arg@\@empty
+                    \def\arg@{draw=none}
+                \fi
+                \eappto\my@path{[\arg@] }
+                \appto\my@path{ ([xshift=\oxsep]\tikzlastnode.south west)
+                                          ([yshift=\oysep] \tikzlastnode.south west) edge }
+                \def\arg@{#4}
+                \ifx\arg@\@empty
+                    \def\arg@{draw=none}
+                \fi
+                \eappto\my@path{[\arg@] }
+                \appto\my@path{ ([yshift=\oysep]\tikzlastnode.south east);}
+                \begin{pgfinterruptpath}
+                    \my@path
+                \end{pgfinterruptpath}
+            }
+        }
+    }
+}
+\makeatother

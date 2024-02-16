@@ -1,0 +1,785 @@
+\chapter{Konštruktory, referencie, operátory a iný cukor}
+\label{sect:cukor}
+
+V predchádzajúcej kapitole si videl, že typ \vb{vector} mal niektoré
+divné vlastnosti (napr. že \prg!a[x]! vráti \vb{x}-tú premennú podobne ako 
+pole). Teraz ti chcem ukázať, že to nie je žiadna mágia. Poďme poporiadku.
+Povedzme, že chceme urobiť typ na prácu s tabuľkami. Tabuľka má mať $m$ riadkov
+a $n$ stĺpcov a majú v nej byť celé čísla. Aby sme zabránili možnosti, že
+pole \vb{data} nebude inicializované, spravíme aj konštruktor:
+
+\vskip 2ex
+\vbox{
+\begin{lstlisting}[] 
+struct Tabulka {
+  int *data;
+  int m,n;
+
+  Tabulka() {
+    m = 0;
+    n = 0;
+    data = nullptr;
+  }
+
+};
+\end{lstlisting}
+}
+
+Konštruktor je funkcia takmer ako každá iná, a preto môže mať aj parametre. 
+Konštruktor pre typ \vb{Tabulka} preto môžem zmeniť takto:
+
+\begin{lstlisting}[] 
+Tabulka(int _m, int _n) {
+    m = _m;
+    n = _n;
+    data = new int[m * n];
+    for (int i = 0; i < m; i++)
+      for (int j = 0; j < n; j++) 
+        data[i * n + j] = 0;
+}
+\end{lstlisting}
+
+A pridáme aj deštruktor:
+
+\begin{lstlisting}[] 
+~Tabulka() {
+  if (data!=nullptr) delete[] data;
+}
+\end{lstlisting}
+
+Teraz sa premenná typu \vb{Tabulka} dá vyrobiť, iba ak dostane dva parametre:
+
+\vskip 2ex
+\vbox{
+\begin{lstlisting}[] 
+int main() {
+  Tabulka t(3,3);  // v poriadku
+  Tabulka q;       // kompilátor vyhlási chybu
+}
+\end{lstlisting}}
+
+\indexItem{Prg}{implicitný (defualt) konštruktor}
+Kým si nemal vlastný konštruktor, kompilátor používal na vytváranie premenných 
+{\em implicitný} (default) konštruktor. Keď si si ale zadefinoval svoj, default
+sa už nepoužíva. Stav, keď sa premenná bez potrebných parametrov nedá vyrobiť, je
+niekedy žiadúci. Len si treba uvedomiť, že teraz nevieš alokovať dynamické pole
+\prg!Tabulka *x = new Tabulka[10];!, lebo nemáš ako dodať parametre. Môžeš ale\indexItem{Prg}{dynamická alokácia: \vb{new} a \vb{delete}}
+dynamicky alokovať jednu premennú, a to pomocou verzie príkazov \prg!new!, 
+\prg!delete! bez hranatých zátvoriek:
+
+\begin{lstlisting}[] 
+int main() {
+  Tabulka *t = new Tabulka(3,3);
+  // niečo urob
+  delete t;
+}
+\end{lstlisting}
+
+\prg!new T! bez hranatých zátvoriek urobí veľmi podobnú vec ako \prg!new T[1]!, t.j.
+alokuje jednu premennú, ale máš možnosť dodať parametre. Len si treba dať pozor na to,
+že premenné alokované cez \prg!new! treba odalokovať cez \prg!delete! a premenné alokované 
+cez \prg!new[]! treba odalokovať cez \prg!delete[]!. 
+
+
+Okrem alokovania polí môžu parametre v konštruktoroch spôsobovať problémy aj pri vnorených 
+typoch. Predstav si, že chceme mať typ, ktorý obsahuje tabuľku a pole dvoch čísel, napr.
+
+\begin{lstlisting}
+ struct Tukan {
+  int a[2];
+  Tabulka t;
+};
+\end{lstlisting}
+
+Teraz sa zamysli, čo sa stane, keď chceš vyrobiť premennú \vb{Tukan x}: v pamäti sa vyhradí 
+miesto pre jednu premennú typu \prg!int[2]! a jednu premennú typu \vb{Tabulka}. V čase, keď
+sa zavolá konštruktor \vb{Tukan} (ktorý je zatiaľ iba implicitný), musia sa nastaviť premenné
+\vb{a} a \vb{t} ich vlastnými konštruktormi. Ale \vb{Tabulka} nemá konštruktor bez 
+parametrov, takže sa vyhlási chyba. Ešte raz zopakujem: keď sa vytvára premenná nejakého typu,
+najprv sa vyhradí miesto, potom sa (rekurzívne) zavolajú konštruktory všetkých zložiek
+a nakoniec sa zavolá hlavný konštruktor\footnote{toto je jediná postupnosť, ktorá dáva zmysel:
+v konštruktore typu \vb{Tukan} asi chceš pristupovať k premennej \vb{t},
+takže chceš, aby \vb{Tabulka t} už bola inicializovaná}. Ako môžeš dodať premennej \vb{t}
+parametre? Mohlo by ťa napadnúť napísať 
+
+\begin{lstlisting}
+ struct Tukan {
+  int a[2];
+  Tabulka t(3,3);
+};
+\end{lstlisting}
+
+ale tým jednak stratíš možnosť inicializovať tabuľku inými parametrami ako $3$, ale hlavne
+nie je jasné, kedy sa má konštruktor \vb{Tabulka} vlastne volať. Takýto zápis sa
+ti kompilátor ani nepokúsi skompilovať. Riešenie je špeciálny zápis konštruktora s
+dvojbodkou:\indexItem{Prg}{poradie konštruktorov, \vb{:}}
+
+\begin{lstlisting}
+ struct Tukan {
+  int a[2];
+  Tabulka t;
+
+  Tukan() : t(3,3) {}
+};
+\end{lstlisting}
+
+Týmto zápisom hovoríš, že \vb{Tukan} má konštruktor bez parametrov, ktorý predtým,
+ako sa začne vykonávať, zavolá konštruktor \vb{Tabulka} s parametrami $3,3$.
+Za dvojbodkou môže byť aj viacero konštruktorov oddelených čiarkami, napr.
+
+\begin{lstlisting}
+  Tukan(int x) : t(x,x), a{x,x} {a[1] += a[0];}
+\end{lstlisting}
+
+Keď teraz vyrobíš premennú \vb{Tukan x(3);} tak najprv sa zavolá konštruktor \vb{Tabulka t(3,3)}
+a inicializuje sa pole \vb{a} hodnotami \vb{3,3} a potom sa začne vykonávať
+hlavný konštruktor, v ktorom sa nastaví \vb{a[1]=6}.
+
+ Nielen pri konštruktoroch je niekedy\indexItem{Prg}{implicitné (default) parametre}
+užitočný mechanizmus {\em default parametrov}. Ak pri definovaní funkcie
+za posledných\footnote{
+  Musia to byť posledné, lebo inak by nebolo jasné, ktorý parameter 
+  sa má nahradiť. Keby si mal \prg!int f(int a=3, int b, int c=1)!,
+  volanie \prg!f(2,2)! môže znamenať \prg!a=2!, \prg!b=2! a \prg!c=1! (default),
+  ale aj \prg!a=3! (default), \prg!b=2! a \prg!c=2!. Kvôli tejto nejednoznačnosti
+  je takéto umiestnenie default parametrov zakázané.
+}niekoľko parametrov dopíšeš \vb{=}, nastavíš im implicitné hodnoty.
+Ak sa potom pri volaní príslušný parameter vynechá, doplní sa
+implicitnou hdontou. Napr.
+
+\vbox{
+\begin{lstlisting}[] 
+void chlp(int x = 4, int y = 5) { cout << x << " " << y << endl; }
+
+int main() {
+  chlp();     // vypíše 4 5
+  chlp(3);    // vypíše 3 5
+  chlp(1,2);  // vypíše 1 3
+}
+\end{lstlisting}
+}
+
+Preto, keď sa vrátime k našim tabuľkám, 
+keď do konštruktora typu \vb{Tabulka} pridáš default paramatre napr. takto:
+\prg!Tabulka(int _m = 3, int _n = 3)!, tak
+zápis \prg!Tabulka q;! vyrobí tabuľku $3\times 3$. 
+
+Podobne
+\prg!Tabulka *a = new Tabulka[10];! vyrobí pole $10$ tabuliek, každú rozmerov
+$3\times 3$.
+
+ Ďalej si môžeme napísať funkciu, ktorá ku každému prvku tabuľky priráta číslo.
+Naša trieda bude vyzerať takto:
+
+\begin{lstlisting}[] 
+struct Tabulka {
+  int* data;
+  int m, n;
+
+  Tabulka(int _m = 3, int _n = 3) {
+    m = _m;
+    n = _n;
+    data = new int[m * n];
+    for (int i = 0; i < m; i++)
+      for (int j = 0; j < n; j++)
+        data[i * n + j] = 0;
+  }
+
+  void pridaj(int x) {
+    for (int i = 0; i < m; i++)
+      for (int j = 0; j < n; j++)
+        data[i * n + j] += x;
+  }
+
+  ~Tabulka() { 
+    if (data!=nullptr) delete[] data; 
+  }
+};
+\end{lstlisting}
+
+Toto nijak neprekvapí, môžeš napísať napr.
+\begin{lstlisting}[] 
+ Tabulka t, r;
+ t.pridaj(5);
+\end{lstlisting}
+
+ Teraz chcem napísať funkciu, ktorá priráta nie jedno číslo, ale tabuľku. Možno 
+je trochu prekvapivé, že ju môžem nazvať rovnako: ak majú dve funkcie rôzne parametre,
+môžu sa volať rovnako, lebo kompilátor aj tak vie, ktorú má použiť. Preto môžem do
+definície triedy \vb{Tabulka} pridať funkciu \prg!void pridaj(Tabulka x)!. Musím
+si rozmyslieť, čo robiť, ak majú tabuľky rôznu veľkosť. Rozhodol som sa, že budem 
+prirátavať len v rozsahu, ktorý je dosť malý na to, aby sa zmestil do oboch:
+
+\begin{lstlisting}[] 
+  void pridaj(Tabulka x) {
+    int nn = n, mm = m;
+    if (x.n < n) nn = x.n;
+    if (x.m < m) mm = x.m;
+    for (int i = 0; i < mm; i++)
+      for (int j = 0; j < nn; j++)
+        data[i * n + j] += x.data[i * x.n + j];
+  }
+\end{lstlisting}
+
+Teraz sa program skompiluje\footnote{%
+  zápis \prg!x += y;! je skratka za \prg!x = x + y;!
+}(kompilátor sa nesťažuje na dve funkcie s rovnakým menom),
+ale keď spustím
+
+\begin{lstlisting}[] 
+int main() {
+  Tabulka t, r(4,4);
+  t.pridaj(5);
+  r.pridaj(t);
+}
+\end{lstlisting}
+
+vypíše sa mi 
+
+\begin{outputBox}
+free(): double free detected in tcache 2
+Aborted
+\end{outputBox}
+
+Skús zistiť, kde je problém. Prišiel si na to?
+Pred volaním \prg!r.pridaj(t);! to vyzeralo takto:
+
+
+\def\var(#1)#2#3{%
+  \draw (0.2,-#1) rectangle node[align=center](v#1) {\vb{#3}} (1.2,1-#1);
+  \draw (0,0.5-#1) node[anchor=east]{\textcolor{magenta}{\vb{#2}}};
+}
+
+\def\ptr(#1,#2)[#3] {
+  \draw[blue,-{>[length=4pt,width=2.5pt]}] (1.7,0.5-#1) to[out=#3,in=-#3] (1.7,0.5-#2);
+}
+
+\def\world(#1)#2#3{
+  \draw[thick,#3](-1,-#1) -- (2,-#1) node[anchor=west]{\vb{#2}};
+}
+
+\def\kon(#1){ 
+  \draw[draw=none] (0.2,-#1) rectangle node[align=center]{\vb{\ldots}} (1.2,1-#1);
+}
+  
+\def\godot#1{\filldraw[blue,scale=0.6](#1) circle (0.4ex and 1.4ex);}
+
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){t.data}{}
+  \var(1){t.m}{3}
+  \var(2){t.n}{3}
+  \var(3){r.data}{}
+  \var(4){r.m}{4}
+  \var(5){r.n}{4}
+  \world(-1){t}{orange}
+  \world(2){r}{olive}
+  \kon(6)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-4.5);
+
+  \foreach \f/\t in {v0/a1,v3/a2}{
+  \godot{\f}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (\f) to [out=0,in=180] (\t);
+  \draw (\t)++(0,-0.5) rectangle node[align=center]{alokovaná pamäť} ++(5,1);
+  }
+\end{tikzpicture}
+
+ Pri volaní sa vyrobil nový svet pre funkciu \vb{r.pridaj}. V ňom je premenná
+\vb{x} typu \vb{Tabulka}, do ktorej sa nakopíruje premenná \vb{t}.
+
+
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){t.data}{}
+  \var(1){t.m}{3}
+  \var(2){t.n}{3}
+  \var(3){r.data}{}
+  \var(4){r.m}{4}
+  \var(5){r.n}{4}
+  \var(6){x.data}{}
+  \var(7){x.m}{3}
+  \var(8){x.n}{3}
+  \var(9){nn}{}
+  \var(10){mm}{}
+  \world(-1){t}{orange}
+  \world(2){r}{olive}
+  \world(5){x}{cyan!50!gray}
+  \world(8){}{brown}
+  \kon(11)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-4.5);
+
+  \foreach \f/\t in {v0/a1,v3/a2,v6/a1}{
+  \godot{\f}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (\f) to [out=0,in=180] (\t);
+  }
+  \foreach \t in {a1,a2}{
+  \draw (\t)++(0,-0.5) rectangle node[align=center]{alokovaná pamäť} ++(5,1);
+  }
+  \draw[red,thick,->](-0.5,-4.9)-- (-1,-4.9)--node[midway,anchor=south,rotate=90]{\vb{r.pridaj}}(-1,-11);
+\end{tikzpicture}
+
+Keď sa funkcia \vb{r.pridaj} skončí, jej svet zanikne a s ním aj premenné v ňom.
+Keď ide zaniknúť premenná \vb{x}, zavolá sa jej deštruktor, ktorý odalokuje 
+pamäť.
+
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){t.data}{}
+  \var(1){t.m}{3}
+  \var(2){t.n}{3}
+  \var(3){r.data}{}
+  \var(4){r.m}{4}
+  \var(5){r.n}{4}
+  \world(-1){t}{orange}
+  \world(2){r}{olive}
+  \kon(6)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-4.5);
+
+  \foreach \f/\t in {v0/a1,v3/a2}{
+  \godot{\f}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (\f) to [out=0,in=180] (\t);
+  }
+  \draw[dotted] (a1)++(0,-0.5) rectangle node[align=center]{odalokovaná pamäť} ++(5,1);
+  \draw (a2)++(0,-0.5) rectangle node[align=center]{alokovaná pamäť} ++(5,1);
+\end{tikzpicture}
+
+Pointer \vb{t.data} sa nemenil a ukazuje na to isté miesto v pamäti, ale tá
+už bola odalokovaná. Keď sa potom končí hlavný program, volá sa deštruktor
+\vb{t}, ktorý sa pokúša druhýkrát odalokovať tú istú pamäť, a preto program skončí s chybou.
+
+
+Aby sme sa týmto efektom vyhli, je lepšie ako parameter funkcie pridaj neposielať
+hodnotu \vb{Tabulka}, ale iba pointer \vb{Tabulka *} takto:
+
+\vbox{
+\begin{lstlisting}[] 
+  void pridaj(Tabulka *x) {
+    int nn = n, mm = m;
+    if (x->n < n) nn = x->n;
+    if (x->m < m) mm = x->m;
+    for (int i = 0; i < mm; i++)
+      for (int j = 0; j < nn; j++)
+        data[i * n + j] += x->data[i * x->n + j];
+  }
+\end{lstlisting}
+}
+
+Keď potom zavoláme \prg!r.pridaj(&t);! do sveta funkcie sa pridá iba pointer
+na \vb{t}.
+
+
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){t.data}{}
+  \var(1){t.m}{3}
+  \var(2){t.n}{3}
+  \var(3){r.data}{}
+  \var(4){r.m}{4}
+  \var(5){r.n}{4}
+  \var(6){x}{}
+  \var(7){nn}{}
+  \var(8){mm}{}
+  \world(-1){t}{orange}
+  \world(2){r}{olive}
+  \world(5){}{cyan!50!gray}
+  \kon(9)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-4.5);
+
+  \foreach \f/\t in {v0/a1,v3/a2}{
+  \godot{\f}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (\f) to [out=10,in=180] (\t);
+  }
+  \godot{v6}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (v6) to [out=20,in=-20] (1.2,0.3);
+
+  \foreach \t in {a1,a2}{
+  \draw (\t)++(0,-0.5) rectangle node[align=center]{alokovaná pamäť} ++(5,1);
+  }
+  \draw[red,thick,->](-0.5,-4.9)-- 
+  (-1,-4.9)--node[midway,anchor=south,rotate=90]{\vb{r.pridaj}}(-1,-11);
+\end{tikzpicture}
+
+Preto keď zaniká svet \vb{r.pridaj}, zanikne pointer a nie je dôvod volať
+deštruktor \vb{t}.
+
+ Posielať ako parameter do funkcie pointer je veľmi užitočné, ale niekedy, ako uvidíme
+o chvíľu, to môže byť nepraktické. V C++ je možnosť ''zamaskovať'' pointer \indexItem{Prg}{referencia}
+pomocou tzv. {\em referencie}. Referencia sa v programe tvári ako premenná,
+ale v skutočnosti je to pointer na jej adresu\footnote{Už z tohto vidno, že je to tak trochu
+ako cirkulárka: užitočná vec, ale chceš si pri nej dávať pozor, inak sa neprestaneš čudovať,
+čo sa to deje.}. Zapisuje podobne ako pointer, ale namiesto hviezdičky sa použije
+ampersand (\prg!&!)\footnote{%
+  \vb{\&} a \vb{*} môžu byť zo začiatku mätúce. Pri vyrábaní premennej je \vb{int *x} pointer na \vb{int} a
+  \vb{int \&x} referencia. Vo výrazoch je \vb{\&x} adresa (t.j. pointer) a \vb{*x} je hodnota pointra.
+}. Napríklad obidva programy
+
+\begin{column}{0.45}
+\begin{lstlisting}[] 
+void zblnk(int &x) { x++; }
+
+int main() {
+  int x = 3;
+  zblnk(x);
+  cout << x << endl;
+}
+\end{lstlisting}
+\end{column}
+\hfill
+\begin{column}{0.45}
+\begin{lstlisting}[] 
+void brnk(int *x) { (*x)++; }
+
+int main() {
+  int x = 3;
+  brnk(&x);
+  cout << x << endl;
+}
+\end{lstlisting}
+\end{column}
+
+vypíšu $4$, lebo parameter \prg!int &x! hovorí \cmd{zober referenciu (t.j. adresu) na premennú \vb{x}}. Takže
+v skutočnosti sa  do funkcie \vb{zblnk} aj \vb{brnk} posiela 
+pointer na premennú \vb{x}. Pri volaní \prg!brnk(&x)! je jasné, že parameter je pointer,
+ale pri volaní \prg!zblnk(x)! nevieš rozlíšiť, či je funkcia \vb{zblnk} definovaná
+s parametrom \prg!int! alebo \prg!int &!. Keďže je to ten druhý prípad, tak
+\vb{zblnk(x)} zavolať môžeš, ale
+\vb{zblnk(3)} vyhlási chybu v tom zmysle, že sa nedá urobiť pointer na trojku.
+
+ Referencie sa hodia napríklad keď chceme upraviť, akým spôsobom sa majú tabuľky 
+kopírovať. Podobne ako pri vyrábaní premenných sa volá konštruktor, pri priradení\indexItem{Prg}{operátor priradenia}
+sa volá {\em operátor} priradenia (\vb{=}). Default operátor priradenia sa správa tak, 
+že skopíruje premenné, ale môžeme si to upraviť: je to funkcia triedy ako každá iná, len
+má trochu divný zápis. V našom prípade môžeme triedu \vb{Tabulka} definovať
+napr. takto:
+
+\begin{lstlisting}[] 
+struct Tabulka {
+  int* data;
+  int m, n;
+  
+  Tabulka(int _m = 3, int _n = 3) { alokuj(_m, _n); }
+  
+  void alokuj(int _m, int _n) {
+    m = _m; 
+    n = _n;
+    data = new int[m * n];
+    for (int i = 0; i < m; i++)
+      for (int j = 0; j < n; j++) 
+        data[i * n + j] = 0;
+  }
+
+  void pridaj(int x) {
+    for (int i = 0; i < m; i++)
+      for (int j = 0; j < n; j++) 
+        data[i * n + j] += x;
+  }
+
+  void pridaj(Tabulka& x) {
+    int nn = n, mm = m;
+    if (x.n < n) nn = x.n;
+    if (x.m < m) mm = x.m;
+    for (int i = 0; i < mm; i++)
+      for (int j = 0; j < nn; j++) 
+        data[i * n + j] += x.data[i * x.n + j];
+  }
+
+  Tabulka& operator=(Tabulka& x) {
+    if (data!=nullptr) delete[] data;
+    alokuj(x.m, x.n);
+    pridaj(x);
+    return *this;
+  }
+
+  ~Tabulka() { 
+    if (data!=nullptr) delete[] data; 
+  }
+};
+\end{lstlisting}
+
+Pridal som funkciu \prg!operator=!, čo je špeciálne meno vyhradené na úpravu operátora 
+priradenia.  Ako parameter sa zoberie referencia na tabuľku. Vracia sa tiež referencia,
+a to referencia na seba (\prg!return *this;!, lebo \prg!this! je pointer na seba
+a \prg!*this! je jeho hodnota). To ti umožňuje písať skrátene
+\prg!t = r = q;! V tomto prípade sa najprv zavolá funkcia \prg!r.operator=(q)!, ako 
+parameter sa zoberie referencia na \vb{q}, na základe nej sa upravia hodnoty v \vb{r}
+a vráti sa referencia na \vb{r}. Tá sa hneď zoberie ako parameter pri volaní
+\prg!t.operator=()!, takže hodnoty \vb{t} sa upravia podľa čerstvo upravených hodnôt \vb{r}.
+
+ 
+ \indexItem{Prg}{copy constructor}Podobný ako operátor priradenia je tzv. {\em copy constructor}, ktorý sa volá
+vtedy, ak sa má vyrobiť nová premenná z inej. Konkrétne napr. pri posielaní parametrov do funkcie.
+V našom príklade máme operátor priradenia, ale ak by si mal napr. v rámci \vb{Tabulka}
+metódu (bez referencie)
+\prg!void quak(Tabulka x) { pridaj(x); }!, tak volanie \prg!r.quak(t)! bude 
+mať rovnaký problém ako predtým: pri volaní sa do lokálnej premennej \vb{x}
+skopírujú hodnoty
+z \vb{r} a pri skončení fukcie sa zavolá deštruktor, ktorý odalokuje pointer.
+Keby si okrem konštruktora \prg!Tabulka(int _m, int _n)! pridal ešte
+konštruktor, ktorý má ako parameter referenciu na už existujúcu premennú typu
+\vb{Tabulka}:
+
+\begin{lstlisting}
+  Tabulka(Tabulka& x) {
+    alokuj(x.m, x.n);
+    pridaj(x);
+  }
+\end{lstlisting}
+
+tak pri volaní \vb{r.quak(t)} sa použije tento konštruktor, ktorý namiesto toho,
+aby kopíroval pointer, v lokálnej premennej
+\vb{x} naalokuje pamäť, takže volanie bude namiesto:
+
+
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){t.data}{}
+  \var(1){t.m}{3}
+  \var(2){t.n}{3}
+  \var(3){r.data}{}
+  \var(4){r.m}{4}
+  \var(5){r.n}{4}
+  \var(6){x.data}{}
+  \var(7){x.m}{3}
+  \var(8){x.n}{3}
+  \world(-1){t}{orange}
+  \world(2){r}{olive}
+  \world(5){x}{cyan!50!gray}
+  \kon(9)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-4.5);
+
+  \foreach \f/\t in {v0/a1,v3/a2,v6/a1}{
+  \godot{\f}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (\f) to [out=0,in=180] (\t);
+  }
+  \foreach \t in {a1,a2}{
+  \draw (\t)++(0,-0.5) rectangle node[align=center]{alokovaná pamäť} ++(5,1);
+  }
+  \draw[red,thick,->](-0.5,-4.9)-- 
+  (-1,-4.9)--node[midway,anchor=south,rotate=90]{\vb{r.quak(t)}}(-1,-11);
+\end{tikzpicture}
+
+vyzerať takto:
+
+
+\begin{tikzpicture}[yscale=0.4,xscale=1.4]
+
+  \var(0){t.data}{}
+  \var(1){t.m}{3}
+  \var(2){t.n}{3}
+  \var(3){r.data}{}
+  \var(4){r.m}{4}
+  \var(5){r.n}{4}
+  \var(6){x.data}{}
+  \var(7){x.m}{3}
+  \var(8){x.n}{3}
+  \world(-1){t}{orange}
+  \world(2){r}{olive}
+  \world(5){x}{cyan!50!gray}
+  \kon(9)
+
+  \coordinate (a1) at (3,-0.5);
+  \coordinate (a2) at (3,-3.5);
+  \coordinate (a3) at (3,-6.5);
+
+  \foreach \f/\t in {v0/a1,v3/a2,v6/a3}{
+  \godot{\f}
+  \draw[blue,-{>[length=8pt,width=5pt]}] (\f) to [out=0,in=180] (\t);
+  }
+  \foreach \t in {a1,a2,a3}{
+  \draw (\t)++(0,-0.5) rectangle node[align=center]{alokovaná pamäť} ++(5,1);
+  }
+  \draw[red,thick,->](-0.5,-4.9)-- 
+  (-1,-4.9)--node[midway,anchor=south,rotate=90]{\vb{r.quak(t)}}(-1,-11);
+\end{tikzpicture}
+
+Preto deštruktor na konci volania správne odalokuje pamäť v lokálnej premennej \vb{x}.
+Tento spôsob funguje, ale pri väčších tabuľkách je neefektívny: dáta sa najprv kopírujú
+z \vb{t} do lokálnej \vb{x}, potom z lokálnej \vb{x} do \vb{r}, a nakoniec
+sa lokálna \vb{x} zahodí. Je lepšie ako parameter do funkcie posielať pointer alebo referenciu.
+
+\indexItem{Prg}{predefinovanie operátorov}
+ Operátor priradenia nie je jediný operátor, ktorý sa dá predefinovať, dajú sa takmer
+všetky\footnote{%
+  detaily sú napr. na 
+  \href{https://en.cppreference.com/w/cpp/language/operators}{\nolinkurl{%
+en.cppreference.com/w/cpp/language/operators}}}.
+Ak chceme napríklad vedieť sčitovať tabuľky, môžeme spraviť niečo takéto:
+
+%\vbox{
+\begin{lstlisting}
+struct Tabulka {
+  // celá definícia
+};
+
+Tabulka operator+(Tabulka &x, Tabulka &y) {
+  Tabulka res(x);
+  res.pridaj(y);
+  return res;
+}
+
+int main() {
+  Tabulka r, s, t;
+  t = r + s;
+}
+\end{lstlisting}
+%}
+
+\begin{lrbox}{\TmpBox}
+  \begin{lstlisting}[basicstyle=\scriptsize\roboto]
+swap(T& a, T& b) {
+    T tmp(move(a));  // z a urob xvalue, použije sa move constructor
+    a = move(b);     // z b urob xvalue, použije sa move assignment
+    b = move(tmp);   // z tmp urob xvalue, použije sa move assignment
+}
+\end{lstlisting}
+\end{lrbox}
+
+Definoval som (mimo triedy \vb{Tabulka}) operátor \vb{+}, ktorý zoberie 
+referencie na dve tabuľky a vyrobí výslednú, ktorá bude ich súčtom. Všimni si,
+že keby sa vracala hodnota referenciou ako
+\begin{lstlisting}
+Tabulka& operator+(Tabulka &x, Tabulka &y) {
+  Tabulka res(x);
+  res.pridaj(y);
+  return res;
+}
+\end{lstlisting}
+tak by to celé nefungovalo:
+pri volaní funkcie \prg!operator+! sa v jej svete vyrobí lokálna premenná \vb{res},
+nejak sa upraví a vráti sa referencia (teda pointer) na ňu. Lenže pri skončení
+volania sa celý svet funkcie zruší, zavolá sa deštruktor na \vb{res}, a preto
+vrátená referencia (teda pointer) je nanič\phantomsection\label{page:move-operator}\footnote{\indexItem{Prg}{move constructor: \vb{lvalue}, \vb{rvalue}, \vb{xvalue}, \vb{prvalue}} 
+Poznámka pre fajnšmekrov. Asi si postrehol, že toto riešenie nie je ideálne:
+pri volaní \prg!return! sa všetky dáta z \prg!res! skopírujú do výsledku a vzápätí sa volá deštruktor na \prg!res!. Nebolo by lepšie
+nejak povedať, aby si kompilátor len ``premenoval adresy'' a v ďalšom používal
+adresu premennej \vb{res} ako výsledok? Zatiaľ si v programoch videl tzv. \vb{lvalue} 
+(meno premennej, referencia, t.j. niečo, čo môže stáť na ľavej strane priradenia)
+a \vb{rvalue} (konštanta, volanie funkcie, tiež meno premennej, t.j. čokoľvek,
+čo môže stáť na pravej strane priradenia). C++ má navyše aj tzv. \vb{xvalue}
+({\em expiring value}, napr. lokálna premenná pri volaní \prg!return!, 
+čo je \vb{lvalue}, ktorá zároveň
+kompilátoru hovorí \cmd{s mojimi datami si môžeš robiť, čo chceš, aj tak 
+budem za chvíľu volať deštruktor}) a \vb{prvalue} (napr. dočasná premenná,
+v ktorej je uložený výsledok výrazu pri volaní; ak volám \prg!pridaj(4+7)!,
+tak pri vytváraní sveta funkcie \vb{pridaj} je v pamäti dočasná premenná \prg!int!
+s hodnotu $11$). Kompilátor vie pri priradení z \vb{xvalue} alebo \vb{prvalue}
+optimalizovať veci tak, aby sa vyhol kopírovaniu. Na to treba, aby tvoja
+trieda mala tzv. {\em move constructor} a {\em move assignment} 
+(všetky STL triedy ako \prg!vector!, 
+\prg!string! a pod. ich majú). Takže keby si okrem copy konštruktora 
+\prg!Tabulka(Tabulka& x)! mal aj move konštruktor \prg!Tabulka(Tabulka&& x)! (s dvoma
+ampersandami, tzv. {\em rvalue reference}) a move operátor  
+\prg!Tabulka& operator=(const Tabulka&& x)!,
+kompilátor by pri volaní \prg!return res;! zavolal move operátor. Ten namiesto
+kopírovania dát môže len priradiť pointer.
+Samozrejme, je dôležité, aby sa  postaral o to, že následné
+volanie deštruktora \vb{x} bude v poriadku, napr. 
+\prg!Tabulka& operator=(Tabulka&& x){m=x.m; n=x.n; data=x.data; x.data=nullptr; return *this;}!.
+Na explicitné pretypovanie z \vb{lvalue} na \vb{xvalue} slúži
+funkcia \vb{move}, napr.
+
+\usebox{\TmpBox}
+
+Výsledkom toho je, že premenné z STL (napr. \vb{vector}) môžeš pokojne vracať z funkcie
+hodnotou; kompilátor použije \vb{move} sémantiku a dáta sa nebudú kopírovať.
+}.
+
+
+Ale keď tento program skúsiš skompilovať, zistíš, že to stále nejde. Prečo? Z rovnakého
+dôvodu, ako nešlo spustiť \vb{zblnk(3)} o pár odstavcov vyššie: \prg!operator+!
+vráti {\em hodnotu} typu \vb{Tabulka}, ale \prg!operator=! má ako parameter
+{\em referenciu}, teda pointer na premennú. A ten sa nedá zobrať, ak premenná nie je.
+Na druhej strane, ona tá premenná v skutočnosti kdesi musí byť: pri vyhodnocovaní výrazu
+je uložená na nejakom bezmennom mieste v pamäti. Ak kompilátoru sľúbiš, že ju nebudeš
+meniť, bude ochotný z nej pointer (referenciu) zobrať. Takže zmeníme definíciu \indexItem{Prg}{modifikátor \vb{const}}
+\prg!operator=! na 
+\prg!Tabulka& operator=( const Tabulka& x)!. Teraz ti ale kompilátor bude vyčítať, že si 
+nedodržal sľub: v rámci volania \prg!operator=! voláš \vb{pridaj(x)}. Keďže \vb{x}
+sa tam posiela referenciou, ktohovie, či sa tam nezmení. Musíš ho upokojiť a sľúbiť, že
+ani tam sa \vb{x} nebude meniť: \prg!void pridaj(const Tabulka& x)!. Teraz už všetko
+bude fungovať správne.
+
+
+ Ak si v rámci definície triedy \vb{Tabulka} predefinuješ operátor \vb{()}
+takto:
+
+\begin{lstlisting}
+  int& operator()(int r, int s) { return data[r * n + s]; }
+\end{lstlisting}
+
+môžeš pristupovať k políčkam tabuľky napr. \prg!t(i,j) = r(i,j);!. 
+To, že k 
+položkám triedy \vb{vector} môžeš pristupovať ako k poľu je preto, že \vb{vector}
+si predefinoval operátor \vb{[]}.
+
+
+Teraz aj vidíš, že som ťa klamal, keď som hovoril, že \prg!cout <<! je {\em príkaz}
+na vypísanie. V skutočnosti \prg!cout! je premenná typu \prg!ostream! 
+definovaná v súbore \prg!iostream!. Trieda \prg!ostream! má predefinovaný operátor
+\prg!<<! (ktorý pri celých číslach robí bitový posun). Ak by si chcel napr. vypisovať
+tabuľky, môžeš si definovať\footnote{%
+všimni si, že vraciam referenciu na prvý parameter, takže volanie \prg!cout << x << y!
+robí to, čo sa očakáva
+}(mimo definície triedy \vb{Tabulka})
+
+\begin{lstlisting}
+ostream& operator<<(ostream& str, Tabulka& o) {
+  for (int i = 0; i < o.m; i++) {
+    for (int j = 0; j < o.n; j++) str << o(i, j) << " ";
+    str << endl;
+  }
+  return str;
+}
+\end{lstlisting}
+
+tak môžeš zavolať napr \prg!Tabulka t; cout << t;! Nemôžeš ale urobiť \prg!cout << s + t!
+opäť z rovnakých dôvodov: \prg!operator<<! potrebuje referenciu. Opäť to môžeš
+vyriešiť tak, že sľúbiš, že parameter \vb{o} bude konštantný. t.j. 
+\prg!const Tabulka& o!. Tým ale vyrobíš iný problém:
+zápis \prg!o(i,j)! je volanie funkcie \prg!o.operator()!, čo je metóda objektu \vb{o}. 
+No a keďže sa nevie, či ho nemení, kompilátor ju odmietne. To, že daná metóda nemení svoj objekt, 
+vieš sľúbiť tak, že \prg!const! napíšeš za definíciu metódy. Takže celý
+výsledný program by mohol vyzerať nejak takto (mám dve verzie \prg!operator()!: jedna vráti hodnotu, a tá je \prg!const!,
+druhá referenciu a tá nie je \prg!const!; kompilátor si vie vybrať podľa toho, čo práve potrebuje):
+
+\begin{lstlisting}
+#include <iostream>
+using namespace std;
+
+struct Tabulka {
+  int* data;
+  int m, n;
+
+  Tabulka(int _m = 3, int _n = 3) { alokuj(_m, _n); }
+  Tabulka(const Tabulka& x) {alokuj(x.m, x.n); pridaj(x); }
+  ~Tabulka() { delete[] data; }
+  void alokuj(int _m, int _n) { ... }
+  void pridaj(int x) {...}
+  void pridaj(const Tabulka& x) { ... }
+  Tabulka& operator=(const Tabulka& x) { pridaj(x); return *this; }
+  int& operator()(int r, int s) { return data[r * n + s]; }  
+  int operator()(int r, int s) const { return data[r * n + s]; }
+  Tabulka& operator+=(int x) { pridaj(x); return *this;}
+};
+
+ostream& operator<<(ostream& str, const Tabulka& o) { ... }
+Tabulka operator+(const Tabulka& x, const Tabulka& y) { ... }
+
+int main() {
+  Tabulka t;  t += 5;
+  Tabulka r = t; r += 2;
+  r(1,1) = 42;
+  cout << t + r;
+}
+\end{lstlisting}
+

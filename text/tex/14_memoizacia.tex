@@ -1,0 +1,649 @@
+\chapter{Memoizácia a dynamické programovanie}
+\label{sect:dynamika}
+
+Na začiatku kapitoly \ref{sect:zlozitost} sme mali príklad počítania Fibonacciho 
+čísel, na ktorom sme ukazovali, že niekedy je rekurzívna formulácia veľmi prirodzená,
+ale trvá dlho. Pozrime sa teraz na podobný príklad. 
+
+
+Na vstupe je číslo $n$ a potom $n$ nezáporných 
+čísel. Naším cieľom je vybrať niekoľko z nich tak, aby mali
+čo najväčší súčet. Je tam ale navyše podmienka, že nesmieme vybrať dve po sebe idúce čísla.
+Napr. pre vstup \vb{6 20 1 2 5} je výsledok \vb{25}, čo získame, ak vyberieme \vb{20} a potom
+\vb{5}. Viac vybrať nemôžeme, lebo ak by sme nezobrali \vb{20}, tak celkový súčet všetkých ostávajúcich
+čísel je \vb{14}. Ale ak zoberieme \vb{20}, tak nemôžeme zobrať \vb{6} ani \vb{1}. Z dvojice 
+\vb{2} a \vb{5} môžeme vybrať len jedno číslo, takže \vb{25} je najviac, ako sa dá. 
+
+
+Túto úlohu môžeme ľahko vyriešiť rekurziou, ktorá bude skúšať všetky možnosti. 
+Ako môže vyzerať výber, ktorý spĺňa naše pravidlá? Buď prvé číslo \vb{a[0]}
+nevyberieme, a potom
+najlepšie, čo môžeme urobiť, je vybrať z čísel \vb{a[1], a[2], \ldots, a[n-1]} čo najviac
+podľa pravidiel.
+Alebo prvé číslo \vb{a[0]} vyberieme, potom ale nesmieme vybrať \vb{a[1]} a opäť najlepšie,
+čo môžeme urobiť, je dovyberať podľa pravidiel z čísel \vb{a[2], \ldots, a[n-1]}. 
+V oboch prípadoch vieme urobiť nejakú akciu (vybrať, či nevybrať prvé číslo) a potom musíme
+vyriešiť tú istú úlohu (vyberať čísla podľa pravidiel), len na menšom vstupe. 
+Toto sa prirodzene zapíše rekurziou. Naša funkcia \vb{najdi} bude hľadať najlepší
+výber počnúc číslom na pozícii \vb{i}.
+
+\begin{lstlisting}
+#include <iostream>
+using namespace std;
+
+int a[10000];
+int n;
+
+int najdi(int i) {
+  if (i >= n) return 0;
+  int x = a[i] + najdi(i + 2), y = najdi(i + 1);
+  if (x > y)
+    return x;
+  else
+    return y;
+}
+
+int main() {
+  cin >> n;
+  for (int i = 0; i < n; i++) cin >> a[i];
+  cout << najdi(0) << endl;
+}
+
+\end{lstlisting}
+
+
+Na to, aby sme vyrátali hodnotu \vb{najdi(i)}, dvakrát sa zavolá rekurzívna funkcia:
+raz pre \vb{najdi(i+1)} a raz pre \vb{najdi(i+2)}. Keď si začneme kresliť, aké svety
+funkcií sa budú vytvárať nre vstup s \vb{n=5}, 
+dostaneme obrázok, ktorý sme už videli pri Fibonacciho číslach:
+
+\centerline{
+\begin{tikzpicture}[scale=0.88]
+  \foreach \y/\lst[count=\j] in {
+    0/{0.5,1.5},
+    0.7/{1,2,3,4,5,6,9,10},
+    1.5/{1.5,3.5,5.5,7.5,9.5,11.5,13.5,15.5},
+    2.6/{2.5,6.5,10.5,14.5},
+    3.5/{4.5,12.5},
+    4.5/{8.5}
+  }{
+    \foreach \x[count=\i] in \lst {
+       \coordinate (p\j\i) at (\x,\y);
+       %\pgfmathtruncatemacro{\tmp}{20*\j}
+       %\filldraw[fill=black!\tmp] (p\j\i) circle (0.1);
+    }
+  }
+  \foreach \i/\j/\k in {2/1/1,2/1/2,3/1/1,3/1/2,3/2/3,3/2/4,3/3/5,3/3/6,3/5/7,3/5/8,
+  4/1/1,4/1/2,4/2/3,4/2/4,4/3/5,4/3/6,4/4/7,4/4/8,5/1/1,5/1/2,5/2/3,5/2/4,6/1/1,6/1/2}{
+    \pgfmathtruncatemacro{\tmp}{\i-1}
+    \draw (p\i\j)--(p\tmp\k);
+  }
+  \foreach \lst[count=\i] in {{2,1},{3,2,2,1,2,1,2,1},{4,3,3,2,3,2,2,1},{5,4,4,3},{6,5},{7}} {
+    \foreach \v[count=\j] in \lst {
+      \pgfmathtruncatemacro{\tmp}{7-\v}
+      \node[circle,draw=black,fill=blue!10, inner sep=1pt] at (p\i\j) {\vb{\tmp}};
+    }
+  }
+\end{tikzpicture}}
+
+
+Treba si všimnúť dve veci: po prvé, rekurzívne volania funkcie \vb{najdi} síce narobia veľa
+rôznych svetov, ale parameter \vb{i} je vždy z
+rozsahu $0$ až $n-1$, takže tých veľa volaní vždy opakuje iba málo rôznych
+parametrov. Navyše, zavolanie funkcie nijak neovplyvní svet
+naokolo\footnote{hovoríme, že \vb{najdi} nemá vedľajšie efekty\indexItem{Alg}{vedľajší efekt funkcie}}: nemení
+globálne premenné, nečíta vstup, ani nevypisuje, takže ak dvakrát zavolám
+\vb{najdi} s rovnakým parametrom \vb{i} (a medzitým nezmením pole \vb{a}),
+dostanem rovnaké výsledky. To znamená, že ak už raz vyrátam hodnotu pre nejaké
+\vb{i}, môžem si ju zapamätať a pri nasledujúcom volaní s rovnakým parametrom
+ju môžem použiť:
+
+\begin{lstlisting}
+#include <iostream>
+using namespace std;
+
+int a[10000], m[10000];
+int n;
+
+int najdi(int i) {
+  if (i >= n) return 0;
+  if (m[i] >= 0) return m[i];
+  int x = a[i] + najdi(i + 2), y = najdi(i + 1);
+  if (x > y) {
+    m[i] = x;
+    return x;
+  } else {
+    m[i] = y;
+    return y;
+  }
+}
+
+int main() {
+  cin >> n;
+  for (int i = 0; i < n; i++) {
+    cin >> a[i];
+    m[i] = -1;
+  }
+  cout << najdi(0) << endl;
+}
+
+\end{lstlisting}
+
+
+Teraz sa pre každé \vb{i} vyráta hodnota \vb{najdi(i)} iba raz, pri ďalšom použítí sa iba zoberie zapamätaná hodnota. 
+Preto výsledná zložitosť bude lineárna.
+
+\centerline{
+\begin{tikzpicture}[scale=0.88]
+  \foreach \y/\lst[count=\j] in {
+    0/{0.5,1.5},
+    0.7/{1,2,3,4,5,6,9,10},
+    1.5/{1.5,3.5,5.5,7.5,9.5,11.5,13.5,15.5},
+    2.6/{2.5,6.5,10.5,14.5},
+    3.5/{4.5,12.5},
+    4.5/{8.5}
+  }{
+    \foreach \x[count=\i] in \lst {
+       \coordinate (p\j\i) at (\x,\y);
+    }
+  }
+  \foreach \i/\j/\k in {2/1/1,2/1/2,3/1/1,3/1/2,3/2/3,3/2/4,3/3/5,3/3/6,3/5/7,3/5/8,
+  4/1/1,4/1/2,4/2/3,4/2/4,4/3/5,4/3/6,4/4/7,4/4/8,5/1/1,5/1/2,5/2/3,5/2/4,6/1/1,6/1/2}{
+    \pgfmathtruncatemacro{\tmp}{\i-1}
+    \draw[gray!60] (p\i\j)--(p\tmp\k);
+    \filldraw[gray!60, fill=white] (p\tmp\k) circle (0.2);
+  }
+  \foreach \i/\j/\k in {2/1/1,2/1/2,3/1/1,3/1/2,
+  4/1/1,4/1/2,5/1/1,5/1/2,6/1/1,6/1/2}{
+    \pgfmathtruncatemacro{\tmp}{\i-1}
+    \draw (p\i\j)--(p\tmp\k);
+  }
+  \foreach \lst[count=\i] in {{2,1},{3,2},{4,3},{5,4},{6,5},{7}} {
+    \foreach \v[count=\j] in \lst {
+      \pgfmathtruncatemacro{\tmp}{7-\v}
+      \node[circle,draw=black,fill=blue!10, inner sep=1pt] at (p\i\j) {\vb{\tmp}};
+    }
+  }
+  \foreach \i in {2,...,5} {
+      \pgfmathtruncatemacro{\tmp}{7-\i}
+      \node[circle,draw=black,fill=green!10, inner sep=1pt] at (p\i2) {\vb{\tmp}};
+  }
+\end{tikzpicture}}
+
+
+Keď si porovnám časy, pôvodná verzia už pre vstup dĺžky $50$ trvá vyše  minúty, vylepšená verzia
+aj pre vstup dĺžky $1000$ zbehne za zhruba milisekundu. Technika, ktorú sme práve použili, sa volá\indexItem{Alg}{memoizácia}% 
+{\em memoizácia}\footnote{Nevypadlo mi ``r'', nie je to {\em memorizácia}, je to {\em memoizácia}.}.
+Pri nej máme rekurzívnu funkciu (dôležité je, aby nemala vedľajšie efekty), ktorá má síce
+veľa volaní, ale málo rôznych parametrov a vylepšíme ju tak, že si zapamätávame už raz vyrátané
+výsledky, aby sme ich nemuseli rátať znova.
+
+
+Skúsme pokračovať v tom, aké veľké vstupy dokáže memoizovaná verzia vyriešiť. 
+Aj pre pomerne veľké vstupy memoizovaná funkcia beží rýchlo, ale pri istej (nie príliš veľkej) veľkosti vstupu
+program zrazu zhavaruje. Čo sa stalo?  Ako si videl v časti \ref{sec:rekurzia}, pri volaní každom rekurzívnej funkcie 
+sa vyrobí nový svet a ostatné svety čakajú. Pre každý svet musí byť v pamäti vyhradená časť s jeho premennými.
+Z dôvodov, ktoré tu teraz nebudem rozoberať, 
+sa svety ukladajú do zásobníka, ktorý má fixnú veľkosť. Keď je svetov priveľa, zásobníku dojde pamäť a program zhavaruje.
+
+
+Našťastie, v našom príklade sa pretečeniu zásobníka vieme ľahko vyhnúť. Všimni si, že v memoizovanom programe
+používame pole \vb{m} na ukladanie už raz vypočítaných výsledkov; na konci výpočtu pole \vb{m} obsahuje všetky priebežné výsledky,
+t.j. v \prg!b[i]! je hodnota \prg!najdi(i)!. V prístupe, ktorý sa volá {\em dynamické programovanie}\indexItem{Alg}{dynamické programovanie}
+sa budem snažiť vyrobiť si rovnaké pole \vb{m}, ale bez rekurzívnych volaní. 
+Hodnota \prg!m[i]! sa nastaví ako maximum z \prg!a[i] + najdi(i + 2)! a \prg!najdi(i + 1)!. Ak budem postupovať od konca poľa, bude platiť,
+že keď počítam \prg!m[i]!, tak hodnoty \prg!m[i + 2]! aj \prg!m[i + 1]! už mám vypočítané. Preto (všimni si, že som si na koniec poľa pridal zarážku)
+môžem napísať
+
+
+\begin{lstlisting}
+int najdi() {
+  m[n] = 0;
+  m[n - 1] = a[n - 1];
+  for (int i = n - 2; i >= 0; i--) {
+    int x = a[i] + m[i + 2], y = m[i + 1];
+    if (x > y) m[i] = x;
+    else m[i] = y;
+  }
+  return m[0];
+}
+
+\end{lstlisting}
+
+
+
+Dynamické programovanie je prístup, v ktorom vypĺňam celú memoizačnú tabuľku bez toho, aby som robil rekurzívne volania. Na to potrebujem násjť správne poradie,
+aby som si bol istý, že hodnoty, ktoré potrebujem na výpočet, už mám vyrobené. Okrem toho, že nepretečie zásobník, získam aj na rýchlosti. Obidve verzie 
+majú lineárnu zložitosť (t.j. časy behu na všetkých vstupoch sa zmestia pod priamku), ale keďže dynamické programovanie nemusí vytvárať a rušiť 
+svety na zásobníku, ušetrí dosť veľa času.\\
+
+\centerline{
+\begin{tikzpicture}
+\begin{axis}[
+  width=\textwidth, 
+  height=10cm,
+  xlabel=$n$,
+  ylabel=čas (ms),
+  scaled x ticks=false,
+  scaled y ticks=false,
+  y tick label style={
+        /pgf/number format/.cd,
+            fixed,
+            fixed zerofill,
+            precision=1,
+        /tikz/.cd
+    },
+  legend cell align={left},
+  legend pos = north west,
+  %scale only axis,
+  %separate axis lines,
+  %domain=0:50000,
+  %xmin=0,
+  %xmax=50000,
+  ymin=0,
+  %ymax=20,
+  /pgf/number format/.cd,
+        1000 sep={}
+]
+  \addplot+[no markers,orange!80!white] table 
+  [y expr=\thisrow{memo}/1000, x=n ]{data/flase.dat};
+  \addlegendentry{memoizácia}
+  \addplot+[no markers,blue!80!cyan] table 
+  [y expr=\thisrow{dp}/1000, x=n ]{data/flase.dat};
+  \addlegendentry{dynamické programovanie}
+\end{axis}
+\end{tikzpicture}
+}
+
+\begin{uloha}
+  Uprav riešenie s dynamickým programovaním tak, aby okrem výsledného súčtu vypísalo aj vybraté čísla.
+\end{uloha}
+
+
+Skúsme urobiť ďalší príklad. Na vstupe máme dve postupnosti čísel
+$a_0, a_1, \ldots, a_{n-1}$ a $b_0, b_1, \ldots, b_{m-1}$. Našim cieľom je 
+čo najmenej z nich vyhodiť tak, aby obidve postupnosti ostali rovnaké. Napr. v nasledovnom vstupe musíme vyhodiť
+7 čísel, tri z prvej postupnosti a štyri z druhej.
+
+
+\begin{tikzpicture}
+  
+  \foreach \list[count=\y] in { {1/5,0/2,1/1,0/9,0/7,1/2,0/1,1/3,0/5,1/4},{1/5,1/1,0/6,1/2,0/7,1/3,1/4}}{
+    \foreach \s/\v[count=\x] in \list {
+    \if\s1 
+    \node[draw=orange,circle, fill=orange!20]  at (\x,\y) {$\v$};
+    \else 
+    \node[draw=teal!50, circle, cross out] at (\x,\y) {$\v$};
+    \fi
+  }}
+
+\end{tikzpicture}
+
+
+
+
+Prvá vec, ktorú si môžeš všimnúť je, že ak obidve postupnosti začínajú rovnakým
+číslom, toto číslo sa neoplatí ani z jednej postupnosti vyhodiť\footnote{ Skús
+si to premyslieť, nie je to až také zrejmé, ako sa na prvý pohľad zdá.  Môže
+byť totiž viacero optimálnych riešení a v niektorých z nich sa to prvé číslo
+vyhodiť môže. Napr. pre \vb{5 4 5 5} a \vb{5 6 5} treba vyhodiť všetko tak, aby
+v prvej aj druhej postupnosti ostalo \vb{5 5}. Takže z druhej postupnosti treba
+ponechať obidve päťky a z prvej si môžem vybrať, ktoré dve päťky si nechám.
+Ale ak obidve postupnosti začínajú rovnako, tak určite existuje aj také
+optimálne riešenie, ktoré prvé číslo v obidvoch ponechá.  }. Ak teda $a_0=b_0$,
+stačí nám vyriešiť úlohu pre postupnosti $a_1,\ldots, a_{n-1}$ a
+$b_1,\ldots,b_{n-1}$. Čo ak $a_0\not=b_0$? Tu sa to nedá tak ľahko povedať: 
+sú situácie, keď treba vyhodiť $a_0$, inokedy treba vyhodiť $b_0$
+a niekedy aj obidve\footnote{skús nájsť príklady pre všetky tri situácie}.
+Najjednoduchší spôsob, ako zaručiť, že nájdeme správne riešenie, je vyskúšať
+všetky možnosti, to znamená, že najprv skúsime vyriešiť úlohu pre
+dvojicu postupností $a_1,\ldots,a_{n-1}$ a $b_0,\ldots,b_{n-1}$, potom
+pre $a_0,\ldots,a_{n-1}$ a $b_1,\ldots,b_{n-1}$ a napokon pre $a_1,\ldots,b_{n-1}$
+a $b_1,\ldots,b_{n-1}$ a vyberieme tú najlepšiu možnosť. 
+Pretože vždy sa opakuje tá istá úloha, napíšeme si rekurzívnu funkciu 
+\vb{diff} s parametrami \vb{i} a \vb{j} tak, že \vb{diff(i,j)} nájde riešenie
+úlohy pre vstup $a_i,a_{i+1},\ldots,a_{n-1}$ a $b_j,b_{j+1},\ldots,b_{n-1}$.
+Mohlo by to vyzerať napríklad takto:\\
+
+
+\vbox{
+\begin{lstlisting}
+#include <iostream>
+using namespace std;
+
+int n[2], a[2][10000];
+
+int diff(int i, int j) {
+  if (i >= n[0]) return (n[1] - j); // ak je prvá postupnosť prázdna, 
+                                    // z druhej treba vyhodiť všetko
+  if (j >= n[1]) return (n[0] - i);
+  if (a[0][i] == a[1][j]) return diff(i + 1, j + 1);
+  int x = 1 + diff(i + 1, j), y = 1 + diff(i, j + 1);
+  if (y < x) x = y;
+  y = 2 + diff(i + 1, j + 1);
+  if (y < x) x = y;
+  return x;
+}
+
+int main() {
+  cin >> n[0] >> n[1];
+  for (int i = 0; i < 2; i++)
+    for (int j = 0; j < n[i]; j++) cin >> a[i][j];
+  cout << diff(0, 0) << endl;
+}
+\end{lstlisting}
+}
+
+
+Keďže funkcia \vb{diff} nemá vedľajšie efekty, môžeme použiť memoizáciu a 
+už raz vypočítané výsledky si zapamätať: budeme mať dvojrozmerné pole 
+\vb{m} tak, že \vb{m[i][j]} bude mať zapamätaný výsledok volania
+\vb{diff(i,j)}. Memoizovanú verziu vieme prerobiť na dynamické programovanie
+tak, že budeme pole \vb{m} vytvárať  zaradom celé.
+Zase si musíme dať pozor na to, aby sme pole prechádzali  v takom poradí, že keď
+počítame \vb{m[i][j]}, všetky potrebné hodnoty, t.j. \vb{m[i][j+1]},
+\vb{m[i+1][j]} a \vb{m[i+1][j+1]} už máme vypočítané.\\
+
+\vbox{
+\begin{lstlisting}
+for (int i = n[0]; i >= 0; i--)
+  for (int j = n[1]; j >= 0; j--)
+    if (i == n[0])
+      m[i][j] = n[1] - j;
+    else if (j == n[1])
+      m[i][j] = n[0] - i;
+    else if (a[0][i] == a[1][j])
+      m[i][j] = m[i + 1][j + 1];
+    else {
+      int x = 1 + m[i + 1][j], y = 1 + m[i][j + 1];
+      if (y < x) x = y;
+      y = 2 + m[i + 1][j + 1];
+      if (y < x) x = y;
+      m[i][j] = x;
+    }
+
+cout << m[0][0] << endl;
+\end{lstlisting}
+}
+
+ 
+Do tretice skúsme takýto príklad. Budeme mať známu hru {\sffamily minesweeper}, ale vo veľmi zjednodušenej podobe: na jednorozmernom poli. Budeme mať $n$
+políčok, pričom na niektorých môžu byť bomby. Na políčkach, ktoré susedia s bombou je napísaný počet bômb, s ktorými susedia. Takže herný plán môže vyzerať napr. takto
+
+  \def\bop{\usymH{1F4A3}{1.8ex}}
+  \def\qp{\usymH{2754}{2ex}}
+  \def\jp{\vb{\textcolor{green!60!black}{1}}}
+  \def\dvp{\vb{\textcolor{red!60!black}{2}}}
+  \def\bb{red!10}
+  \def\qb{teal!30}
+  \def\nb{white}
+
+
+\begin{tikzpicture}[scale=0.5]
+  \foreach \v/\bg[count=\x] in {\bop/\bb,\jp/\nb,~/\nb,\jp/\nb,\bop/\bb,\dvp/\nb,\bop/\bb,\bop/\bb,\jp/\nb} {
+    \draw[fill=\bg](\x,0) rectangle +(1,1) node[pos=0.5]{\v};
+  }
+\end{tikzpicture}
+
+
+Na vstupe budeme mať danú rozohratú pozíciu, v ktorej niektoré políčka sú zakryté. 
+Vstup je daný ako reťazec znakov, kde \vb{'*'} znamená bombu,  napr.
+
+
+\begin{tikzpicture}[scale=0.5]
+  \foreach \v/\bg[count=\x] in {\qp/\qb,\qp/\qb,\qp/\qb,\jp/\nb,\bop/\bb,\dvp/\nb,\qp/\qb,\qp/\qb,\jp/\nb} {
+    \draw[fill=\bg](\x,0) rectangle +(1,1) node[pos=0.5]{\v};
+  }
+\end{tikzpicture}
+
+
+je \vb{???1*2??1}. Našou úlohou je zistiť, koľkými spôsobmi je možné doplniť zakryté políčka tak, aby sme mali korektný hrací plán. V našom príklade
+na predposlednom políčku musí byť bomba (lebo na poslednom je napísaná jednotka), a na siedmom políčku tiež (lebo šieste políčko susedí s dvoma bombami).
+Na treťom políčku bomba nesmie byť, preto sú štyri možné hracie plány:
+
+
+\begin{tikzpicture}[scale=0.5]
+  \foreach \v/\bg[count=\x] in {~/\nb,~/\nb,~/\nb,\jp/\nb,\bop/\bb,\dvp/\nb,\bop/\bb,\bop/\bb,\jp/\nb} {
+    \draw[fill=\bg](\x,0) rectangle +(1,1) node[pos=0.5]{\v};
+  }
+  \foreach \v/\bg[count=\x] in {\bop/\bb,\jp/\nb,~/\nb,\jp/\nb,\bop/\bb,\dvp/\nb,\bop/\bb,\bop/\bb,\jp/\nb} {
+    \draw[fill=\bg](\x,-1.5) rectangle +(1,1) node[pos=0.5]{\v};
+  }
+  \foreach \v/\bg[count=\x] in {\jp/\nb,\bop/\bb,\jp/\nb,\jp/\nb,\bop/\bb,\dvp/\nb,\bop/\bb,\bop/\bb,\jp/\nb} {
+    \draw[fill=\bg](\x,-3) rectangle +(1,1) node[pos=0.5]{\v};
+  }
+  \foreach \v/\bg[count=\x] in {\bop/\bb,\bop/\bb,\jp/\nb,\jp/\nb,\bop/\bb,\dvp/\nb,\bop/\bb,\bop/\bb,\jp/\nb} {
+    \draw[fill=\bg](\x,-4.5) rectangle +(1,1) node[pos=0.5]{\v};
+  }
+\end{tikzpicture}
+
+
+
+Priamočiary spôsob, ako to naprogramovať, je rekurzívne skúšať všetky možnosti. Ak je na nejakom políčku \vb{i} znak \prg!'?'!, postupne skúsime dosadiť
+znaky \prg!'*','0','1','2'! a rekurzívne vyskúšame všetky možnosti pre políčka \vb{i+1} a ďalšie. Vždy, keď prídeme na koniec, skontrolujeme, 
+či máme prípustný hrací plán, a ak áno zarátame ho ako jednu z možností:\\
+
+\begin{lstlisting}
+#include <iostream>
+using namespace std;
+
+char s[10000];
+char znaky[] = "*012";
+int n;
+
+int pocet;  // tu si pamätáme celkový počet možností
+
+void skus(int i) {
+  if (i == n) { // ak sme prišli na koniec vstupu, zistíme, či máme správny hrací plán
+    for (int j = 0; j < n; j++)
+      if (s[j] != '*') { // pre každé políčko, ktoré nie je bomba
+        int val = s[j] - '0'; // hodnota 0,1,2
+        int sus = 0;          // počet bômb, s ktorými susedí
+        if (j > 0 && s[j - 1] == '*') sus++;
+        if (j < n - 1 && s[j + 1] == '*') sus++;
+        if (val != sus) return; // ak je to nesprávne, nebola to dobrá možnosť, 
+                                // skončíme celú funkciu
+      }
+    pocet++; // ak sme prišli až sem, všetky políčka sú korektné, máme novú možnosť
+    return;
+  }
+
+  // v opačnom prípade, kým nie sme na konci vstupu
+  if (s[i] == '?') { // ak tam bol otáznik, skúsime dosadiť všetky možnosti
+    for (int j = 0; j < 4; j++) {
+      s[i] = znaky[j];
+      skus(i + 1); // zakaždým sa rekurzívne zavoláme
+    }
+    s[i] = '?'; // nakoniec upraceme - rozmysli si, prečo je toto dôležité !
+  } else
+    skus(i + 1); // ak na políčku nebol otáznik, len sa zavoláme ďalej
+} // koniec funkcie skus
+
+int main() {
+  cin >> s;
+  n = 0;
+  while (s[n] != 0) n++;
+  cout << n << endl;
+
+  pocet = 0;
+  skus(0);
+  cout << pocet << endl;
+}
+\end{lstlisting}
+
+
+Pre malé vstupy to funguje, ale už napr. vstup, v ktorom je 20 otáznikov, trvá pridlho. Kontrolná 
+otázka: môžeme na túto funkciu použiť memoizáciu?
+
+
+
+Samozrejme, že nie, pretože modifikuje globálne premenné. Prvý problém je, že výsledok nevracia
+pri volaní, ale modifikuje globálnu premennú \vb{pocet}. To sa dá napraviť jednoducho:
+\vb{skus} bude vracať počet možností, ako sa dá doplniť zvyšok od $i$-tej pozície. V podmienke
+\prg!if (i == n)! sa vráti \vb{0} alebo \vb{1} podľa toho, či je pozícia korektná.
+Pre opačnú podmienku si zrátam dokopy výsledky všetkých rekurzívnych volaní a tento súčet vrátim.
+Druhý problém je, že počas volania sa modifikuje pole \vb{s}. Preto výsledok volania \vb{skus(i)}
+nemôžem memoizovať, lebo závisí od toho, aké je práve pole \vb{s}. Na memoizáciu potrebujem spraviť takú 
+rekurzívnu funkciu, ktorá by si všetky zmeny posielala v parametroch. Keby som ale ako parameter
+posielal celé pole \vb{s}, memoizačná tabuľka by bola priveľká. Našťastie si stačí uvedomiť, že na to, aby som 
+skontroloval, či je hrací plán v poriadku, nepotrebujem čakať do konca poľa, ale viem robiť kontrolu
+priebežne. Na to, aby som skontroloval políčko $i$ mi stačí vedieť hodnoty políčok $i-1$ a $i+1$.
+Lenže keď volám \vb{skus(i)}, tak hodnotu políčka $i+1$ nepoznám (možno je tam \prg!'?'!). 
+Vyriešim to napr. takto: budem si ako parametre posielať hodnoty predchádzajúcich dvoch políčok.
+Volanie \vb{skus(i,a,b)} bude teda znamenať \cmd{Zrátaj, koľkými možnosťami môžeme doplniť
+hrací plán od pozície $i$ do konca, ak na políčkach $i-2$ a $i-1$ sú znaky \vb{a} a \vb{b}}.
+Teraz pri volaní \vb{skus(i,a,b)} viem skontrolovať, či je políčko $i-1$ v poriadku.
+Celé to môže vyzerať napr. takto:
+
+\begin{lstlisting}
+// Mám tri za sebou idúce znaky a,b,c. Je znak b v poriadku?
+// parameter i je iba na to, aby som nekontroloval zarážku pred vstupom
+int kontrola(int i, char a, char b, char c) {
+  if (i == 0 || b == '*') return 1; // zarážka alebo bomba je vždy v poriadku
+  int val = b - '0';                // hodnota podľa čísla  
+  int sus = 0;                      // počet susedov
+  if (a == '*') sus++;
+  if (c == '*') sus++;
+  if (val != sus) return 0;
+  return 1;
+}
+
+char znaky[] = "*012";
+
+int skus(int i, char a, char b) {
+  if (i == n) return kontrola(i, a, b, '0');
+  if (s[i] == '?') {
+    int sum = 0;
+    for (int j = 0; j < 4; j++)
+      sum += kontrola(i, a, b, znaky[j]) * skus(i + 1, b, znaky[j]);
+    return sum;
+  } else 
+    return kontrola(i, a, b, s[i]) * skus(i + 1, b, s[i]);
+}
+\end{lstlisting}
+
+
+Táto funkcia už nemodifikuje žiadne globálne premenné, takže ju ľahko memoizujem: pridám
+si pole \prg!m[10000][4][4]!, ktoré si inicializujem zarážkou (napr. \vb{-1}).
+Vždy, keď zavolám \vb{skus(i,a,b)} najprv skontrolujem, či \vb{m[i][a][b]>-1}. Ak áno,
+iba vrátim uloženú hodnotu. Ak nie, urobím všetko ako doteraz, iba pred skončením aktualizujem
+hodnotu \vb{m[i][a][b]}, aby som ju mal uloženú pre ďalšie volania.
+Posledný krok je dynamické programovanie: budem postupne prechádzať poľom \vb{m} (odzadu)
+a vypĺňať všetky možnosti.
+
+\begin{lstlisting}
+for (int i = n; i >= 0; i--)
+  for (int a = 0; a < 4; a++)
+    for (int b = 0; b < 4; b++) {
+      if (i == n) {
+        if (znaky[b] == s[n - 1] || s[n - 1] == '?')
+          m[i][a][b] = kontrola(i, znaky[a], znaky[b], '0');
+      } else if (s[i] == '?') {
+        int sum = 0;
+        for (int j = 0; j < 4; j++)
+          sum += kontrola(i, znaky[a], znaky[b], znaky[j]) * m[i + 1][b][j];
+        m[i][a][b] = sum;
+      } else {
+        int j;
+        for (j = 0; j < 4; j++)
+          if (s[i] == znaky[j]) break;
+        m[i][a][b] = kontrola(i, znaky[a], znaky[b], s[i]) * m[i + 1][b][j];
+      }
+    }
+\end{lstlisting}
+
+
+
+\begin{uloha}
+  Na vstupe je dané \vb{n} a potom pole $n$ celých čísel.
+  Napíš program, ktorý vypíše najdlhšiu (nie nutne súvislú) rastúcu 
+  postupnosť, ktorá sa vyskytuje vo vstupnom poli. 
+  Napr. pre pole \vb{10 6 9 7 1 8 2 4 3 4} 
+  treba vypísať \vb{1 2 3 4}.
+\end{uloha}
+
+
+\begin{uloha}
+  Na vstupe je reťazec znakov. Napíš program, ktorý vypíše 
+  najdlhší (nie nutne súvislý) palindróm (reťazec, ktorý je rovnaký spredu aj zozadu),
+  ktorý sa v ňom vyskytuje. 
+
+  Napr. pre vstup
+  \hbox{\vb{zjedzlesneplodyvsipilivokneglej}}
+  je najdlhší palindróm \vb{jelenovipivonelej}.
+\end{uloha}
+
+\begin{uloha}
+  Na vstupe je čislo $n$ a potom $n$ čísel. Každé číslo je buď $-1$ alebo celé
+  číslo z rozsahu $1,\ldots,200$. Našim cieľom je nahradiť všetky $-1$
+  číslami z rozsahu $1,\ldots,200$ tak, aby vo výslednej postupnosti neboli
+  lokálne maximá, t.j. aby každé číslo susedilo aspoň s jedným číslom, ktoré nie
+  menšie. Napíš program, ktorý zistí, koľkými spôsobmi sa to dá urobiť.
+  Napr. pre vstup \vb{-1 -1} je $200$ možností, lebo obidve čísla musia byť
+  rovnaké. Pre vstup \vb{100 -1 -1} je tiež $200$ možností: druhé číslo musí byť
+  $100$ alebo viac, lebo inak by prvé číslo bolo lokálne maximum. Ak je druhé
+  číslo $100$, tretie číslo môže byť $100$ alebo čokoľvek menšie. Ak je druhé
+  číslo väčšie ako $100$, tretie číslo musí byť rovnaké, lebo inak by druhé
+  číslo bolo lokálne maximum.
+\end{uloha}
+
+\begin{uloha}
+  Máme danú mapu lesa rozmerov $m\times n$, pričom každé políčko je buď voľné,
+  alebo je na ňom strom. Začíname v ľavom hornom rohu a v každom kroku sa môžeme
+  pohnúť o jedno políčko doprava, dole, alebo šikmo. Napíš program, ktorý zistí,
+  koľkými možnosťami to vieme urobiť. Napríklad pre vstup vľavo existuje $21$ rôznych ciest,
+  dve z nich sú naznačené na obrázku vpravo.
+  
+\begin{column}{0.45}
+\begin{outputBox}
+4 5
+.##.#
+...#.
+.#..#
+#....
+\end{outputBox}
+\end{column}\hfill\begin{column}{0.45}
+  \begin{tikzpicture}[scale=0.6]
+    \def\row(#1)#2{
+      \gdef\tmp{#2}
+      \foreach\x in {0,...,4} {
+        \isnextbyte[q]{H}{\tmp}
+        \if T\theresult{
+          \draw (\x,-#1) rectangle +(1,1) node [pos=0.5] {\textcolor{green!50!black}{\usymH{1F332}{2ex}}};
+        }\else {
+          \draw (\x,-#1) rectangle +(1,1);
+        }\fi
+        \gobblechar{\tmp}
+        \xdef\tmp{\thestring}
+      }
+    }
+
+    \def\cesta[#1]#2{
+      \filldraw[#1] (0.5,0.5)
+      \foreach \x/\y in {#2} {
+        -- (\y+0.5,-\x+0.5) circle (0.04)
+      }
+      ;
+    }
+
+    \row(0){.HH.H}
+    \row(1){...H.}
+    \row(2){.H..H}
+    \row(3){H....}
+     
+     \cesta[thick,teal]{1/1,1/2,2/3,3/4}
+     \cesta[thick,orange]{1/0,1/1,2/2,3/2,3/3,3/4}
+
+  \end{tikzpicture}
+\end{column}
+\end{uloha}
+
+\begin{uloha}
+  Máme batoh s objemom $4200$ litrov. Na vstupe je $n$ vecí, každá z nich má objem
+  a cenu (obidve sú celé čísla, objem každej je nanajvýš $4200$). 
+  Chceme vybrať niektoré veci tak, aby sa nám zmestili
+  do batoha (t.j. súčet ich objemov bol nanajvýš $4200$) a mali čo najväčšiu cenu.
+  Napíš program, ktorý zistí, akú najväčšiu cenu môžeme dosiahnuť.
+  Napríklad pre veci s cenami \vb{100 100 201} a objemami \vb{2000 2000 3000}
+  najlepšie, čo môžeme urobiť, je zobrať tretiu vec a získať \vb{201}.
+\end{uloha}

@@ -1,0 +1,917 @@
+\chapter{Ako udržať poriadok vo veľkých projektoch}
+\label{sect:makefile}
+
+V tejto časti budem hovoriť o usporiadaní väčšieho projektu.
+Prostredia ako
+\link{https://www.codeblocks.org/}{Code::Blocks}, či \link{https://visualstudio.microsoft.com}{MS Visual Studio}
+majú spravidla možnosť vytvoriť projekt, ktorý sa skladá z viacerých súborov. 
+Ja tu budem ukazovať príklady v prostredí linuxového terminálu: jednak dávajú väčšiu flexibilitu, nie sú závislé od konkrétneho 
+prostredia a dá sa na nich najlepšie pochopiť, ako veci interne fungujú.
+Pre Windows sa dá nainštalovať napr. \link{https://www.msys2.org/}{MSYS2}, ktorý poskytuje
+viac-menej rovnaké prostredie (terminál, príkazy, \ldots). 
+
+
+Čím väčší program píšeš (a niektoré programy môžu byť veľmi veľké), 
+začína byť čoraz dôležitejšie udržovať si v programe
+poriadok. Ak dopredu vieš, že program, ktorý ideš písať, môže byť časom dlhší, je 
+dobré si v ňom začať dodržovať poriadok už hneď od začiatku. V kapitole
+\ref{sect:zasobnik} sme hovorili o tom, že časti programu, ktoré spolu súvisia (napr. 
+definíciu triedy a jej metód) je dobré dať do samostatného súboru a do hlavného programu
+ho pridať pomocou direktívy \prg!#include!. 
+Dobré je aj dať si na začiatok takého súboru
+dlhší komentár, kde si napíšeš názvy metód, čo robia ako ako sa používajú: keď budeš po čase potrebovať
+zistiť, ako sa tá trieda vlastne používa, nebudeš musieť hľadať hlboko v programe.
+
+Toto ale nerieši iný problém, a tým je čas kompilácie. 
+Isto si si všimol, že hlavne ak použiješ optimalizáciu (napr. prepínač \vb{-O3}), program sa
+kompiluje pomerne dlho. Ak máš aj program rozdelený do viacerých súborov, preprocesor ich pred
+začiatkom kompilácie zlepí do jedného, takže sa vždy kompiluje všetko. Aby sme si ukázali,
+ako sa to dá zrýchliť, treba vedieť, že kompilátor vyrába program v dvoch fázach: najprv vyrobí\indexItem{Prg}{object code, linker}
+tzv. {\em object code}, kde sú pre všetky funkcie 
+vyrobené príkazy pre procesor, ale ešte nemajú presne
+určené adresy v pamäti. Object code potom spracuje tzv. {\em linker}, ktorý zoberie kusy z object code
+a zlepí ich do výsledného spustiteľného súboru. To, čo trvá dlho, je vyrobiť object code, následné 
+linkovanie je krátke. Za normálnych okolností object code ani nevidíš, ale kompilátoru sa dá
+(pre \vb{g++} je to prepínač \vb{-c}) povedať, aby ho napísal do súboru a nelinkoval. 
+Dajme tomu, že v súbore \vb{main.cc} máš nasledovný program:
+
+\vskip 2ex
+\begin{lstlisting}
+int cibulka = 4;
+int lopata = 5;
+
+int tulipany() {
+  int res = 1;
+  while (cibulka-- > 0) res <<= 1;
+  return res;
+}
+
+int jama(int x) { return x * lopata; }
+
+int main() { int x = jama(tulipany()); }
+\end{lstlisting}
+
+Kvôli jednoduchosti v ňom nepoužívam \prg!cout!, takže po spustení len do premennej \prg!x!
+priradí\footnote{Funkcia \prg!tulipany! nastaví premennú \prg!cibulka! na nulu a pritom ráta hodnotu 
+$2^\text{\vb{cibulka}}$. 
+Keďže \prg!cibulka!
+je na začiatku $4$, tak \prg!tulipany! vráti $16$, čo následne \prg!jama! vynásobí piatimi.} 
+$80$ a skončí.
+Keď v termináli napíšeš \vb{g++ main.cc -o main} kompilátor vyrobí súbor \vb{main},
+ktorý môžeš spustiť \vb{./main} (a nič sa nestane). Ak ale napíšeš \vb{g++ -c main.cc -o main.o} kompilátor vyrobí súbor \vb{main.o}, ktorý obsahuje object code a spustiť nedá.  
+Potom môžeš napísať \vb{g++ main.o -o main} a object code z \vb{main.o} sa zlinkuje do súboru
+\vb{main}, ktorý sa už spustiť dá. Na súbor \vb{main.o} sa dá pozrieť napr. príkazom
+\vb{objdump -Ct main.o}, ktorý vypíše napr. niečo takéto:
+
+\vbox{
+\begin{Verbatim}[frame=single]
+main.o:     file format elf64-x86-64
+
+SYMBOL TABLE:
+0000000000000000 l    df *ABS*	0000000000000000 main.cc
+0000000000000000 l    d  .text	0000000000000000 .text
+0000000000000000 g     O .data	0000000000000004 cibulka
+0000000000000004 g     O .data	0000000000000004 lopata
+0000000000000000 g     F .text	000000000000002d tulipany()
+000000000000002d g     F .text	0000000000000013 jama(int)
+0000000000000040 g     F .text	000000000000001e main
+\end{Verbatim}
+}
+
+Bez toho, aby sme to rozoberali do detailov vidno, že súbor má dva segmenty:
+\vb{.data} a \vb{.text} a v nich obsahuje všetky globálne premenné a
+skompilované funkcie uložené za sebou (číslo v prvom stĺpci je adresa). Náš
+nápad na zrýchlenie kompilácie by preto bol rozdeliť program do viacerých
+súborov, každý z nich prekompilovať do object code a zlinkovať dokopy. Keď sa
+potom niečo zmení, bude stačiť prekompilovať ten zmenený súbor a zlinkovať
+dokopy s ostatnými, nezmenenými, object súbormi (linkovanie je rýchle).
+
+
+Spravme si preto súbor \vb{tulipany.cc}, v ktorom bude:
+
+\begin{lstlisting}
+int cibulka = 4;
+
+int tulipany() {
+  int res = 1;
+  while (cibulka-- > 0) res <<= 1;
+  return res;
+}
+\end{lstlisting}
+
+a súbor \vb{jama.cc}, v ktorom bude
+
+\begin{lstlisting}
+int lopata = 5;
+
+int jama(int x) {
+  return x * lopata;
+}
+\end{lstlisting}
+
+Teraz môžem napísať \vb{g++ -c tulipany.cc -o tulipany.o} a vyrobí sa súbor \vb{tulipany.o}, ktorý si viem skontrolovať
+\vb{objdump -Ct tulipany.o} :
+
+\begin{Verbatim}[frame=single]
+tulipany.o:     file format elf64-x86-64
+
+SYMBOL TABLE:
+0000000000000000 l    df *ABS*	0000000000000000 tulipany.cc
+0000000000000000 l    d  .text	0000000000000000 .text
+0000000000000000 g     O .data	0000000000000004 cibulka
+0000000000000000 g     F .text	000000000000002d tulipany()
+\end{Verbatim}
+
+Rovnako to viem urobiť aj so súborom \vb{jama.cc}. V súbore \vb{main.cc} ale nechcem dávať \prg!#include "tulipany.cc"!, 
+to by som bol tam, kde na začiatku, takže mi v ňom ostane
+
+\begin{lstlisting}
+int main() { 
+  int x = jama(tulipany()); 
+}
+\end{lstlisting}
+
+Keď teraz ale napíšem \vb{g++ -c main.cc -o main.o}, kompilátor nevyrobí \vb{main.o}, ale začne sa, celkom oprávnene, sťažovať, že jamu ani tulipány nepozná. Toto by bol inak dosť neprekonateľný problém, našťastie C++ má mechanizmus 
+tzv. {\em deklarácií}. Čo to je? Ak napíšeš súbor \vb{slon.cc}\indexItem{Prg}{definícia vs. deklarácia}
+
+\begin{lstlisting} 
+int slon(int x) {
+  return x * 5;
+}
+
+int main() {
+  int z = slon(3);
+}
+\end{lstlisting}
+
+je v ňom {\em definícia} funkcie \prg!slon!. Do programu ale môžeš napísať hlavičku funkcie bez tela 
+(s bodkočiarkou na konci), čím hovoríš kompilátoru
+\cmd{Časom ti definujem takúto funkciu. Ak ju niekde treba použiť, buď v pohode, je to pod kontrolou.} 
+Tomuto sľubu sa hovorí {\em deklarácia}.
+Samozrejme,
+sľub treba dodržať a funkciu časom definovať, ale to sa prejaví až pri linkovaní. Zoberme súbor
+\vb{slon.cc}
+
+\begin{lstlisting}
+int slon(int x);
+
+int main() {
+  int z = slon(3);
+}
+\end{lstlisting}
+
+Ak napíšem \vb{g++ -c slon.cc -o slon.o}, kompilátor vyrobí súbor \vb{slon.o}, v ktorom je 
+
+\begin{Verbatim}[frame=single]
+slon.o:     file format elf64-x86-64
+
+SYMBOL TABLE:
+0000000000000000 l    df *ABS*	0000000000000000 slon.cc
+0000000000000000 l    d  .text	0000000000000000 .text
+0000000000000000 g     F .text	000000000000001c main
+0000000000000000         *UND*	0000000000000000 slon(int)
+\end{Verbatim}
+
+Všimni si \vb{*UND*} pri symbole \vb{slon(int)}: kompilátor ti uveril, že \vb{slon} nakoniec niekde bude, a do object code
+si zaznačil, že zatiaľ ho nenašiel, ale nerobí kvôli tomu paniku. Keby si chcel súbor (aj) zlinkovať (napr.
+\vb{g++ slon.o -o slon}), vypíše sa chyba:
+
+\begin{Verbatim}
+/usr/bin/ld: /tmp/cc4uVwt3.o: in function `main':
+slon.cc:(.text+0xe): undefined reference to `slon(int)'
+collect2: error: ld returned 1 exit status
+\end{Verbatim}
+
+Teraz linker hovorí, že chcel zlepiť dokopy výsledný súbor, ale slona v žiadnom vstupnom súbore nenašiel. Definíciu
+slona môžeš dodať kamkoľvek, napr. ak spravíš súbor \vb{slon.cc} takto:
+
+\begin{lstlisting}
+int slon(int x); // ok, deklarácia
+int slon(int x); // druhá deklarácia, nie je problém ak je rovnaká
+
+int main() {
+  int z = slon(3);
+}
+
+int slon(int x) { // definícia
+  return x * 2;
+}
+\end{lstlisting}
+
+Všetko bude v poriadku. Záver z tohoto pozorovania je teda takýto: 
+
+\vskip 2ex 
+
+\centerline{\fcolorbox{magenta}{magenta!3!white}{\parbox{0.9\textwidth}{
+\begin{enumerate}\itemsep=-1mm
+    \item funkcia môže mať veľa deklarácií (musia byť rovnaké)
+    \item funkcia musí mať práve jednu definíciu (inak sa vyrobí object code, ale nezlinkuje sa)
+    \item použitiu funkcie v programe musí predchádzať definícia alebo deklarácia
+\end{enumerate}
+}}}
+
+
+Naspäť k príkladu s jamou a tulipánom (zmaž všetky súbory \vb{.o}). 
+Máme súbory \vb{jama.cc}, \vb{tulipany.cc} a \vb{main.cc}.
+Ten zmeníme tak, že pridáme deklarácie príslušných funkcií:
+
+\begin{lstlisting}
+int jama(int);
+int tulipany();
+
+int main() {
+  int x = jama(tulipany());
+}
+\end{lstlisting}
+
+Teraz treba napísať príkazy:
+
+\begin{Verbatim}[frame=single]
+g++ -c jama.cc -o jama.o
+g++ -c tulipany.cc -o tulipany.o
+g++ -c main.cc -o main.o
+g++ main.o jama.o tulipany.o -o main
+\end{Verbatim}
+
+a všetko prejde, ako má. Čo ak by som ale chcel v hlavnom programe modifikovať premennú \vb{lopata} (ktorá je v súbore
+\vb{jama.cc})? Nemôžem napísať:
+
+\begin{lstlisting}
+int jama(int);
+int tulipany();
+
+int main() {
+  lopata = 10;
+  int x = jama(tulipany());
+}
+\end{lstlisting}
+
+lebo pri kompilovaní \vb{main.cc} a vyhlási chyba, že nepozná premennú \vb{lopata}. Nemôžem napísať ani
+
+\begin{lstlisting}
+int jama(int);
+int tulipany();
+
+int lopata;
+
+int main() {
+  lopata = 10;
+  int x = jama(tulipany());
+}
+\end{lstlisting}
+
+Tým totiž vyrobím (inú) premennú \vb{lopata} v súbore \vb{main.o}. 
+Súbor \vb{main.cc} sa skompiluje, ale linker sa bude sťažovať na \vb{multiple definition of `lopata'; }.\indexItem{Prg}{\vb{extern}}
+Analógiou deklarácie funkcie je slovíčko \prg!extern! pre premennú: hovorí kompilátoru aby pre ňu nerobil
+novú adresu, ale spoľahol sa na to, že časom taká premenná bude definovaná. Výsledný súbor \vb{main.cc}
+by teda mohol vyzerať
+takto:
+
+\vbox{
+\begin{lstlisting}
+// odkazy na súbor jama.cc
+extern int lopata;
+int jama(int);
+
+// odkazy na súbor tulipany.cc
+extern int cibulka;
+int tulipany();
+
+// hlavný program
+int main() {
+  lopata = 10;
+  cibulka = 7;
+  int x = jama(tulipany());
+}
+\end{lstlisting}
+}
+
+Aby sa udržal poriadok, je zvykom deklarácie z nejakého súboru (napr. \vb{jama.cc}) dať do rovnako sa volajúceho 
+súboru s príponou \vb{.h} ako {\em header} (napr. \vb{jama.h}) a ten potom vložiť pomocou \prg!#include! všade, kde ho je treba.
+Takže do súboru \vb{jama.h} napíšem
+
+\vskip 2ex
+\vbox{\begin{lstlisting}
+extern int lopata;
+int jama(int);
+\end{lstlisting}}
+do súboru \vb{tulipany.h} napíšem
+
+\vskip 2ex
+\vbox{\begin{lstlisting}
+extern int cibulka;
+int tulipany();
+\end{lstlisting}}
+a výsledný program bude
+
+\vskip 2ex
+\vbox{\begin{lstlisting}
+#include "jama.h"
+#include "tulipany.h"
+
+int main() {
+  lopata = 10;
+  cibulka = 7;
+  int x = jama(tulipany());
+}
+\end{lstlisting}}
+
+
+Metódy tried sú funkcie ako každé iné, a preto pre ne platia rovnaké pravidlá o
+deklaráciách a definíciách, ako pre normálne funkcie. Treba len myslieť na to,
+že ak sa na metódu odvolávame mimo definície jej triedy, treba ju volať jej
+celým menom, t.j. pred menom metódy treba vždy uviesť (s dvomi dvojbodkami)
+triedu, ktorej patrí. Porovnaj si tieto dva zápisy
+
+\begin{column}{0.45}
+\begin{lstlisting}
+struct Bod {
+  int x, y;
+  int sucet() { return x + y; }
+};
+\end{lstlisting}
+\end{column}
+\hfill
+\begin{column}{0.45}
+\begin{lstlisting}
+struct Bod {
+  int x, y;
+  int sucet();
+};
+
+int Bod::sucet() { return x + y; }
+\end{lstlisting}
+\end{column}
+
+Doteraz sme všetky metódy tried písali tak, ako na príklade vľavo. Oba zápisy robia to isté, ale
+je tam drobný rozdiel, ktorý som ti doteraz nespomenul: 
+zápis vľavo považuje metódu \vb{sucet} za tzv. {\em inline}: kompilátor ju \indexItem{Prg}{inline metóda}
+neskompikuje priamo, ale vždy, keď sa v programe vyskytne jej volanie, kompilátor ho nahradí
+programom z definície\footnote{%
+  v niektorých prípadoch je to rýchlejšie, ale rastie veľkosť skompilovaného programu}.
+Preto zápis vľavo môže byť v header súbore, ale zápis vpravo musíme riešiť rovnako,
+ako pri ostatných funkciách.
+
+Zvykom je v definícii typu (triedy) napísať inline iba krátke malé metódy,
+pri ktorých nevadí, že sa v skompilovanom programe objavia veľakrát.
+Pri ostatných metódach napísať v headri iba ich deklarácie a ich definície písať neskôr. 
+
+
+Skúsme si to ukázať na trochu zložitejšom príklade.  Vyrob si tri súbory. Prvý bude \vb{vec.h} a bude v ňom
+
+\begin{lstlisting}
+#ifndef __vec_h__
+#define __vec_h__
+struct Vec {
+  struct Proxy {          // tento typ sa celým menom volá Vec::Proxy
+    Proxy(Vec *a);        // konštruktor Vec::Proxy (deklarácia)
+    Proxy &operator++();  // zvýši hodnotu x a vráti referenciu na seba (deklarácia)
+    private:
+    int *x;               // x je privátne pre Vec::Proxy
+  };
+  Vec(int x);          // konštruktor Vec (deklarácia)
+  int &operator()();   // vráti referenciu na mojaVec (deklarácia)
+  Proxy vyrobProxy();  // vyrobí Vec::Proxy, ktorého x ukazuje na mojaVec (deklarácia)
+  private:
+  int mojaVec;         // privátna hodnota pre Vec
+};
+#endif
+\end{lstlisting}
+
+Je v ňom definovaný typ \vb{Vec}, ktorý má privátnu premennú \vb{mojaVec}, má konštruktor s parametrom \prg!int!,
+\prg!operator()()! (t.j. operátor \vb{()} bez parametrov) a metódu \vb{vyrobProxy}. Všetky tri sú iba deklarované,
+definície budú v inom súbore. Okrem toho má typ \vb{Vec} svoj vlastný typ \vb{Proxy} (podobne ako iterátory v STL),
+ktorý sa celým menom volá \vb{Vec::Proxy}. Ten má svoj vlastný konštruktor a (prefixový) operátor \vb{++}. Tieto
+sú tiež v súbore \vb{vec.h} iba deklarované a bude treba ich definovať. Definície budú v súbore \vb{vec.cc}:
+
+\vskip 2ex
+\begin{lstlisting}
+#include "vec.h" // include treba, aby kompilátor vedel o typoch Vec a Proxy
+                 // keď vyrába object code pre vec.cc
+Vec::Proxy::Proxy(Vec *a) { x = &a->mojaVec; } // konštruktor pre Vec::Proxy
+                                               // x je pointer na a-čkovu mojaVec
+Vec::Vec(int x) { mojaVec = x; } // konštruktor pre Vec
+int &Vec::operator()() { return mojaVec; }
+
+// zavolaj konštruktor Proxy a daj mu ako parameter pointer na seba
+Vec::Proxy Vec::vyrobProxy() { return Proxy(this); }
+
+Vec::Proxy &Vec::Proxy::operator++() {
+  (*x)++;
+  return *this;
+}
+\end{lstlisting}
+
+Zápis \vb{Vec::Proxy::Proxy(Vec *a)} treba chápať takto: \vb{Vec} je typ, v ňom je typ \vb{Vec::Proxy}. Hocijaká funkcia \vb{fun}, ktorá
+by patrila typu \vb{Vec::Proxy} sa preto celým menom volá \vb{Vec::Proxy::fun}. Konštruktor je metóda, ktorá sa volá rovnako, ako typ
+(v našom prípade \vb{Proxy}). Preto celé meno konštruktora je \vb{Vec::Proxy::Proxy}.
+A napokon hlavný súbor \vb{main.cc}:
+
+\begin{lstlisting}
+#include "vec.h"
+#include <iostream>
+using namespace std;
+int main() {
+  Vec v(42);                // konštruktor spraví Vec v, kde v.mojaVec bude 42
+  cout << v() << endl;      // v() vráti referenciu na v.mojaVec, vypíše sa 42
+  v() += 5;                 // v() je referencia, takže viem v.mojaVec meniť, 
+                            // aj keď mojaVec je private
+  cout << v() << endl;      // vypíše sa 47
+  auto p = v.vyrobProxy();  // p je Vec::Proxy, jeho x je pointer na v.mojaVec
+  ++++p;                    //++p inkrementuje v.mojaVec a vráti referenciu na seba
+                            // preto ++++p je ++(++p)
+  cout << v() << endl;      // vypíše sa 49
+}
+\end{lstlisting}
+
+Teraz môžeš napísať
+
+\begin{Verbatim}[frame=single]
+g++ -c vec.cc -o vec.o
+g++ main.cc vec.o -o main
+\end{Verbatim}
+
+a po spustení \vb{./main} by sa mali vypísať čísla $42, 47$ a $49$ (všimni si, že pri jednom volaní kompilátora môžem 
+zadať viacero vstupných súborov, ktoré môžu byť zmes programov a object code súborov).
+
+
+Máme hotový mechanizmus, ako udržovať v programe poriadok a zároveň obmedziť čas kompilácie: časti programu, ktoré
+logicky patria k sebe (napr. niekoľko tried, ktoré robia jadnu vec a je šanca, že ich použijeme aj inokedy), dáme 
+dokopy: typy a deklarácie idú do súboru \vb{.h} a príslušné definície do súboru \vb{.cc}. Súbor \vb{.cc} skompilujeme
+do object code, súbor \vb{.h} vložíme pomocou \prg!#include! kam treba. Ak sa niečo zmení, prekompilujeme iba príslušnú časť
+a všetko zlinkujeme dokopy. Jediná nepraktická vec je, že na vyrobenie programu musíme veľakrát spúšťať kompilátor s rôznymi parametrami,
+a musíme si pamätať, čo sa zmenilo a čo treba prekompilovať. Ako toto celé riešiť automaticky si ukážeme o chvíľu, 
+predtým jedno dôležité upozornenie.
+
+
+Dôležité upozornenie: celý tento mechanizmus, ktorý sme si ukázali, nefunguje pre šablóny. \indexItem{Prg}{šablóny a header súbory}
+Opäť si to ukážeme na príklade. Zober si nasledovný súbor, v ktorom je trieda \vb{Dvojica}, ktorá má 
+dve premenné nejakého typu a vie ich vymeniť:
+
+\begin{column}{0.45}
+\vbox{\begin{lstlisting}
+template <typename T>
+struct Dvojica {
+  T x, y;
+  void vymen();
+};
+
+template <typename T>
+void Dvojica<T>::vymen() {
+  T tmp = x;
+  x = y;
+  y = tmp;
+}
+\end{lstlisting}}
+\end{column}\hfill\begin{column}{0.45}
+\vbox{\begin{lstlisting}
+#include <iostream>
+using namespace std;
+int main() {
+  Dvojica<int> d;
+  d.x = 3;
+  d.y = 4;
+  d.vymen();
+  cout << d.x << " " << d.y << endl;
+}
+\end{lstlisting}}\end{column}
+
+V prvom rade si všimni, akým spôsobom zapisujeme metódu \vb{vymen}: nestačí písať \prg!void Dvojica::vymen()!, lebo \vb{Dvojica} sama osebe nie je typ.
+Aj pred definíciou treba pridať príslušnú šablónu, aby sme mohli napísať celý typ, ktorý je \prg!Dvojica<T>!. Kým je celý program v jednom súbore, všetko funguje.
+Skús ho teraz rozdeliť na tri súbory, ako sme to robili pred chvíľou: šablóna typu \vb{Dvojica} pôjde do súboru \vb{dvojica.h}, definícia metódy \vb{vymen} do súboru
+\vb{dvojica.cc} a zvyšok ostane v \vb{main.cc} (s tým, že \vb{main.cc} aj \vb{dvojica.cc} budú mať \prg!#include "dvojica.h"!).
+Keď skúsiš súbory skompilovať tak, ako doteraz, t.j
+
+\begin{Verbatim}[frame=single]
+g++ -c dvojica.cc -o dvojica.o
+g++ -c main.cc -o main.o
+g++ dvojica.o main.o -o main
+\end{Verbatim}
+
+
+linker sa zrazu bude sťažovať, že 
+
+\begin{Verbatim}
+/usr/bin/ld: main.o: in function `main':
+main.cc:(.text+0x1e): undefined reference to `Dvojica<int>::vymen()'
+collect2: error: ld returned 1 exit status
+\end{Verbatim}
+
+Čo sa stalo? Odpoveď dá \vb{objdump -Ct dvojica.o}:
+
+\vbox{
+\begin{Verbatim}[frame=single]
+dvojica.o:     file format elf64-x86-64
+
+SYMBOL TABLE:
+0000000000000000 l    df *ABS*	0000000000000000 dvojica.cc
+\end{Verbatim}
+}
+
+
+Súbor \vb{dvojica.o} neobsahuje žiadne funkcie. Prečo? V súbore \vb{dvojica.cc} nie je zapísaná žiadna funkcia, iba šablóna, ako príslušnú funkciu vyrobiť, keď ju bude treba.
+Ale nie je tam žiadne miesto, kde by bolo treba vytvoriť funkciu \prg!Dvojica<int>::vymen()!, takže sa nevytvorí. Bolo by ju treba až v súbore \vb{main.o}, ale to zistí
+až linker, keď je už neskoro. Keby si do súboru \vb{dvojica.cc} pridal funkciu, ktorá prinúti kompilátor šablónu použiť, napr.:
+
+\begin{lstlisting}
+#include "dvojica.h"
+template <typename T>
+void Dvojica<T>::vymen() {
+  T tmp = x;
+  x = y;
+  y = tmp;
+}
+
+void hlupaFunkcia() {
+  Dvojica<int> d;
+  d.vymen();
+}
+\end{lstlisting}
+
+všetko by už fungovalo (skontroluj si  \vb{objdump -Ct dvojica.o}). Samozrejme, takéto riešenie je zlé, 
+preto pri šablónach je zvykom aj ich definície\footnote{
+  Treba si ale dať pozor pri špecializácii. Keď máš napr. šablónu 
+
+\begin{lstlisting}
+template <typename T>
+struct Vec {  void daj(); };
+\end{lstlisting}
+
+tak definícia jej metódy
+
+\begin{lstlisting}
+template <typename T>
+void Vec<T>::daj() { ...  }
+\end{lstlisting}
+
+  je šablóna a vyrobí sa, až keď je jasné, s akým typom \vb{T} je treba.
+  Preto patrí do súboru \vb{.h}. Ale keď tú šablónu plne špecializuješ 
+
+\begin{lstlisting}
+template <>
+struct Vec<int> { void daj(); };
+\end{lstlisting}
+  
+tak jej metóda (všimni si, že nepíšem prázdne \prg!template<>! : toto nie je 
+špecializácia metódy, ale metóda špecializovanej triedy)
+
+\begin{lstlisting}
+void Vec<int>::daj() { ...  }
+\end{lstlisting}
+
+je už normálna funkcia ako každá iná a kompilátor ju vyrobí, len čo ju zbadá. Ak ju dáš do súboru
+\vb{.h}, tak sa kompilátor môže sťažovať na viacnásobnú definíciu.
+}písať do súboru \vb{.h}.
+
+
+ Tak a teraz sa môžeme dostať k druhej časti tejto kapitoly, a to ako
+automatizovať, ktoré súbory sa kedy majú prekompilovať. To sa veľmi dobre dá
+pomocou programu \vb{make}.  \vb{make} je program, ktorý vie vykonať nejaké
+akcie (napr. zavolať kompilátor), ak sú splnené nejaké podmienky (napr. súbor
+treba prekompilovať, lebo sa zmenil). Väčšinou sa \vb{make} používa na kompilovanie programov, ale dá
+akcie môžu byť ľubovoľné\footnote{\vb{make} napríklad používam aj pri
+generovaní tohoto textu}. Je to veľmi flexibilný a silný nástroj, 
+tu
+si z neho ukážeme iba zopár vecí, ktoré budeme používať.
+
+
+Ak spustíš \vb{make} bez parametrov, bude hľadať v aktuálnom\indexItem{Alg}{\vb{Makefile}}
+adresári súbor \vb{Makefile} a z neho bude čítať pravidlá. Pravidlo má tvar
+
+\begin{Verbatim}
+cieľ: prerekvizity
+  akcia
+  ...
+\end{Verbatim}
+
+V najjednoduchšej forme je \vb{ciel} názov súboru, ktorý treba vyrobiť, ak sa
+niektorý zo súborov uvedených v časti \vb{prerekvizity} zmení. \vb{akcia} hovorí,
+čo treba urobiť na vyrobenie cieľa. Akcia môže mať viacero riadkov, ale každý
+musí začínať tabulátorom. Zoberme si opäť príklad so súbormi \vb{main.cc},
+\vb{jama.cc}, \vb{jama.h}, \vb{tulipany.cc}, \vb{tulipany.h}. Najjednoduchší
+\vb{Makefile} by vyzeral takto:
+
+
+\vbox{
+\begin{Verbatim}[frame=single]
+main: main.o jama.o tulipany.o
+  g++ main.o jama.o tulipany.o -o main
+
+jama.o: jama.cc jama.h
+  g++ -c jama.cc -o jama.o
+
+tulipany.o: tulipany.cc tulipany.h
+  g++ -c tulipany.cc -o tulipany.o
+
+main.o: main.cc tulipany.h jama.h
+  g++ -c main.cc -o main.o
+\end{Verbatim}
+}
+
+Ak spustíš \vb{make} bez parametrov, zoberie si za hlavný cieľ prvý v poradí.
+Konkrétny cieľ môžeš dať ako parameter pri spustení, takže v našom prípade je
+\vb{make} a \vb{make main} to isté. \vb{make} zistí, že na vyrobenie súboru
+\vb{main} treba mať aktuálne súbory \vb{main.o} \vb{jama.o} a \vb{tulipany.o}.
+Najprv ide skontrolovať prerekvizity. Pozrie sa, či je aktuálny súbor
+\vb{main.o}. Zistí, že taký súbor neexistuje, ale existuje cieľ, ktorým sa dá
+vyrobiť. Prerekvizity cieľa \vb{main.o} sú \vb{main.cc}, \vb{tulipany.h} a
+\vb{jama.h}, ktoré všetky existujú, takže sa vykoná akcia \vb{g++ -c main.cc -o
+main.o} a súbor \vb{main.o} je v poriadku. Podobne sa prejdú ciele \vb{jama.o}
+a \vb{tulipany.o} a vyrobia sa príslušné súbory. Keď sú prerekvizity cieľa
+\vb{main} v poriadku, vykoná sa akcia \vb{g++ main.o jama.o tulipany.o -o main}
+a hotovo (vyskúšaj si to).  Ak napíšeš \vb{make} znovu, znovu sa prečíta
+\vb{Makefile} a skontrolujú sa ciele. Teraz všetky súbory existujú, preto
+\vb{make} iba skontroluje čas modifikácie\footnote{Operačný systém si pri
+každom súbore vedie rôzne štatistiky, okrem iného aj čas poslednej modifikácie.
+\vb{make} podľa toho vie rozpoznať, ktorý súbor sa zmenil.}. Postupne zistí, že
+\vb{main.o} bol modifikovaný neskôr ako \vb{main.cc}, \vb{tulipany.h} aj
+\vb{jama.h}, takže akciu pre aktualizáciu cieľa \vb{main.o} netreba robiť. 
+Rovnako to dopadne aj pre ostatné ciele, nakoniec sa zistí, že aj súbor \vb{main}
+je aktuálny, a netreba nič kompilovať. Ak treaz zmeníš napr. súbor \vb{jama.cc} a spustíš \vb{make},
+ciele \vb{tulipany.o} aj \vb{main.o} budú aktuálne, takže sa iba prekompiluje \vb{jama.o} 
+a všetko sa zlinkuje dokopy. Ak to zhrnieme: pravidlo v \vb{Makefile} hovorí, že ak
+sa zmení niektorá z prerekvizít, treba aktualizovať cieľ pomocou príslučnej akcie.
+
+
+Ciele sa chápu ako názvy súborov, ale dá sa to využiť aj inak. Na koniec \vb{Makefile} si dopíš
+
+\begin{Verbatim}[frame=single]
+clean:
+  rm -f *.o
+  rm -f main
+\end{Verbatim}
+
+Čo sa stane, ak zavoláš \vb{make clean}? Skontroluje sa cieľ \vb{clean} a keďže taký súbor neexistuje, \vb{make} sa ho pokúsi
+vyrobiť príslušnou akciou (prerekvizity žiadne nie sú, takže sa nič nekontroluje). Lenže tá akcia nevytvorí súbor \vb{clean}, iba 
+zmaže všetky vygenerované súbory. \vb{make clean} sa teraz dá použiť na upratovanie: kedykoľvek ho napíšeš, upracú sa zbytočné súbory.
+Toto je fajn, ale ak by sa v adresári nejak ocitol súbor, ktorý by sa volal \vb{clean}, prestane to fungovať. \vb{make} má pre tento účel
+špeciálny cieľ \vb{PHONY.}, ktorý hovorí, že všetky jeho prerekvizity treba aktualizovať, aj keby existovali. Preto sa zvykne písať
+
+\begin{Verbatim}[frame=single]
+.PHONY: clean
+clean:
+  rm -f *.o
+  rm -f main
+\end{Verbatim}
+
+
+Ak máš projekt, v ktorom je veľa súborov, začne byť ručné písanie pravidiel pre každý súbor neprehľadné. \vb{make} má preto možnosi\footnote{%
+  Tých možností je ozaj veľa, odporúčam pozrieť 
+pozrieť manuál: \href[pdfnewwindow=true]{https://www.gnu.org/software/make/manual/make.html}{www.gnu.org/software/make/manual/make.html}} ako veci automatizovať.
+Jendou z nich sú premenné: premenná v \vb{Makefile} môže obsahovať postupnosť reťazcov. Premenná sa vyrobí tak, že sa do nej priradí \vb{meno = hodnota}
+a pristupuje sa k nej cez znak \vb{\$}, t.j. \vb{\$(meno)}. Napr.
+
+\begin{Verbatim}[frame=single]
+comp = g++ -O3
+sources = $(wildcard *.cc)
+objects = $(sources:.cc=.o)
+
+main: $(objects)
+  $(comp) $(objects) -o main
+\end{Verbatim}
+
+vyrobí premennú \vb{comp}, v ktorej bude \vb{``g++ -O3''}, premennú \vb{sources}, v ktorej bude výsledok príkazu \hbox{\vb{wildcard *.cc}}\footnote{To je vstavaný príkaz v \vb{make},
+ktorý vráti zoznam všetkých súborov v aktuálnom adresári, ktorých mená sa končia na \vb{.cc} (hviezdička tradične znanemá \cmd{hocičo})}, t.j. \vb{``main.cc tulipany.cc jama.cc''}
+a premennú \vb{objects}, ktorá obsahuje\footnote{opäť špeciálny zápis, ktorý \vb{make} poskytuje} všetky reťazce z \vb{\$(sources)}, ale koncovka \vb{``.cc''} sa nahradí \vb{``.o''},
+t.j \vb{``main.o tulipany.o jama.o''}. Cieľ pre \vb{main} teda funguje rovnako, ale keď sa pridá ďalší súbor, netreba meniť \vb{Makefile}. 
+Ostatné pravidlá vyzerajú všetky podobne: na vyrobenie súboru \vb{.o} treba skompilovať súbor \vb{.c}. V \vb{Makefile} sa na to dajú použiť tzv. {\em pattern rules}, t.j. šablóny 
+pravidiel, v ktorých vystupuje znak \vb{\%}: pri hľadaní vhodného pravidla sa zaňho môže dosadiť čokoľvek. Napr. \vb{Makefile} z predchádzajúceho rámčeka by sme mohli doplniť
+
+\begin{Verbatim}[frame=single]
+comp = g++ -O3
+sources = $(wildcard *.cc)
+objects = $(sources:.cc=.o)
+
+main: $(objects)
+  $(comp) $(objects) -o main
+
+%.o:  %.cc
+  $(comp) -c $< -o $@
+\end{Verbatim}
+
+Posledné pravidlo hovorí, že ak treba vyrobiť hocijaký súbor \vb{kvik.o}, treba skontrolovať prerekvizitu \vb{kvik.cc} a ak treba, skompilovať ho. Premenná \vb{\$<} je
+špeciálna premenná, ktorá označuje prvú prerekviciztu (napr. \vb{kvik.cc}) a \vb{\$@} označuje cieľ, t.j. \vb{kvik.o}. 
+Toto bude fungovať, až na to, že sa neberú do úvahy súbory \vb{.h}. Ak napr. zmeníš \vb{jama.cc}, správne sa prekompiluje \vb{jama.o} a zlinkuje sa výsledok, ale
+ak zmeníš \vb{jama.h}, nestane sa nič. Toto je hlbší problém, pretože by som chcel pre každý súbor \vb{.cc} zistiť, ktoré súbory si vkladá pomocou \prg!#include!, a dať príslušné
+prerekvizity. Práve kvôli tomuto má \vb{g++} prepínač \vb{-MM}, ktorý vypíše závislé súbory. Ak napíšeš \vb{g++ -MM main.cc}, vypíše sa 
+
+\begin{Verbatim}
+main.o: main.cc jama.h tulipany.h
+\end{Verbatim}
+
+teda presne to, čo by som chcel mať v hlavičke pravidla v \vb{Makefile}. To viem použiť spolu s mechanizmom \vb{include} v \vb{Makefile} na to, aby som spravil niečo takéto
+
+\begin{Verbatim}[frame=single]
+sources  = $(wildcard *.cc)
+objects  = $(sources:.cc=.o)
+depends  = $(sources:.cc=.d)
+
+main: $(objects)
+  g++ $(objects) -o $@
+
+%.d: %.cc
+  g++ -MM $< -o $@
+
+include $(depends)
+
+%.o: %.cc
+  g++ -c $< -o $@
+\end{Verbatim}
+
+Poďme sa pozrieť, čo tieto pravidlá hovoria. Okrem toho, čo sme tu už mali, si pre každý súbor chcem vyrobiť súbor \vb{.d} (ich názvy mám v premennej \vb{depends}).
+Mám pravidlo, ktoré mi hovorí, ako vyrobiť súbor \vb{.d} zo súboru \vb{.cc}. Riadok \vb{include \$(depends)} znamená, že na toto miesto treba vložiť obsah súborov
+\vb{main.d}, \vb{jama.d} a \vb{tulipany.d}. Ak tie súbory neexistujú, vyrobia sa podľa dostupého pravidla. Keď existujú, vložia sa tam a budú dávať dodatočné prerekvizity
+pre jednotlivé \vb{.o} súbory\footnote{Po vložení bude mať napr. súbor \vb{main.o} dve pravidlá: jedno, ktoré vzniklo vložením súboru \vb{main.d}, a
+kde má prerekvizity \vb{main.cc jama.h tulipany.h}, ale žiadnu akciu
+a druhé, kde sa použije \vb{\%.o: \%.cc}. Pri spracovaní \vb{make} funguje tak, že pri viacerých pravidlách pre jeden cieľ vyžaduje, aby práve jedno malo nastavenú akciu.
+Potom pozbiera všetky prerekvizity do jednej a ak treba, akciu urobí.}
+Skús si tento \vb{Makefile} vyskúšať tak, že budeš meniť rôzne veci v rôznych súboroch a sledovať, kedy sa čo prekompiluje. Je tam ešte jeden drobný problém. Nájdeš ho?
+
+
+Ak si ho našiel, gratulujem. Problém je v tom, že súbor \vb{.d} závisí iba od príslušného súboru \vb{.cc}. Dá sa to vidieť na príklade. Vyrob si nejaký súbor \vb{krtko.h}.
+Po tom, čo spustíš \vb{make}, pridaj do \vb{jama.h} riadok \prg!#include "krtko.h"!. Zavoláš \vb{make} a výsledný súbor sa prekompiluje, ale súbor \vb{jama.d} sa nezmení.
+Keď teraz zmeníš súbor \vb{krtko.h}, nič sa neprekompiluje\footnote{Všimni si, že keby si riadok \prg!#include "krtko.h"! pridal do \vb{jama.cc}, prerobí sa aj súbor
+\vb{jama.d} a všetko bude v poriadku.}. Aby sme to opravili, pravidlo pre generovanie súborov \vb{.d} upravíme tak, aby pridalo závislosti aj pre samotný súbor \vb{.d},
+takže napr. namiesto riadku \vb{jama.o: jama.cc jama.h} bude \vb{jama.d jama.o: jama.cc jama.h}. A úplne posledná vec: je prehľadnejšie, ak sa generované súbory nemiešajú s tými, ktoré
+píšeme. Takže si spravíme adresár (napr. \vb{build}) a všetky dočasné súbory budeme umiestňovať tam. Výsledný \vb{Makefile} by preto mohol vyzerať takto:
+
+\vbox{
+\begin{Verbatim}[frame=single]
+sources  = $(wildcard *.cc)
+builddir = ./build
+objects  = $(addprefix $(builddir)/,$(sources:.cc=.o))
+depends  = $(objects:.o=.d)
+
+main: $(objects)
+  mkdir -p $(builddir)
+  g++ $(objects) -o $@
+
+$(builddir)/%.d: %.cc
+  mkdir -p $(builddir)
+  echo -n $@" "$(builddir)/> $@
+  g++ -MM $< >> $@
+
+include $(depends)
+
+$(builddir)/%.o: %.cc
+  mkdir -p $(builddir)
+  g++ -c $< -o $@
+
+PHONY.: clean
+clean:
+  rm -rf $(builddir)
+\end{Verbatim}
+}
+
+
+Príkaz \vb{mkdir -p} urobí nový adresár, ale iba ak ešte neexistuje. Príkaz \vb{echo -m oznam} vypíše \vb{oznam} (\vb{-n} hovorí, aby na koniec nedal \prg!endl!).
+Presmerovanie \prg~>>~ znamená \cmd{Pripoj výstup z programu na koniec súboru.}
+
+
+Po odbočke k organizácii projektu sa vráťme k hre \btr a urobme si prípravné práce. Políčko budeme mať zapamätané ako dvojicu {\em stĺpec} ({\em file}, \vb{f})
+a {\em riadok} ({\em rank}, \vb{r}). A ťah si budeme pamätať ako dvojicu políčok {\em odkiaľ}, {\em kam}. To nám dáva prirodzene triedy
+
+\begin{lstlisting}
+struct Square {
+  uint8_t f, r;
+  bool legal();
+};
+
+struct Move {
+  Square from, to;
+};
+\end{lstlisting}
+
+s tým, že do \vb{Square} som pridal metódu \vb{legal}, ktorá skontroluje rozsah (od 0 do 7). 
+Premenné \vb{f,r} som definoval s typom\indexItem{Prg}{číselné typy \vb{int8\_t}, \vb{uint32\_t} a spol.}
+\prg!uint8_t!. S takým typom sme sa ešte nestretli, ale je to jeden z číselných
+typov. Okrem typov ako \prg!int!, \prg!unsigned long! a pod., ktorých veľkosť
+závisí od systému, sú aj názvy typov s fixnou dĺžkou. Takže \prg!uint8_t!
+znamená 8-bitový \vb{unsigned int}, t.j. typ, ktorý vždy zaberá 1 byte a dajú
+sa v ňom pamätať čísla $0\ldots255$. Podobne \prg!int32_t! je 32-bitový
+\vb{int} so znamienkom, \prg!uint64_t! 64-bitový  \vb{unsigned int} a pod.
+Tieto typy sú definované v knižnici \prg!<cstdint>!, takže keď ich chceš používať,
+treba zavolať \prg!#include <cstdint>!.
+
+Šachovnicu si najjednoduchšie môžeme pamätať ako pole $8\times 8$ políčok, kde 0 znamená biely,
+1 čierny a 2 prázdne políčko. Ale zhodou okolností šachovnica má presne 64 políčok, tak sa poďme pocvičiť v bitových operáciách:
+budeme mať bitovú mapu pre biele a čierne kamene, \prg!uint64_t pmap[2]! (\prg!pmap[0]! pre biele a \prg!pmap[1]! pre čierne). 
+Obidve sú 64-bitové čísla, pričom príslušný bit je nastavený na 1, ak je na danom políčku kameň tej správnej farby.
+Ak máme políčko na stĺpci ({\em file}) \vb{f} a riadkku ({\em rank}) \vb{r} (obidve v rozsahu 0 až 7), tak číslo bitu môže byť 
+\prg!(f<<3)|r!\footnote{hodnotu \vb{f} posuniem o tri bity doľava a na uvoľnené tri bity dám hodnotu \vb{r}, čo je to isté, ako
+$8\cdot f+r$, pretože \vb{r} je nanajvýš 7}.
+Môžem si spraviť funkciu \vb{idx(f,r)}, ktorá vráti 64-bitové číslo, ktoré má nastavený iba bit zodpovedajúci políčku \vb{(f,r)},
+t.j. $2^{8\cdot f + r}$, resp. \prg!(uint64_t)1 << ((uint8_t)((f << 3) | r))!.
+
+
+
+Od triedy \vb{board} by sme nateraz čakali niečo takéto:
+
+\begin{lstlisting}
+const uint8_t White = 0;
+const uint8_t Black = 1;
+const uint8_t Empty = 2;
+
+struct Board {
+  Board();  // konštruktor - nastaví začiatočnú pozíciu
+
+  uint64_t idx(int f, int r) const;     // bit v mape zodpovedajúci políčku
+  uint8_t get(int f, int r) const;      // kto má kameň na políčku
+  void set(int f, int r, uint8_t val);  // nastav políčko
+
+  int winner() const;                    // má už pozícia víťaza?
+  bool legal(Move m) const;              // je m prípustný ťah?
+  std::vector<Move> legalMoves() const;  // vráť všetky prípustné ťahy
+  Board &operator+=(Move m);             // urob ťah m
+
+  int ply;           // číslo polťahu
+  uint64_t pmap[2];  // mapa kameňov bieleho a čierneho
+};
+\end{lstlisting}
+
+
+ 
+
+Okrem mapy šachovnice (\vb{pmap}) si chceme pamätať {\em polťah} ({\em
+ply}): po každom potiahnutí sa zvýši, takže ak je na ťahu biely, je \vb{ply}
+párne, ak je na ťahu čierny, je nepárne.  Pravidlá hry sú schované v metódach
+\vb{winner}, a \vb{legal}: \vb{winner} má vrátiť \vb{White}, \vb{Black}, alebo
+\vb{Empty}, podľa toho, či je víťaz alebo nie (vtedy vráti \vb{Empty}; všimni
+si, že remíza nemôže nastať). Metóda \vb{legal} má povedať, či je daný ťah v danej pozícii
+prípustný. Na začiatok sa budú hodiť ešte dve metódy: \vb{legalMoves} vráti zoznam všetkých prípustných 
+ťahov z danej pozície a \prg!operator+=! urobí ťah.
+
+
+Konštruktor má nastaviť hrací plán na začiatok hry, t.j.\\
+
+\centerline{
+%\tikzset{external/force remake}
+\begin{tikzpicture}[scale=0.65]
+  \boardBg
+  \boardGrid
+  \wPs{00,10,20,30,40,50,60,70,01,11,21,31,41,51,61,71}
+  \bPs{07,17,27,37,47,57,67,77,06,16,26,36,46,56,66,76}
+\end{tikzpicture}
+}
+
+To môžem urobiť buď tak, že veľakrát zavolám \vb{set}, ale môžem napísať aj
+\prg!pmap[0]=0x303030303030303ULL;! \prg!pmap[1]=0xc0c0c0c0c0c0c0c0ULL;!.  Čo
+je toto za zápis? \vb{0x} na začiatku čísla znamená, že je to číslo v
+šestnástkovej sústave\footnote{O $16$-kovej sústave pozri poznámku na
+str.~\pageref{foot:hexa}; za chýbajúce cifry používame \vb{a = 10}, \vb{b =
+11}, \vb{c = 12}, \vb{d =13}, \vb{e = 14} a \vb{f = 15}, na veľkosti nezáleží,
+takže \vb{e} aj \vb{E} je $14$}. Prípona \vb{ULL} na konci znamená, že je to
+\prg!unsigned long long!.  Ako sme vraveli v poznámke pri bitových operáciách
+na str.~\pageref{foot:hexa2}, prevod šestnástkovej sústavy do dvojkovej je
+príjemný v tom, že jedna šestnástková cifra sú presne 4 dvojkové, takže viem
+prevádzať cifru po cifre: \vb{0x03} je v dvojkovej \vb{00000011}, \vb{0x0303}
+je \vb{0000001100000011} atď.  Podobne \vb{0xc0} je \vb{11000000}, \vb{0xc0c0}
+je \vb{1100000011000000} atď.
+
+
+Teraz ešte môžeme pridať funckie
+
+\begin{lstlisting}
+std::ostream &operator<<(std::ostream &, const Square &);
+std::ostream &operator<<(std::ostream &, const Move &);
+std::ostream &operator<<(std::ostream &, const Board &);
+\end{lstlisting}
+
+aby sa nám veci pekne vypisovali. Všimni si, že v deklaráciách stačí pri parametroch napísať typ,\indexItem{Prg}{deklarácia funkcie bez názvu parametra}
+netreba písať aj meno parametra (to treba až vtedy, keď sa ten parameter má použiť v tele funkcie).
+
+\def\ulohaTarget{Dir}
+\begin{uloha}
+  \label{uloha:btr1}
+  Priprav si projekt s \vb{Makefile}, súborom \vb{board.h}, v ktorom budú definície, čo sme tu napísali a súborom \vb{board.cc}, v ktorom budú
+  príslušné definície funkcií. Urob jednoduchý \vb{main.cc}, ktorý vypíše pozíciu zo strany \pageref{pg:breaktru:def} a pod ňu všetky možné ťahy bieleho:
+\end{uloha}
+
+\begin{outputBox}
+    a   b   c   d   e   f   g   h
+  +---+---+---+---+---+---+---+---+
+8 |   |   |   |   |   |   |   |   | 8
+  +---+---+---+---+---+---+---+---+
+7 |   |   |   |   |   | O |   | O | 7
+  +---+---+---+---+---+---+---+---+
+6 |   | X |   |   |   |   | X |   | 6
+  +---+---+---+---+---+---+---+---+
+5 |   |   |   |   |   |   |   |   | 5
+  +---+---+---+---+---+---+---+---+
+4 |   |   |   |   |   |   |   |   | 4
+  +---+---+---+---+---+---+---+---+
+3 |   | X | X |   |   | O | O |   | 3
+  +---+---+---+---+---+---+---+---+
+2 |   | X |   |   |   |   | X |   | 2
+  +---+---+---+---+---+---+---+---+
+1 |   |   |   |   |   |   |   |   | 1
+  +---+---+---+---+---+---+---+---+
+    a   b   c   d   e   f   g   h
+
+b2-a3  b3-a4  b3-b4  b3-c4  b6-a7  
+b6-b7  b6-c7  c3-b4  c3-c4  c3-d4  
+g2-f3  g2-h3  g6-f7  g6-g7  g6-h7
+\end{outputBox}
+
+
+

@@ -1,0 +1,102 @@
+\chapter{Ďalšie cykly}
+
+Poznáme už príkaz cyklu \prg!while! a úplne by nám stačil, aby sme s ním mohli 
+naprogramovať všetko, čo chceme. Sú ale aj ďalšie príkazy cyklov, ktoré môžeme
+použiť, aby sme dostali kratší a čitateľnejší program. Veľakrát sme potrebovali
+prejsť pomocou cyklu postupne niečo prechádzať. Na to sme vždy mali premennú,
+ktorú sme na začiatku nastavili (napr.) na nulu
+a v cykle sme ju zvyšovali nejak takto:\\
+
+\begin{lstlisting}
+int i;
+i = 0;
+while (i < n) {
+  // niečo urob
+  i = i + 1;
+}
+\end{lstlisting}
+
+Na skrátenie programu a zlepšenie čitateľnosti je možné vyrobenie premennej
+a priradenie do nej urobiť naraz, t.j. môžeme napísať\\
+
+\begin{lstlisting} 
+int i = 0;
+while (i < n) {
+  // niečo urob
+  i = i + 1;
+}
+\end{lstlisting}
+
+\indexItem{Prg}{príkaz \vb{for}}
+Tento typ programu sa dá čitateľnejšie zapísať iným príkazom cyklu, \prg!for!.
+Príkaz \prg!for! má v zátvorkách tri časti, oddelené bodkočiarkami. Prvá časť
+je príkaz, ktorý sa má vykonať na začiatku, druhá časť je podmienka ako vo \prg!while!
+cykle a tretia časť je príkaz, ktorý sa má vykonať po každom vykonaní cyklu.
+Predchádzajúci príklad by mohol vyzerať:\\
+
+\begin{lstlisting}
+int i;
+for (i = 0; i < n; i = i + 1) {
+  // niečo urob
+}
+\end{lstlisting}
+
+
+\indexItem{Prg}{inkrement \vb{i++}, \vb{i+=1}}
+Rovnako častý je aj príkaz \prg!i = i + 1!, ktorý hovorí \cmd{Zober to, čo je uložené
+v premennej \prg!i!, prirátaj 1 a výsledok ulož naspäť do \prg!i!}. Tento príkaz je tak
+častý, že má vlastnú skratku, stačí napísať\footnote{
+  Zvýšenie hodnoty premennej o 1 sa zvykne volať {\em inkrementovanie} a zníženie
+  o 1 {\em dekrementovanie}.
+  Zápis \vb{i++} sa dá použiť
+  aj ako výraz, napr. \vb{ if (i++ < 10) ...} znamená \cmd{Najprv zober hodnotu z premennej \vb{i}.
+  Premennú \vb{i} vzápätí zvýš o 1 a pôvodnú hodnotu porovnaj s 10}.
+  Podobne sa dá použiť aj \vb{++i}, ktorý inkrementuje premennú pred použitím. 
+  Ak je to vo forme príkazu, je to jedno, ale výraz \hbox{\vb{if (++i < 10) ...}} znamená
+  \cmd{K premennej \vb{i} najprv prirátaj 1 a potom ju porovnaj s 10}.
+  Rovnaký zápis funguje aj pre odčítanie, t.j. \prg!--i! a \prg!i--!.
+  Ak chcem pridať inú hodnotu, ako 1, môžem napísať \vb{+=}, napr. \prg!i += 3! namiesto
+  \prg!i = i + 3!.
+}\prg!i++!. Cyklus tvaru
+\prg!for (i = 0; i < n; i++) { ... }! 
+je veľmi častý. 
+
+\indexItem{Prg}{príkaz \vb{do-while}}
+Príkaz \prg!while! vyhodnocuje podmienku na začiatku, pred vykonaním príkazu. Niekedy
+sa viac hodí, aby sa podmienka vyhodnocovala na konci. Na to slúži príkaz 
+\hbox{\prg!do!-\prg!while!}. Dajme tomu, že chceme čítať čísla zo vstupu
+a vypisovať o jedno väčšie, až kým neprečítame -1. Môžeme to napísať takto:\\
+
+\begin{lstlisting}
+int x;
+do {
+  cin >> x;
+  cout << x + 1 << endl;
+} while (x >= 0);
+\end{lstlisting}
+
+\indexItem{Prg}{príkazy \vb{break}, \vb{continue}}
+Niekedy je dobré prerušiť vykonávanie cyklu. Na to slúžia príkazy \prg!break! (skonči
+vykonávanie celého cyklu) a \prg!continue! (skonči vykonávanie jednej iterácie a prejdi 
+na ďalšiu). Napr. nasledujúci program kopíruje čísla zo vstupu na výstup, 
+až kým neprečíta $-1$ a potom skončí:\\
+
+\begin{lstlisting}
+while (true) {
+  cin >> x;
+  if (x == -1) break;
+  cout << x << endl;
+}
+\end{lstlisting}
+
+
+Podobne nasledujúci program vypisuje iba nepárne čísla, až kým neprečíta -1:\\
+
+\begin{lstlisting}
+do {
+  cin >> x;
+  if (x % 2 == 0) continue;
+  cout << x << endl;
+} while (x != -1);
+\end{lstlisting}
+

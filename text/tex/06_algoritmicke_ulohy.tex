@@ -1,0 +1,62 @@
+\chapter{Algoritmické úlohy a príkazový riadok}
+
+Všetky úlohy, ktoré si doteraz robil, vyzerali podobne: používateľ niečo napíše na vstupe
+(napríklad 7 čísel väčších ako 3),
+program s tým má urobiť presne popísanú činnosť (napríklad nájsť najväčšie číslo) a výsledok 
+vypísať. Takýmto úlohám, ktoré zo vstupu robia výstup podľa presne stanovených pravidiel
+sa hovorí {\em algoritmické úlohy}. Sú dôležité preto, lebo pri nich vieme presne
+povedať, kedy je program správny: musí vypísať správny výstup {\em pre všetky} možné vstupy.
+Keby sme napr. v úlohe o hľadaní najväčšieho čísla mali program, ktorý skoro vždy
+napíše skutočne najväčšie číslo, ale ak je náhodou jedno z čísel na vstupe 12343, 
+tak program sa zacyklí,
+tak takýto program by bol zlý (aj keby väčšinou fungoval správne).
+Aj keď programuješ väčší program, napr. hru, je dobré si ho rozdeliť na menšie, algoritmické,
+časti, ktoré sa dajú samostatne skontrolovať. 
+
+Ako sa dajú algoritmické úlohy kontrolovať? Väčšinou nie je možné spustiť program
+na všetky možné vstupy, lebo ich je priveľa. Keďže majú presne definované, ako má vyzerať
+výstup, je možné o nejakom programe aj matematicky dokázať, že je správny. To býva ale
+ťažké, preto sa väčšinou programy {\em testujú}. Snažíme sa vybrať rôzne vstupy a na nich
+program spustíme, Keď na všetkých vstupoch dáva správne výsledky, veríme, že je dobrý.
+Nájsť dobrú sadu testovacích vstupov býva samo osebe dosť náročné. Je veľa miest,
+kde sa dajú algoritmické úlohy trénovať (napr. 
+\link{https://testovac.ksp.sk}{testovac.ksp.sk}, \link{https://www.spoj.com}{SPOJ},
+\link{https://codechef.com}{CodeChef}, \link{https://codeforces.com}{CodeForces}
+a ďalšie). Tieto stránky majú úlohy s možnosťou testovania: odošleš svoj program, na
+stránke sa skompiluje, spustí na veľa rôznych vstupoch a oznámi sa ti výsledok. Je aj
+veľa súťaží v riešení algoritmických úloh (napr. 
+\link{https://www.ksp.sk/}{KSP}, \link{http://oi.sk/}{slovenská} a 
+\link{https://ioinformatics.org/}{medzinárodná} olympiáda, \ldots).
+
+\indexItem{Alg}{štandardný vstup/výstup}
+Ako si môžeš testovať programy aj sám? Keď program číta vstup pomocou \prg!cin>>! a 
+vypisuje na výstup pomocou \prg!cout<<!, používa pri tom tzv. {\em štandardný vstup a výstup}.
+Za normálnych okolností je to klávesnica a obrazovka, ale je možné ich 
+{\em presmerovať}. Keď v linuxovom termináli spustíš 
+\vb{./program <vstup >vystup}, program bude čítať vstup namiesto z klávesnice 
+zo súboru \prg!vstup! a vypisovať namiesto obrazovky do súboru \prg!vystup!. Môžeš
+si teda napísať rôzne vstupné súbory, ktoré si nazveš napr. \prg!1.in!, \prg!2.in!
+atď. a k nim si pripravíš výstupné súbory \prg!1.out!, \prg!2.out! atď so správnymi 
+odpoveďami.
+Potom môžeš spustiť \vb{./program <1.in >1.prg} a v súbore \vb{1.prg} bude výstup 
+programu zo vstupu \vb{1.in}. Teraz stačí porovnať, či sú \vb{1.prg} a \vb{1.out}
+rovnaké. To sa dá aj automaticky, pomocou programu \vb{diff}: napíšeš 
+\prg!diff 1.prg 1.out!. 
+Ak sú rovnaké, 
+nevypíše sa nič, inak sa vypíše, kde sa líšia.
+
+Ďalšia možnosť spájania vstupu a výstupu je tzv. {\em pipe}. Ak napíšeš
+\prg!./program1 | ./program2! tak sa spustí \vb{program1} a jeho výstup sa použije
+ako vstup pre \vb{program2}.  Z príkazového riadku môžeš automaticky spustiť veľa testov.
+Príkaz
+
+\vb{for f in *.in; do ./program <\$f | diff - `basename \$f .in`.out; done}
+
+spustí \vb{program} pre všetky súbory s príponou \vb{.in} a pre každý porovná výstup so
+súborom \vb{.out} s rovnakým menom. 
+
+Ak zistíš, že v programe je chyba, treba ju hľadať. Prostredia ako \vb{Code::Blocks} umožňujú program
+spúšťať príkaz po príkaze a sledovať, ako sa pritom menia hodnoty premenných. To isté vie robiť
+aj program, ktorý sa volá {\em debugger}, napr. \vb{gdb}. Pre naše účely ale budú celkom stačiť kontrolné výpisy: na dôležité miesta v programe pridáš vypisovanie premenných a keď spustíš program, vidíš, 
+kde sa čo mení. Kontrolné výpisy nakoniec nezabudni vypnúť. Je dobré ich nemazať ale dať do komentárov, 
+možno ich ešte v budúcnosti použiješ.
