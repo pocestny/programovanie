@@ -1608,7 +1608,7 @@ V \vb{ts} si budem ukladať dni, v ktorých nejaké činnosti robím a \vb{uot[i
 Hlavná časť programu bude vyzerať takto:
 
 \vskip 1ex
-\vbox{
+%\vbox{
 \begin{lstlisting}[label={l:toposort}]
 while (s.size() > 0) {
   int v = *s.begin();
@@ -1631,7 +1631,7 @@ while (s.size() > 0) {
   }
 }
 \end{lstlisting}
-}
+%}
 
 
 Všimni si, že na riadkoch  \ref{l:toposort-1} a \ref{l:toposort-2} prvok \vb{r.j} najprv zo stromu vymažem a potom ho tam 

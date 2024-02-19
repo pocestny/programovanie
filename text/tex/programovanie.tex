@@ -5,12 +5,64 @@
 \usepackage[slovak]{babel}
 \usepackage{amsmath,amsthm,amssymb,derivative}
 \usepackage{tabularray}
+\usepackage{etoolbox}
+\usepackage[skins]{tcolorbox}
+\usepackage{fancyvrb}
+\usepackage{utfsym}
+\usepackage{fontspec}
+\usepackage{pgf,pgffor,pgfmath,pgfplots,pgfplotstable,pgfornament}
+\usepackage{tikz,tikz-3dplot}
+\usepackage{libertine}
+\usepackage{stringstrings}
+\usepackage{multirow}
+\usepackage{xspace}
+\usepackage{ltablex}
+\usepackage{listings}
+\usepackage{accsupp}
+\usepackage[final,pageanchor]{hyperref}
+
+
 
 \def\arraystretch{1.2}
 \newsavebox{\TmpBox}
 
 \long\def\IGNORE#1{}
-\usepackage{lipsum}
+%\usepackage{lipsum}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% PDF settings
+
+\hypersetup{colorlinks=true}
+\hypersetup{pdftitle={Programovanie v C++}}
+\hypersetup{urlcolor=teal!80!black}
+\hypersetup{linkcolor=teal!80!black}
+\def\dlink#1{\hbox{\href[pdfnewwindow=true]{#1}{\nolinkurl{#1}}}}
+\def\link#1#2{\href[pdfnewwindow=true]{#1}{#2\footnote{\nolinkurl{#1}}}}
+\def\linkk#1#2#3{\href[pdfnewwindow=true]{#1}{#2\footnote{\nolinkurl{#1}, #3}}}
+
+\makeatletter
+ \AtBeginDocument{%
+    \patchcmd{\Hy@colorlink}{\begingroup}{\begingroup\sffamily}{}{}%
+    \patchcmd{\@makefnmark}{\normalfont}{\selectfont}{}{}%
+}
+\makeatother
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% output box
+\VerbatimFootnotes
+\fvset{fontfamily=robotomono,commandchars=\\\{\}}
+
+\newenvironment{outputBox}{%
+\VerbatimEnvironment  
+\begin{tcolorbox}[colback=black,arc=1pt,outer arc=1pt,boxrule=0pt,
+  left=2pt,top=2pt,bottom=-2ex,before={\vspace{0.8ex}}]%
+\begin{Verbatim}[formatcom=\color{white!80!black}]}{%
+\end{Verbatim}
+\end{tcolorbox}}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% page layout
@@ -45,30 +97,7 @@
 \displaywidowpenalty=1602
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% PDF settings
-
-\usepackage[final,pageanchor]{hyperref}
-\usepackage{etoolbox}
-
-\hypersetup{colorlinks=true}
-\hypersetup{pdftitle={Programovanie v C++}}
-\hypersetup{urlcolor=teal!80!black}
-\hypersetup{linkcolor=teal!80!black}
-\def\dlink#1{\hbox{\href[pdfnewwindow=true]{#1}{\nolinkurl{#1}}}}
-\def\link#1#2{\href[pdfnewwindow=true]{#1}{#2\footnote{\nolinkurl{#1}}}}
-\def\linkk#1#2#3{\href[pdfnewwindow=true]{#1}{#2\footnote{\nolinkurl{#1}, #3}}}
-
-\makeatletter
- \AtBeginDocument{%
-    \patchcmd{\Hy@colorlink}{\begingroup}{\begingroup\sffamily}{}{}%
-    \patchcmd{\@makefnmark}{\normalfont}{\selectfont}{}{}%
-}
-\makeatother
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Fonts
-\usepackage{utfsym}
-\usepackage{fontspec}
 \newfontfamily\yanone[
   Ligatures=TeX,
   UprightFont={* Regular}, 
@@ -90,8 +119,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% TikZ
 
-\usepackage{pgf,pgffor,pgfmath,pgfplots,pgfplotstable,pgfornament}
-\usepackage{tikz,tikz-3dplot}
 \pgfplotsset{compat=1.6}
 
 \usepgflibrary{fpu}
@@ -190,8 +217,150 @@ brace/.style args = {#1/#2}{
 \def\footparindent{0em}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% index
+\newcounter{IndexRefCnt}
+\def\indexFileName{index}
+\newwrite\indexFile
+\immediate\openout\indexFile=\indexFileName.tex
+
+
+\def\PrgColor{violet!70!black}
+\def\MatColor{orange!60!black}
+\def\AlgColor{teal!70!black}
+\def\parseIndexLine#1#2#3#4{{\em\textcolor{\csname #1Color\endcsname}{#2}\dotfill%
+\hyperref[#4]{#3}}\\}
+
+\def\indexItem#1#2{%
+\stepcounter{IndexRefCnt}\phantomsection\label{indexRef.\theIndexRefCnt}%
+\immediate\write\indexFile{\unexpanded{\parseIndexLine}{#1}{#2}{\thepage}{indexRef.\theIndexRefCnt}}%
+}
+
+\def\indexChapterLine#1#2#3{%
+\immediate\write\indexFile{\unexpanded{\parseChapterLine}{#1}{#2}{#3}{\thepage}}
+}
+
+\def\parseChapterLine#1#2#3#4{%
+
+  \tikz[anchor=base,baseline]{
+    \node[minimum height=2ex, minimum width=4ex, draw=none, fill=teal!#1!violet]
+      {\textcolor{black!10}{\roboto\bfseries#2}};
+    }~{\roboto #3 \hfill \hyperlink{page.#4}{#4}}\\[2ex]
+}
+
+%\def\typesetIndexTextPrg#1{\textcolor{teal!70!black}{#1}}
+%\def\typesetIndexTextMat#1{\textcolor{solarized@green!80!black}{#1}}
+%\def\typesetIndexTextAlg#1{\textcolor{orange}{#1}}
+%\def\typesetIndexTextStl#1{\textcolor{violet}{#1}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% chapter style
+
+\makechapterstyle{myChapterStyle}{
+\def\chapterheadstart{}
+\def\printchaptername{}
+\def\chapternamenum{}
+\def\printchapternum{}
+\def\afterchapternum{}
+\setlength{\afterchapskip}{10pt}
+\def\chapnumfont{\fontsize{16pt}{30pt}\roboto\bfseries}
+\def\chaptitlefont{\fontsize{16pt}{30pt}\roboto}
+\def\printchaptertitle##1{
+  \typeout{..... chapter \thechapter: ##1}
+  \tikzexternaldisable
+  \def\numBox{
+    \tikz[anchor=base,baseline]{
+      \pgfmathtruncatemacro{\tint}{100-(\thechapter-1)*(100/\numChapters)}
+      \indexChapterLine{\tint}{\thechapter}{##1}
+      \node [minimum height=1cm, minimum width=1cm, draw=none, fill=teal!\tint!violet]
+      {\textcolor{black!10}{\chapnumfont\thechapter}};
+    }
+  }
+  \ifthispageodd{\hfill\chaptitlefont ##1\hspace{0.5em}\numBox}{\numBox\hspace{0.5em}\chaptitlefont ##1}
+  \tikzexternalenable
+}
+}
+\chapterstyle{myChapterStyle}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% geometric stuff
+
+\def\len#1#2#3#4{\pgfmathsetmacro{#1}{sqrt(((#2)*(#2))+((#3)*(#3))+((#4)*(#4)))}}
+\def\normalize#1#2#3{
+  \len{\tmp}{#1}{#2}{#3}
+  \pgfmathsetmacro{#1}{#1/\tmp}
+  \pgfmathsetmacro{#2}{#2/\tmp}
+  \pgfmathsetmacro{#3}{#3/\tmp}
+}
+\def\cross#1#2#3#4#5#6#7#8#9{%
+  \pgfmathsetmacro{#1}{#5*#9-#6*#8}
+  \pgfmathsetmacro{#2}{#6*#7-#4*#9}
+  \pgfmathsetmacro{#3}{#4*#8-#5*#7}
+}
+\def\rotz[#1]#2#3#4{
+  \pgfmathsetmacro{\tmp}{#2}
+  \pgfmathsetmacro{#2}{#2*cos(#1)-#3*sin(#1)}
+  \pgfmathsetmacro{#3}{\tmp*sin(#1)+#3*cos(#1)}
+}
+\def\rotx[#1]#2#3#4{
+  \pgfmathsetmacro{\tmp}{#3}
+  \pgfmathsetmacro{#3}{#3*cos(#1)-#4*sin(#1)}
+  \pgfmathsetmacro{#4}{\tmp*sin(#1)+#4*cos(#1)}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% circled numbers
+
+\newcommand{\libcirc}[1]{\pgfmathparse{
+    ifthenelse(#1 > 0 && #1 < 21, Hex(9311+#1), Hex(9450)
+    }\libertineGlyph{uni\pgfmathresult}}
+\newcommand{\libcircdbl}[1]{\pgfmathparse{Hex(9460+#1)}\libertineGlyph{uni\pgfmathresult}}
+\newcommand{\libcircblk}[1]{\pgfmathparse{
+    ifthenelse(#1 > 0 && #1 < 11, Hex(10101+#1),
+        ifthenelse(#1 > 10 && #1 < 21, Hex(9450-10+#1),
+            Hex(9471)
+        )
+    )
+    }\libertineGlyph{uni\pgfmathresult}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% helpers
+\def\pr#1{\ensuremath{\text{Pr}[#1]}}
+\def\ev#1{\ensuremath{\text{E}[#1]}}
+\let\angle\measuredangle
+\newcommand*{\tran}{^{\mkern-1.5mu\mathsf{T}}}
+
+
+\def\setUlohaFile#1{\href{https://github.com/pocestny/programovanie/blob/master/riesenia/#1.cc}{Úloha}}
+\def\setUlohaDir#1{\href{https://github.com/pocestny/programovanie/tree/master/riesenia/#1}{Úloha}}
+\def\setUlohaNone#1{Úloha}
+
+\def\ulohaTarget{File}
+\newtheorem{uloha}{\csname setUloha\ulohaTarget\endcsname{\arabic{uloha}}}
+
+\newenvironment{column}[1]{\begin{minipage}[t]{#1\textwidth}\vspace*{0pt}}{\end{minipage}}
+\def\nrm#1{\Vert{#1}\Vert}
+\def\kocka#1{\ifcase#1\relax\or2680\or2681\or2682\or2683\or2684\or2685\fi} %dice
+\def\btr{\hbox{\roboto Breakthrough}\xspace}
+
+\AtBeginDocument{\shorthandoff{-}}
+
+\input{rect}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% fix missing from roboto
+\def\textvisiblespace{%
+   \mbox{\kern.06em\vrule height.3ex}%
+   \vbox{\hrule width.3em}%
+   \hbox{\vrule height.3ex}}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% listings
-\usepackage{listings}
 
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 % VS2017 style from https://gist.github.com/pezcode
@@ -262,7 +431,6 @@ brace/.style args = {#1/#2}{
         showstringspaces=false
 }
 % ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-\usepackage{accsupp}
 \newcommand{\noncopynumber}[1]{%
     \BeginAccSupp{method=escape,ActualText={}}%
     #1%
@@ -299,165 +467,7 @@ brace/.style args = {#1/#2}{
 \long\def\cmd#1{{\em\textcolor{clr-comment}{#1}}}
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% index
-\newcounter{IndexRefCnt}
-\def\indexFileName{index}
-\newwrite\indexFile
-\immediate\openout\indexFile=\indexFileName.tex
 
-
-\def\PrgColor{violet!70!black}
-\def\MatColor{orange!60!black}
-\def\AlgColor{teal!70!black}
-\def\parseIndexLine#1#2#3#4{{\em\textcolor{\csname #1Color\endcsname}{#2}\dotfill%
-\hyperref[#4]{#3}}\\}
-
-\def\indexItem#1#2{%
-\stepcounter{IndexRefCnt}\phantomsection\label{indexRef.\theIndexRefCnt}%
-\immediate\write\indexFile{\unexpanded{\parseIndexLine}{#1}{#2}{\thepage}{indexRef.\theIndexRefCnt}}%
-}
-
-\def\indexChapterLine#1#2#3{%
-\immediate\write\indexFile{\unexpanded{\parseChapterLine}{#1}{#2}{#3}{\thepage}}
-}
-
-\def\parseChapterLine#1#2#3#4{%
-
-  \tikz[anchor=base,baseline]{
-    \node[minimum height=2ex, minimum width=4ex, draw=none, fill=teal!#1!violet]
-      {\textcolor{black!10}{\roboto\bfseries#2}};
-    }~{\roboto #3 \hfill \hyperlink{page.#4}{#4}}\\[2ex]
-}
-
-%\def\typesetIndexTextPrg#1{\textcolor{teal!70!black}{#1}}
-%\def\typesetIndexTextMat#1{\textcolor{solarized@green!80!black}{#1}}
-%\def\typesetIndexTextAlg#1{\textcolor{orange}{#1}}
-%\def\typesetIndexTextStl#1{\textcolor{violet}{#1}}
-
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% chapter style
-
-\makechapterstyle{myChapterStyle}{
-\def\chapterheadstart{}
-\def\printchaptername{}
-\def\chapternamenum{}
-\def\printchapternum{}
-\def\afterchapternum{}
-\setlength{\afterchapskip}{10pt}
-\def\chapnumfont{\fontsize{16pt}{30pt}\roboto\bfseries}
-\def\chaptitlefont{\fontsize{16pt}{30pt}\roboto}
-\def\printchaptertitle##1{
-  \typeout{..... chapter \thechapter: ##1}
-  \tikzexternaldisable
-  \def\numBox{
-    \tikz[anchor=base,baseline]{
-      \pgfmathtruncatemacro{\tint}{100-(\thechapter-1)*(100/\numChapters)}
-      \indexChapterLine{\tint}{\thechapter}{##1}
-      \node [minimum height=1cm, minimum width=1cm, draw=none, fill=teal!\tint!violet]
-      {\textcolor{black!10}{\chapnumfont\thechapter}};
-    }
-  }
-  \ifthispageodd{\hfill\chaptitlefont ##1\hspace{0.5em}\numBox}{\numBox\hspace{0.5em}\chaptitlefont ##1}
-  \tikzexternalenable
-}
-}
-\chapterstyle{myChapterStyle}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% output box
-\usepackage[skins]{tcolorbox}
-\usepackage{fancyvrb}
-\VerbatimFootnotes
-\fvset{fontfamily=robotomono,commandchars=\\\{\}}
-
-\newenvironment{outputBox}{%
-\VerbatimEnvironment  
-\begin{tcolorbox}[colback=black,arc=1pt,outer arc=1pt,boxrule=0pt,
-  left=2pt,top=2pt,bottom=-2ex,before={\vspace{0.8ex}}]%
-\begin{Verbatim}[formatcom=\color{white!80!black}]}{%
-\end{Verbatim}
-\end{tcolorbox}}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% geometric stuff
-
-\def\len#1#2#3#4{\pgfmathsetmacro{#1}{sqrt(((#2)*(#2))+((#3)*(#3))+((#4)*(#4)))}}
-\def\normalize#1#2#3{
-  \len{\tmp}{#1}{#2}{#3}
-  \pgfmathsetmacro{#1}{#1/\tmp}
-  \pgfmathsetmacro{#2}{#2/\tmp}
-  \pgfmathsetmacro{#3}{#3/\tmp}
-}
-\def\cross#1#2#3#4#5#6#7#8#9{%
-  \pgfmathsetmacro{#1}{#5*#9-#6*#8}
-  \pgfmathsetmacro{#2}{#6*#7-#4*#9}
-  \pgfmathsetmacro{#3}{#4*#8-#5*#7}
-}
-\def\rotz[#1]#2#3#4{
-  \pgfmathsetmacro{\tmp}{#2}
-  \pgfmathsetmacro{#2}{#2*cos(#1)-#3*sin(#1)}
-  \pgfmathsetmacro{#3}{\tmp*sin(#1)+#3*cos(#1)}
-}
-\def\rotx[#1]#2#3#4{
-  \pgfmathsetmacro{\tmp}{#3}
-  \pgfmathsetmacro{#3}{#3*cos(#1)-#4*sin(#1)}
-  \pgfmathsetmacro{#4}{\tmp*sin(#1)+#4*cos(#1)}
-}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% circled numbers
-
-\usepackage{libertine}
-\newcommand{\libcirc}[1]{\pgfmathparse{
-    ifthenelse(#1 > 0 && #1 < 21, Hex(9311+#1), Hex(9450)
-    }\libertineGlyph{uni\pgfmathresult}}
-\newcommand{\libcircdbl}[1]{\pgfmathparse{Hex(9460+#1)}\libertineGlyph{uni\pgfmathresult}}
-\newcommand{\libcircblk}[1]{\pgfmathparse{
-    ifthenelse(#1 > 0 && #1 < 11, Hex(10101+#1),
-        ifthenelse(#1 > 10 && #1 < 21, Hex(9450-10+#1),
-            Hex(9471)
-        )
-    )
-    }\libertineGlyph{uni\pgfmathresult}}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% helpers
-\usepackage{stringstrings}
-\usepackage{multirow}
-\usepackage{xspace}
-\def\pr#1{\ensuremath{\text{Pr}[#1]}}
-\def\ev#1{\ensuremath{\text{E}[#1]}}
-\let\angle\measuredangle
-\newcommand*{\tran}{^{\mkern-1.5mu\mathsf{T}}}
-
-
-\def\setUlohaFile#1{\href{https://github.com/pocestny/programovanie/blob/master/riesenia/#1.cc}{Úloha}}
-\def\setUlohaDir#1{\href{https://github.com/pocestny/programovanie/tree/master/riesenia/#1}{Úloha}}
-\def\setUlohaNone#1{Úloha}
-
-\def\ulohaTarget{File}
-\newtheorem{uloha}{\csname setUloha\ulohaTarget\endcsname{\arabic{uloha}}}
-
-\newenvironment{column}[1]{\begin{minipage}[t]{#1\textwidth}\vspace*{0pt}}{\end{minipage}}
-\def\nrm#1{\Vert{#1}\Vert}
-\def\kocka#1{\ifcase#1\relax\or2680\or2681\or2682\or2683\or2684\or2685\fi} %dice
-\def\btr{\hbox{\roboto Breakthrough}\xspace}
-
-\AtBeginDocument{\shorthandoff{-}}
-
-\input{rect}
-\usepackage{ltablex}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% fix missing from roboto
-\def\textvisiblespace{%
-   \mbox{\kern.06em\vrule height.3ex}%
-   \vbox{\hrule width.3em}%
-   \hbox{\vrule height.3ex}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
@@ -505,7 +515,7 @@ brace/.style args = {#1/#2}{
 \include{36_sdl.tex}
 \include{37_thready.tex}
 \include{38_dedicnost.tex}
-%\include{39_nnetwork.tex}
+\include{39_nnetwork.tex}
 
 \immediate\closeout\indexFile
 
