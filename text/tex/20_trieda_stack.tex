@@ -87,7 +87,7 @@ int main() {
 
  Funkcia \vb{push} nám teraz kontroluje, aby zásobník nepretiekol: ak je plný, 
 prvok nevloží a vráti \prg!false!.
-Volanie \vb{(*p).x}, kde \vb{p} je pointer na typ, ktorý má zložku \vb{x} je natoľko\indexItem{Prg}{zápis \vb{->}}%
+Volanie \vb{(*p).x}, kde \vb{p} je pointer na typ, ktorý má zložku \vb{x} je natoľko \indexItem{Prg}{zápis \vb{->}}%
 časté, že má skratku \vb{p->x}. Teda namiesto \prg!(*s).a! môžeš písať \prg!s->a!.
 Týmto sme dosiahli, že všetky operácie so zásobníkom sú schované v jednom type a príslušných
 funkciách. Keby sme sa rozhodli naprogramovať zásobník nejak inak\footnote{%

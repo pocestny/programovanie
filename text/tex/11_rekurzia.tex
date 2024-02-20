@@ -179,6 +179,7 @@ a príde sa na príkaz \prg!int v2 = vyraz();!.\\
     \vyr{\textcolor{\gr}{(2}\textcolor{\clr}{+}(3*5))}
     \fr{vyraz}
     \var(4ex,-2ex){c}{\vb{\textcolor{\stringcolor}{\small '+'}}}{vC}  
+    \var(14ex,-2ex){v1}{\vb{2}}{vV}  
     \node [anchor=south west] at (0,-10ex) {\vb{v2 = vyraz();} };
     \draw[draw=\clr](0,-\h) -- (\w,-\h); 
   \end{scope}
@@ -327,14 +328,14 @@ desaťkrát hodnota čísla \prg!'456'! plus hodnota cifry \prg!'7'!.
 
 
 \begin{column}{0.6}
-Niekedy je dobé mať globálnu premennú (napr. pole), do ktorého rekurzívna procedúra
+Niekedy je dobé mať globálnu premennú (napr. pole), do ktorého rekurzívna funkcia 
 postupne generuje všetky možnosti: skúsi prvú možnosť, rekurzívne doplní zvyšok, skúsi
 druhú možnosť, atď. Napríklad chcem pre zadané \vb{n}  vypísať všetky
 $n$-bitové čísla v dvojkovej sústave, napr. v poradí ako vpravo.
 Vypísať všetky čísla môžem tak, že najprv vypíšem všetky, ktoré sa začínajú nulou a potom
 všetky, ktoré sa začínajú jednotkou. Všetky $n$-bitové čísla, ktoré sa začínajú nulou, viem
 vypísať tak, že vypíšem všetky \vb{n-1}-bitové čísla, akurát že pred každým napíšem nulu.
-Ako to naprogramovať s pomocou rekurzie? 
+Ako to naprogramovať pomocou rekurzie? 
 \end{column}\hfill\begin{column}{0.3}
 \begin{outputBox}
 0 0 0 
@@ -350,7 +351,7 @@ Ako to naprogramovať s pomocou rekurzie?
 
 Urobím si pole, v ktorom bude \vb{n} čísel. 
 Začnem tak, že na prvé miesto napíšem nulu a rekurzívne sa zavolám na zvyšok. Budem ale potrebovať
-písať na iné miesta v poli, preto moja funkcia bude mať ako parameter, na ktoré miesto poľa
+písať na iné miesta v poli, preto moja funkcia bude mať ako parameter císlo miesta poľa, na ktoré
 má zapisovať. Keď sa v rekurzii dostanem až na koniec poľa, jednoducho ho vypíšem. Mohlo by to 
 vyzerať napr. takto:
 

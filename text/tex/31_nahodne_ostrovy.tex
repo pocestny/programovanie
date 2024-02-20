@@ -54,13 +54,12 @@ kde budeme mať buď reálne čísla alebo farby, tak je dobré sa na to priprav
   dali ukladať akékoľvek typy (pomocou šablóny).
 \end{uloha}
 
-Prvý pokus o náhodnú výškovú mapu môže vyzerať nejak takto\footnote{\indexItem{Prg}{inkrement \vb{i++} ako výraz}%
-Tu idem použiť zápis, ktorý sme doteraz nemali a zaslúži si komentár. Ak mám napr. premennú
-\prg!int i!, tak vieš, že \prg!i++! je príkaz, ktorý priráta k \prg!i! jednotku. Doteraz som ti
-nepovedal, že \prg!i++! sa dá použiť aj ako výraz. Keby som mal napr. \prg!vector<int> a!,
+Prvý pokus o náhodnú výškovú mapu môže vyzerať nejak takto\footnote{%
+  Tu som použil zápis inkrementácie ako výrazu, pozri aj poznámku na str.~\pageref{foot.inc-vyraz}. 
+Keby som mal napr. \prg!vector<int> a!,
 tak \prg!int x = a[i++]! znamená \cmd{Do \prg!x! ulož hodnotu \prg!a[i]! a potom zvýš \prg!i! o jednotku}.
 Je to teda to isté, ako keby som napísal \prg!x = a[i]; i = i+1;!.
-Niekedy si možno zbadal aj zápis \prg!++i!, ktorý sám osebe robí to isté, t.j. pripočíta k \prg!i! jednotku,
+Zápis \prg!++i! sám osebe robí to isté, t.j. pripočíta k \prg!i! jednotku,
 ale urobí to na začiatku. Preto \prg!int y = a[++i]! je to isté ako \prg!i = i+1; y = a[i];!
 }
 

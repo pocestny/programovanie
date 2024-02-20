@@ -261,8 +261,7 @@ void CountSort(int n) {
 
 Teraz som spravil to, že som oba programy veľakrát spustil na rôznych poliach
 a meral im čas. Výsledky sú v nasledovných grafoch\footnote{Vyzerajú síce podobne, 
-ale všimni si, že obrázok vľavo je v sekundách a vpravo v mikrosekundách. CounSort
-bol na dlhých poliach výrazne rýchlejší.}
+ale všimni si, že obrázok vľavo je v sekundách a vpravo v mikrosekundách.}
 
 \if\longCharts1
 
@@ -290,6 +289,7 @@ bol na dlhých poliach výrazne rýchlejší.}
   \addplot[no markers,red!50!white]{0.0000000027*x*x+0.01};
 \end{axis}
 \end{tikzpicture}
+\hfill
 \begin{tikzpicture}[scale=0.9]
 \begin{axis}[
   title={CountSort},
@@ -326,8 +326,10 @@ Ničmenej všetky body na ľavom obrázku sa dajú schovať pod parabolu\footnot
 CountSort má {\em lineárnu}.
 
 
-Je program s lineárnou zložitosťou vždy lepší, ako ten s kvadratickou?
-Predpokladajme, že máme lineárny program ${\mathcal A}$, ktorého čas na vstupe veľkosti
+Je lineárny program \footnote{Mal by som písať poriadne ``program s lineárnou časovou zložitosťou''. Označenie ``lineárny program'' znamená v matematike čosi úplne iné, ale teraz nám to nevadí.} 
+vždy lepší ako kvadratický?
+Predpokladajme, že máme lineárny program
+${\mathcal A}$, ktorého čas na vstupe veľkosti
 $n$ je najviac $42n+200$. Majme hocijaký kvadratický program ${\mathcal B}$,
 ktorého čas na vstupe veľkosti $n$ je $an^2+b$ pre nejaké čísla $a$, $b$. 
 Pre malé hodnoty $n$ môže byť program ${\mathcal B}$ rýchlejší. Ale existuje
@@ -658,7 +660,7 @@ a preto v súčte je aspoň $(n-1)/2$ členov, z ktorých každý je väčší
 ako $(n/2)^2/2$. Dokopy je teda zložitosť väčšia ako
 $\frac{n-1}{2}\frac{(n/2)^2}{2}=\frac{1}{4}(n-1)n^2/4>\frac{1}{16}n^3$.
 Takáto zložitosť sa volá {\em kubická} (čas sa vždy zmestí pod graf funkcie
-$an^3$ pre nejaké číslo $a$). Vzťah medzi kubickou a kvadratickou zložitosťou
+$an^3+b$ pre nejaké čísla $a,b$). Vzťah medzi kubickou a kvadratickou zložitosťou
 je rovnaký ako medzi kvadratickou a lineárnou: hocijaký kvadratický program 
 začne byť pre dosť veľké vstupy lepší ako daný kubický.
 
@@ -726,7 +728,7 @@ int klauni2() {
 \phantom{aaa}
 
 
-Akú má zložitosť? Podobne, ako v predchádzajúcom príklade, najhorší prípad je, 
+Akú má ztento program ložitosť? Podobne, ako v predchádzajúcom príklade, najhorší prípad je, 
 keď sú klauni utriedení: vtedy vnútorný cyklus pôjde zakaždým až po začiatok,
 a teda celkový počet opakovaní bude \hbox{$1+2+3+\cdots+(n-2)+(n-1)$,} čo je kvadraticky
 veľa.

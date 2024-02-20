@@ -250,7 +250,7 @@ Týmto sme sa presvedčili, že pre akúkoľvek (deterministickú, s úplnou inf
 hru je každá pozícia vyhrávajúca, prehrávajúca, alebo remízová. To nielenže znamená, 
 že vždy existuje optimálna
 stratégia, ale v predchádzajúcom odstavci sme aj opísali postup (nazývaný {\scshape MiniMax}), ako
-ju nájsť. Tento postup vieme naprogramovať jednoduchou rekurzívnou procedúrou \prg!int value(const Board &b)!:
+ju nájsť. Tento postup vieme naprogramovať jednoduchou rekurzívnou funkciou \prg!int value(const Board &b)!:
 ak je to koncová pozícia, vrátime víťaza, inak vyrobíme všetky možné ťahy, rekurzívne zistíme ich hodnoty a
 vrátime minimum alebo maximum, podľa toho, ktorý hráč je na ťahu.
 

@@ -15,7 +15,9 @@ int main() {
 
 Na spustenie sa dá použiť nejaké prostredie (napr.
 \link{https://www.codeblocks.org/}{Code::Blocks}, \link{https://visualstudio.microsoft.com}{MS Visual Studio}, ...), alebo linuxový terminál.  V
-hocijakom editore (napr. \link{https://atom.io/}{Atom}) napíš súbor s
+hocijakom editore (napr. %\link{https://atom.io/}{Atom}
+\link{https://bluefish.openoffice.nl/index.html}{Bluefish},
+\link{https://kate-editor.org/}{Kate},...) napíš súbor s
 programom, ktorý nazvi napr. \vb{program.cc} a skompiluj ho napr. tak, že
 v termináli napíšeš \vb{g++ program.cc -o program}. Týmto hovoríš
 kompilátoru\footnote{% 
@@ -85,28 +87,28 @@ teda v premennej \prg~x~ bude uložená hodnota \prg~21~. Samotné meno premenne
 je výraz (t.j. príklad), ktorého hodnota (t.j. výsledok) je číslo, 
 ktoré je v nej práve uložené. Čo urobí nasledovný program?
 
-\begin{lstlisting}
+\begin{lstlisting}[label=uvod.1]
 #include <iostream>
 using namespace std;
 int main() {
   int x;
   x = 2 + 5;
-  cout << 3 * x;
+  cout << 3 * x; @\ll1@
   cout << endl;
-  x = 9 - 5;
-  cout << 3 * x;
+  x = 9 - 5; @\ll2@
+  cout << 3 * x; @\ll3@
   cout << endl;
 }
 \end{lstlisting}
 
 Prvý príkaz na riadku~4 vyrobí premennú \prg~x~, príkaz na riadku~5
 vyráta príklad $2+5$ a výsledok (teda $7$)
-uloží do premennej \prg~x~. Príkaz na riadku~7 ráta príklad 
+uloží do premennej \prg~x~. Príkaz na riadku~\ref{uvod.1-1} ráta príklad 
 \cmd{Vynásob číslo $3$ a obsah premennej
 \prg~x~}. V premennej \prg~x~ je práve uložená sedmička, takže výsledok príkladu je 
 $3\cdot7=21$ a to je číslo, ktoré sa vypíše a vzápätí sa vypíše koniec riadku.
-Nasledujúci príkaz na riadku~8 do premennej \prg!x! uloží výsledok príkladu $9-5$, teda $4$. 
-Príkaz na riadku~9 ráta to isté, čo príkaz na riadku~6, t.j.
+Nasledujúci príkaz na riadku~\ref{uvod.1-2} do premennej \prg!x! uloží výsledok príkladu $9-5$, teda $4$. 
+Príkaz na riadku~\ref{uvod.1-3} ráta to isté, čo príkaz na riadku~\ref{uvod.1-1}, t.j.
 \cmd{Vynásob číslo $3$ a obsah premennej \prg!x!}. Teraz je ale v premennej \prg!x! uložené
 číslo $4$, takže výsledok príkladu je $12$.
 

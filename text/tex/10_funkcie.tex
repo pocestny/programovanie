@@ -66,7 +66,7 @@ Každá funkcia musí skončiť príkazom
 \prg!return!\footnote{Slušné by bolo, aby sme aj na konci hlavného programu písali 
 \prg!return 0;!, ale keďže už potom program skončí, tak to nevadí, keď to vynecháme.}.
 Funkcia je samostatný svet, takže môže mať vlastné premenné. Tie sú úplne nezávislé
-od iných funkcií (hovoríme im\indexItem{Prg}{lokálne premenné}{\em lokálne premenné}). Čo urobí tento program?
+od iných funkcií (hovoríme im \indexItem{Prg}{lokálne premenné}{\em lokálne premenné}). Čo urobí tento program?
 
 %\vbox{
 \begin{lstlisting}[] 
@@ -363,8 +363,7 @@ int x = 5;
 void p() { cout << x; }
 
 int main() {
-  int x = 7;
-  int a = 9;
+  int x = 7, a = 9;
   cout << x;
   p();
   { 
@@ -378,7 +377,8 @@ int main() {
 }
 
 vypíše \footnote{Všimni si, že C++ má tzv. {\em static scope}: ktorý je najbližší 
-svet sa rozhoduje podľa toho, ako je to v programe zapísané. Takže vo volaní \prg!p()!
+svet sa rozhoduje podľa toho, ako je to v programe zapísané a nie podľa toho, ktorá funkcia ktorý svet vytvorila počas behu programu. 
+Takže vo volaní \prg!p()!
 z riadku \ref{funkcie.1-1} sa použije globálna premenná \vb{x} a nie premenná \vb{x}
 zo sveta zloženého príkazu na riadku \ref{funkcie.1-2}.}
 \vb{756957}: 
@@ -424,7 +424,7 @@ dĺžka poľa. Ak by bolo na vstupe viac ako 1000 čísel, stanú sa hrozné vec
   Napíš funkciu s parametromm \prg!int n!, ktorá v globálnom poli \vb{a} 
   (o ktorom predpokladáme, že obsahuje kladné čísla) nájde najväčší
   prvok spomedzi prvých \vb{n}, prepíše ho v poli na \vb{-1} a vráti jeho hodnotu
-  (ešte predtým, ako ho prepísala). Potom s pomocou nej
+  (ešte predtým, ako ho prepísala). Potom pomocou nej
   napíš program, ktorý do poľa prečíta kladné
   čísla zo vstupu a vypíše ich v utriedenom poradí.
 \end{uloha}

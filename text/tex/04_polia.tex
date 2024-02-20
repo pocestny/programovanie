@@ -68,8 +68,8 @@ Pri pristupovaní do poľa je príjemné, že výrazy typu \prg!bool! sa vyhodno
 nie je jasný výsledok, potom sa s počítaním prestane. Napr. pri výraze
 \prg!false  && ( zlozita_vec )! je hneď po vyhodnotení prvého \prg!false! jasné, že výsledok bude
 \prg!false!, preto sa \prg!zlozita_vec! ani nevykoná. To umožňuje napísať do jednej podmienky 
-kontrolu, či je index do poľa správny
-napr. napíšem
+kontrolu, či je index do poľa správny.
+Napr. napíšem
 \prg!if (i>=0 && i<10 && a[i]==5)! a viem, že z poľa sa bude čítať iba vtedy, ak je premenná
 \prg!i! zo správneho rozsahu.
 
@@ -83,7 +83,7 @@ cin >> n;       // prečítam počet čísel
 int x[n];       // vyrobíme pole potrebnej veľkosti
 i = 0;         
 while (i < n) { // v cykle prečítame všetky prvky poľa
-  cin >> a[i];
+  cin >> x[i];
   i = i + 1;
 }
 \end{lstlisting}
@@ -107,7 +107,7 @@ int main() {
   int x[n];       // vyrobíme pole správnej dĺžky        
   i = 0;
   min = 0;
-  while (i < n) { // načítavame vstup a zároveň počítame maximum
+  while (i < n) { // načítavame vstup a zároveň počítame maximum do zarážky
     cin >> x[i];
     if (x[i] > min) min = x[i];
     i = i + 1;
