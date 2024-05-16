@@ -13,7 +13,7 @@ int main() {
   int a, cnt = 0;
   cin >> a;
   i = 0;
-  for (i < n) {
+  while (i < n) {
     if (x[i] == a) cnt = cnt + 1;
     i = i + 1;
   }
